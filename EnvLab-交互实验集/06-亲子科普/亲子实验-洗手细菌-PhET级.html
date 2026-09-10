@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>洗手 vs 细菌 · 到底怎么洗才干净 · 亲子科学实验室</title>
+<style>
+:root{--bg:#0a0a14;--card:#111122;--card2:#16162d;--accent:#0ea5e9;--accent2:#f472b6;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--text:#e2e8f0;--muted:#64748b;--border:#1a1a3a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;overflow-x:hidden}
+.wrap{max-width:820px;margin:0 auto;padding:0 14px 60px}
+.hero{position:relative;padding:44px 28px 36px;text-align:center;background:linear-gradient(135deg,#0f172a,#1a0a1a);overflow:hidden;border-radius:0 0 20px 20px;margin-bottom:20px}
+.hero::before{content:'';position:absolute;top:-60%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(244,114,182,.07),transparent 50%),radial-gradient(circle at 70% 60%,rgba(34,197,55,.04),transparent 40%)}
+.hero h1{font-size:24px;font-weight:700;position:relative;z-index:1}
+.hero h1 em{color:var(--accent2);font-style:normal}
+.hero .hb{font-size:12px;color:var(--muted);margin-top:6px;position:relative}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:14px}
+.sec .snum{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent2);font-weight:600;margin-bottom:6px}
+.sec h2{font-size:17px;font-weight:600;margin-bottom:10px}
+.sec p{font-size:13px;color:#cbd5e1;margin-bottom:8px;line-height:1.8}
+.sec ul{padding-left:18px;margin:4px 0 8px}
+.sec ul li{font-size:13px;color:#cbd5e1;margin-bottom:3px}
+.exp-area{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin:14px 0}
+.exp-area .et{font-size:14px;font-weight:600;margin-bottom:12px;text-align:center;color:var(--accent2)}
+.petri-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+@media(max-width:560px){.petri-grid{grid-template-columns:1fr}}
+.petri{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center}
+.petri .ptitle{font-size:11px;font-weight:600;margin-bottom:4px}
+.petri .p-sub{font-size:9px;color:var(--muted);margin-bottom:8px}
+.petri-dish{width:100%;max-width:140px;margin:0 auto;aspect-ratio:1;border:3px solid rgba(148,163,184,.2);border-radius:50%;position:relative;overflow:hidden;background:rgba(255,255,255,.03)}
+.petri-dish .germ{position:absolute;border-radius:50%;transition:all .5s}
+.petri-dish .p-label{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:9px;font-weight:700}
+.wash-methods{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:10px 0}
+@media(max-width:500px){.wash-methods{grid-template-columns:1fr 1fr}}
+.wbtn{padding:8px;border-radius:10px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:10px;cursor:pointer;transition:.15s;text-align:center}
+.wbtn:hover{border-color:var(--accent2);background:rgba(244,114,182,.08)}
+.wbtn.active{border-color:var(--accent2);background:rgba(244,114,182,.15);color:var(--accent2)}
+.wbtn .wi{font-size:20px;display:block;margin-bottom:2px}
+.ctrl-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.ctrl-row .cl{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--muted)}
+.ctrl-row .cl b{color:var(--text)}
+.ctrl-row input[type=range]{width:80px;height:4px;-webkit-appearance:none;background:#1a1a2a;border-radius:2px}
+.ctrl-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent2);cursor:pointer}
+.result-box{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;margin:8px 0;text-align:center}
+.result-box .rv{font-size:14px;font-weight:700}
+.result-box .rd{font-size:10px;color:var(--muted);margin-top:4px}
+.btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.btn{padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12px;cursor:pointer;transition:.2s;font-weight:600}
+.btn:hover{background:rgba(14,165,233,.1);border-color:var(--accent)}
+.btn.green{background:rgba(34,197,55,.15);border-color:var(--green);color:var(--green)}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600}
+.tag.g{background:rgba(34,197,55,.15);color:var(--green)}
+.tag.y{background:rgba(251,191,36,.15);color:var(--amber)}
+.tag.r{background:rgba(239,68,68,.15);color:var(--red)}
+.ft{text-align:center;padding:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:10px}
+.ft em{color:var(--accent2);font-style:normal}
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>🧴 洗手到底怎么洗才干净？<br><em>细菌培养皿</em>给你看答案</h1>
+  <div class="hb">EnvLab · 亲子科学实验室 · 选洗手方式，看培养皿上细菌还剩多少</div>
+</div>
+<div class="wrap">
+
+<div class="sec">
+  <div class="snum"><span class="tag">01</span> 细菌为什么怕洗手？</div>
+  <h2>洗手不是杀死细菌，是冲走细菌</h2>
+  <p>我们的手上每平方厘米有数千个细菌。大部分无害，但有些会让人生病（拉肚子、感冒）。</p>
+  <p>洗手用<strong>肥皂+流水</strong>，不是杀死细菌，而是把细菌从皮肤上"揭"下来冲走。这就是为什么洗手时间很重要——<strong>至少 20 秒</strong>才能把手洗到位。</p>
+  <p>不同洗手方式的效果差异很大：</p>
+  <ul>
+    <li>💧 清水冲一下 → 只能冲走部分</li>
+    <li>🧴 肥皂搓 10 秒 → 冲走大部分</li>
+    <li>🧪 洗手液搓 20 秒 → 几乎干净</li>
+    <li>🚫 免洗洗手液 → 杀菌但去不了油污</li>
+  </ul>
+</div>
+
+<div class="exp-area">
+  <div class="et">🎮 洗手对比实验</div>
+
+  <div class="petri-grid">
+    <div class="petri">
+      <div class="ptitle">🧫 洗手前</div>
+      <div class="p-sub">细菌超多！</div>
+      <div class="petri-dish" id="dishBefore"></div>
+    </div>
+    <div class="petri">
+      <div class="ptitle">🧫 洗手后</div>
+      <div class="p-sub" id="afterLabel">选择洗手方式</div>
+      <div class="petri-dish" id="dishAfter"></div>
+    </div>
+  </div>
+
+  <div class="wash-methods" id="washGrid">
+    <div class="wbtn" onclick="wash(0)"><span class="wi">💧</span>清水冲5秒</div>
+    <div class="wbtn" onclick="wash(1)"><span class="wi">🧴</span>肥皂搓10秒</div>
+    <div class="wbtn" onclick="wash(2)"><span class="wi">🧪</span>洗手液20秒</div>
+    <div class="wbtn" onclick="wash(3)"><span class="wi">🧴</span>肥皂+七步法</div>
+    <div class="wbtn" onclick="wash(4)"><span class="wi">🧼</span>免洗洗手液</div>
+    <div class="wbtn" onclick="wash(5)"><span class="wi">🔥</span>酒精消毒</div>
+  </div>
+
+  <div class="ctrl-row">
+    <span class="cl">🧫 细菌初始数量 <b id="germCount">1000</b></span>
+    <input type="range" id="sGerm" min="1" max="5" value="3" step="1" oninput="updateGerm()">
+  </div>
+
+  <div class="result-box" id="resultBox">
+    <div class="rv">👆 选择一个洗手方式</div>
+    <div class="rd">看看不同洗法能洗掉多少细菌</div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn" onclick="resetWash()">🔄 重置</button>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="snum"><span class="tag">02</span> 实验总结</div>
+  <h2>正确洗手法则</h2>
+  <div class="steps">
+    <div class="step"><div class="sicon">⏱️</div><div class="st">至少20秒</div><div class="sd">唱两遍生日歌的功夫</div></div>
+    <div class="step"><div class="sicon">🧴</div><div class="st">肥皂+七步法</div><div class="sd">掌心→手背→指缝→指背→拇指→指尖→手腕</div></div>
+    <div class="step"><div class="sicon">🚫</div><div class="st">免洗不能替代</div><div class="sd">有油污时免洗液效果很差</div></div>
+  </div>
+  <p style="margin-top:12px">和小宋一起做实验：在手上涂一点食用色素（假装是细菌），用不同方式洗手，看看哪种洗得最干净。记住七步洗手法，以后饭前便后照做。</p>
+</div>
+<div class="ft">EnvLab · <em>亲子科学实验室</em> · 和小宋一起玩科学</div>
+</div>
+<script>
+const WASH_DATA=[
+  {name:'清水冲5秒',icon:'💧',remove:0.3,verb:'冲一下',color:'#f59e0b'},
+  {name:'肥皂搓10秒',icon:'🧴',remove:0.65,verb:'搓一搓',color:'#64748b'},
+  {name:'洗手液20秒',icon:'🧪',remove:0.85,verb:'认真洗',color:'#22c55e'},
+  {name:'肥皂+七步法',icon:'🧼',remove:0.97,verb:'标准洗',color:'#0ea5e9'},
+  {name:'免洗洗手液',icon:'🧴',remove:0.55,verb:'免洗',color:'#a78bfa'},
+  {name:'酒精消毒',icon:'🔥',remove:0.92,verb:'消毒',color:'#ef4444'},
+];
+let totalGerms=1000,washed=false;
+
+function getGerms(germLevel){
+  return [100,300,1000,3000,8000][germLevel-1];
+}
+
+function updateGerm(){
+  totalGerms=getGerms(parseInt(document.getElementById('sGerm').value));
+  document.getElementById('germCount').textContent=totalGerms;
+  drawDishes(-1);
+}
+
+function drawDishes(washIdx){
+  const base=totalGerms;
+  const remaining=washIdx>=0?Math.round(base*(1-WASH_DATA[washIdx].remove)):base;
+  
+  drawDish('dishBefore',base,true);
+  drawDish('dishAfter',remaining,false,washIdx);
+  
+  // 结果文本
+  const box=document.getElementById('resultBox');
+  if(washIdx<0){
+    box.innerHTML='<div class="rv">👆 选择一个洗手方式</div><div class="rd">看看不同洗法能洗掉多少细菌</div>';
+    document.getElementById('afterLabel').textContent='选择洗手方式';
+    return;
+  }
+  const w=WASH_DATA[washIdx];
+  const removed=Math.round((base-remaining)/base*100);
+  let grade='',col='';
+  if(removed>95){grade='🅰️ 优秀！';col='var(--green)';}
+  else if(removed>80){grade='🅱️ 良好';col='var(--amber)';}
+  else if(removed>60){grade='🅲 及格';col='var(--red)';}
+  else {grade='❌ 太少了';col='var(--red)';}
+  document.getElementById('afterLabel').textContent=w.icon+' '+w.name;
+  box.innerHTML=`<div class="rv" style="color:${col}">${grade} 洗掉了 ${removed}% 的细菌</div>
+    <div class="rd">洗手前约 ${base} 个 → 洗手后剩 ${remaining} 个 · ${w.verb} ${Math.round(w.remove*100)}%</div>`;
+}
+
+function drawDish(id,count,isBefore,wi){
+  const el=document.getElementById(id);el.innerHTML='';
+  const size=140;const cSize=size-10;
+  const germCount=Math.min(80,Math.log10(count)*20+5);
+  for(let i=0;i<germCount;i++){
+    const g=document.createElement('div');g.className='germ';
+    const r=3+Math.random()*5;const x=Math.random()*(cSize-r*2)+5;const y=Math.random()*(cSize-r*2)+5;
+    const alpha=0.2+Math.random()*0.4;
+    const hue=isBefore?120+Math.random()*100:120+Math.random()*80;
+    g.style.cssText=`width:${r*2}px;height:${r*2}px;left:${x}px;top:${y}px;background:hsla(${hue},60%,${isBefore?50:65}%,${alpha})`;
+    el.appendChild(g);
+  }
+  const l=document.createElement('div');l.className='p-label';
+  l.textContent='~'+count+' 个菌落';
+  l.style.cssText='bottom:2px;left:0;right:0;text-align:center;font-size:8px;color:var(--muted);position:absolute;';
+  el.appendChild(l);
+}
+
+function wash(i){
+  washed=true;
+  document.querySelectorAll('.wbtn').forEach((e,j)=>e.classList.toggle('active',j===i));
+  drawDishes(i);
+}
+
+function resetWash(){
+  washed=false;
+  document.querySelectorAll('.wbtn').forEach(e=>e.classList.remove('active'));
+  drawDishes(-1);
+}
+
+drawDishes(-1);
+</script>
+</body>
+</html>

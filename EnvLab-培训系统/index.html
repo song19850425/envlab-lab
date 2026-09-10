@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EnvLab 仪器操作培训系统 · 登录</title>
+<style>
+  :root{ --bg:#0b1020; --panel:#141b33; --line:#26304d; --accent:#f43f8e; --accent2:#3b82f6; --txt:#e6ecff; --sub:#9fb0d8; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(1200px 600px at 80% -10%,rgba(244,63,142,.18),transparent),radial-gradient(900px 500px at 0% 110%,rgba(59,130,246,.18),transparent),var(--bg);color:var(--txt);min-height:100vh;padding:24px}
+  .wrap{max-width:860px;margin:0 auto}
+  .badge{display:inline-block;font-size:12px;letter-spacing:2px;color:var(--accent);border:1px solid var(--line);border-radius:999px;padding:4px 12px;margin-bottom:14px}
+  h1{font-size:30px;margin:0 0 6px;background:linear-gradient(90deg,var(--accent),var(--accent2));-webkit-background-clip:text;background-clip:text;color:transparent}
+  p.lead{color:var(--sub);font-size:15px;line-height:1.7;margin:0 0 24px}
+  .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:start}
+  @media(max-width:680px){.grid{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px}
+  .card h2{margin:0 0 4px;font-size:18px}
+  .card .h-sub{color:var(--sub);font-size:13px;margin:0 0 14px}
+  label{display:block;font-size:13px;color:var(--sub);margin:12px 0 6px}
+  input{width:100%;background:#0c1428;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:10px 12px;font-size:14px}
+  input:focus{outline:none;border-color:var(--accent)}
+  .btn{display:inline-block;background:var(--accent);color:#0b1020;border:none;border-radius:8px;padding:11px 22px;font-size:15px;font-weight:700;cursor:pointer;margin-top:8px;text-decoration:none}
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  .btn.b2{background:var(--accent2)}
+  .req{color:var(--accent)}
+  /* 老学员 */
+  .old-list a{display:block;background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:var(--txt);transition:.15s}
+  .old-list a:hover{border-color:var(--accent2)}
+  .old-list a small{color:var(--sub)}
+  .note{font-size:12.5px;color:var(--sub);border-top:1px solid var(--line);padding-top:16px;line-height:1.7;margin-top:22px}
+  .note b{color:var(--txt)}
+  .err{color:#ff8a8a;font-size:13px;margin-top:8px;min-height:16px}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:22px}
+  .topbar a{color:var(--sub);font-size:13px;text-decoration:none}
+  .topbar a:hover{color:var(--txt)}
+  /* ===== 移动端适配 ===== */
+  @media (max-width:680px){
+    body{padding:16px 12px}
+    .wrap{max-width:100%;padding:0}
+    h1{font-size:24px}
+    .grid{grid-template-columns:1fr}
+    .card{padding:18px}
+    .btn{width:100%;text-align:center;padding:13px;margin-top:10px}
+    input{font-size:16px}              /* ≥16px 防 iOS 聚焦自动缩放 */
+    .topbar{flex-direction:column;align-items:flex-start;gap:6px}
+    .old-list a{padding:14px}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="topbar">
+      <span class="badge">ENVLAB · 仪器操作上岗培训</span>
+      <a href="admin.html">📊 培训记录台 →</a>
+    </div>
+    <h1>学员登录 / 注册</h1>
+    <p class="lead">首次使用请登记学员身份（姓名 / 工号 / 机构）。登录后进入培训，所有培训记录自动归属到该学员，可在记录台按人查看、导出，作为人员能力确认的辅助材料。</p>
+
+    <div class="grid">
+      <!-- 左：注册 / 登录表单 -->
+      <div class="card">
+        <h2>登记学员身份</h2>
+        <p class="h-sub">带 <span class="req">*</span> 为必填，工号用于区分同名学员。</p>
+        <label>姓名 <span class="req">*</span></label>
+        <input id="name" placeholder="如：张某某">
+        <label>工号 <span class="req">*</span></label>
+        <input id="emp" placeholder="如：CJ-0213">
+        <label>所属实验室 / 部门 <span class="req">*</span></label>
+        <input id="lab" placeholder="如：某省环境检测一室">
+        <label>手机号（选填）</label>
+        <input id="phone" placeholder="如：138xxxx">
+        <div class="err" id="err"></div>
+        <button class="btn" id="regBtn">登记并进入培训 →</button>
+      </div>
+
+      <!-- 右：老学员 / 微信 -->
+      <div>
+        <div class="card" id="oldCard" style="margin-bottom:16px">
+          <h2>已登记学员</h2>
+          <p class="h-sub">点击以该身份直接进入（本设备已保存的账号）。</p>
+          <div class="old-list" id="oldList"></div>
+          <div id="oldEmpty" style="color:var(--sub);font-size:13px">本设备暂无已登记学员，请在左侧登记。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>关于账号与数据：</b>已接入后端时，学员身份与培训记录统一保存在<b>云端数据库</b>，多设备（手机 / 电脑 / 不同人）登录同一工号即可共享同一账号与全部培训记录；若未接入后端，则自动回退到<b>本机浏览器</b>本地模式（换设备不共享）。<br>
+      <b>关于内容：</b>本系统仪器操作规程均依据受控 SOP 脱敏整理，仅作上岗前交互培训，不替代现场监督、能力确认与正式考核。
+    </div>
+  </div>
+
+<script src="config.js"></script>
+<!--API_BASE-->
+<script src="api.js"></script>
+<script>
+const LS_PROFILES = "envlab_profiles";
+const LS_CURRENT  = "envlab_current";
+const params = new URLSearchParams(location.search);
+
+function getProfiles(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILES)||"[]"); }catch(e){ return []; } }
+function setProfiles(a){ localStorage.setItem(LS_PROFILES, JSON.stringify(a)); }
+function getCurrent(){ try{ return JSON.parse(localStorage.getItem(LS_CURRENT)||"null"); }catch(e){ return null; } }
+function setCurrent(p){ localStorage.setItem(LS_CURRENT, JSON.stringify(p)); }
+
+// 管理员账号（培训记录台专用）：姓名 ENVLAB / 工号 001 / 部门 001 / 手机 001
+const ADMIN = { name:"ENVLAB", emp:"001", lab:"001", phone:"001" };
+
+// 注销
+if(params.get("logout")==="1"){ localStorage.removeItem(LS_CURRENT); location.href="index.html"; }
+
+// 已登录则提示并可直达
+const cur = getCurrent();
+const oldList = document.getElementById("oldList");
+const oldEmpty = document.getElementById("oldEmpty");
+const profiles = getProfiles();
+if(profiles.length){
+  oldEmpty.style.display="none";
+  profiles.forEach(p=>{
+    const a=document.createElement("a");
+    const traineeHref = (window.Cloud && Cloud.available()) ? "train.html" : "train-standalone.html";
+    a.href = (p.role==="admin") ? "admin.html" : traineeHref;
+    a.innerHTML=`<b>${p.name}</b>${p.emp?`（${(p.emp||"").replace(/[<>&]/g,"")}）`:""} <small>· ${p.lab}</small>`;
+    a.addEventListener("click", async ()=>{
+      setCurrent(p);
+      if(window.Cloud && Cloud.available()){
+        try{
+          if(p.role==="admin") await Cloud.adminLogin({name:p.name,emp:p.emp,lab:p.lab,phone:p.phone});
+          else await Cloud.login(p.emp);
+        }catch(e){ /* 回退本机 */ }
+      }
+    });
+    oldList.appendChild(a);
+  });
+  // 当前登录优先置顶提示
+  if(cur){
+    const tip=document.createElement("div");
+    tip.className="err";
+    tip.style.color="var(--accent2)";
+    tip.textContent=`当前已登录：${cur.name}${cur.emp?`(${cur.emp})`:""} · 点上方「进入培训」即可。`;
+    oldList.parentNode.insertBefore(tip, oldList);
+  }
+}
+
+document.getElementById("regBtn").addEventListener("click", async ()=>{
+  const name=document.getElementById("name").value.trim();
+  const emp =document.getElementById("emp").value.trim();
+  const lab =document.getElementById("lab").value.trim();
+  const phone=document.getElementById("phone").value.trim();
+  const err=document.getElementById("err");
+  if(!name||!emp||!lab){ err.textContent="姓名、工号、机构为必填项。"; return; }
+  const isAdmin = (name.toUpperCase()===ADMIN.name && emp===ADMIN.emp);
+  const p={name,emp,lab: isAdmin ? (lab||ADMIN.lab) : lab, phone, role: isAdmin?"admin":"trainee"};
+  // 云端账号（若后端可用）
+  if(window.Cloud && Cloud.available()){
+    try{
+      const prof = await Cloud.register(p);
+      p.role = prof.role || p.role;
+      setCurrent(p);
+      const all=getProfiles(); const idx=all.findIndex(x=>x.emp===emp);
+      if(idx>=0) all[idx]=Object.assign(all[idx],p); else all.push(p);
+      setProfiles(all);
+      location.href = isAdmin ? "admin.html" : (Cloud.available() ? "train.html" : "train-standalone.html");
+      return;
+    }catch(e){ err.textContent = "云端登记失败（已转本机模式）：" + e.message; }
+  }
+  // 本机回退
+  const all=getProfiles();
+  const idx=all.findIndex(x=>x.emp===emp);
+  if(idx>=0) all[idx]=Object.assign(all[idx],p); else all.push(p);
+  setProfiles(all);
+  setCurrent(p);
+  location.href = isAdmin ? "admin.html" : (Cloud.available() ? "train.html" : "train-standalone.html");
+});
+</script>
+  <script src="demo-seed.js"></script>
+</body>
+</html>

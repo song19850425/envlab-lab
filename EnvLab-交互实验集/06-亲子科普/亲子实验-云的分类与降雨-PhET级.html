@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>云的分类与降雨 · 抬头看天气 · 亲子科学实验室</title>
+<style>
+:root{--bg:#0a0a14;--card:#111122;--card2:#16162d;--accent:#0ea5e9;--accent2:#f472b6;--green:#22c55e;--amber:#f59e0b;--red:#ef4444;--text:#e2e8f0;--muted:#64748b;--border:#1a1a3a}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;overflow-x:hidden}
+.wrap{max-width:820px;margin:0 auto;padding:0 14px 60px}
+.hero{position:relative;padding:44px 28px 36px;text-align:center;background:linear-gradient(135deg,#0f172a,#1a0a1a);overflow:hidden}
+.hero::before{content:'';position:absolute;top:-60%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30%,rgba(244,114,182,.07),transparent 50%),radial-gradient(circle at 70% 60%,rgba(14,165,233,.04),transparent 40%)}
+.hero h1{font-size:24px;font-weight:700;position:relative;z-index:1}
+.hero h1 em{color:var(--accent2);font-style:normal}
+.hero .hb{font-size:12px;color:var(--muted);margin-top:6px;position:relative}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:14px}
+.sec .snum{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent2);font-weight:600;margin-bottom:6px}
+.sec h2{font-size:17px;font-weight:600;margin-bottom:10px}
+.sec p{font-size:13px;color:#cbd5e1;margin-bottom:8px;line-height:1.8}
+.sec ul{padding-left:18px;margin:4px 0 8px}
+.sec ul li{font-size:13px;color:#cbd5e1;margin-bottom:3px}
+.steps{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:500px){.steps{grid-template-columns:1fr}}
+.step{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.step .sicon{font-size:28px;margin-bottom:6px}
+.step .st{font-size:13px;font-weight:600;margin-bottom:4px}
+.step .sd{font-size:11px;color:var(--muted)}
+.exp-area{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin:14px 0}
+.exp-area .et{font-size:14px;font-weight:600;margin-bottom:12px;text-align:center;color:var(--accent2)}
+.cv-wrap{width:100%;height:300px;background:#0a0e17;border-radius:12px;border:1px solid var(--border);overflow:hidden;position:relative;margin-bottom:12px}
+.cv-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%}
+.ctrl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+@media(max-width:500px){.ctrl-grid{grid-template-columns:1fr}}
+.cb{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px}
+.cb .cl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600}
+.cb .cl b{color:var(--text)}
+.cb input[type=range]{width:100%;height:4px;-webkit-appearance:none;background:#1a1a2a;border-radius:2px;outline:none}
+.cb input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent2);cursor:pointer}
+.info-panel{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.info-box{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center}
+.info-box .il{font-size:9px;color:var(--muted)}
+.info-box .iv{font-size:16px;font-weight:700;margin-top:2px}
+.btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.btn{padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12px;cursor:pointer;transition:.2s;font-weight:600}
+.btn:hover{background:rgba(14,165,233,.1);border-color:var(--accent)}
+.btn.primary{background:rgba(244,114,182,.15);border-color:var(--accent2);color:var(--accent2)}
+.btn.green{background:rgba(34,197,55,.15);border-color:var(--green);color:var(--green)}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin:0 1px}
+.tag.g{background:rgba(34,197,55,.15);color:var(--green)}
+.tag.y{background:rgba(251,191,36,.15);color:var(--amber)}
+.tag.r{background:rgba(239,68,68,.15);color:var(--red)}
+.tag.b{background:rgba(14,165,233,.15);color:var(--accent)}
+.ft{text-align:center;padding:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:10px}
+.ft em{color:var(--accent2);font-style:normal}
+</style>
+</head>
+<body>
+<div class="hero">
+  <h1>☁️ 云是怎么变成雨的？<br><em>造一朵云</em>试试</h1>
+  <div class="hb">EnvLab · 亲子科学实验室 · 调温湿度、看云形变化、让天上下雨</div>
+</div>
+<div class="wrap">
+
+<div class="sec">
+  <div class="snum"><span class="tag">01</span> 云从哪里来？</div>
+  <h2>看不见的水蒸气变成了看得见的云</h2>
+  <p>地上的水被太阳晒热变成水蒸气升到空中。高空温度低，水蒸气遇到冷空气就凝结成小水滴——无数小水滴挤在一起就成了<strong>云</strong>。</p>
+  <p>云的形状告诉我们天气的秘密：</p>
+  <ul>
+    <li><strong>☁️ 积云</strong> — 棉花糖一样，天晴的标志</li>
+    <li><strong>🌥️ 层云</strong> — 灰色的毯子，可能要下雨</li>
+    <li><strong>⛈️ 雨云</strong> — 又厚又黑，马上要下雨了</li>
+  </ul>
+  <p>小水滴越聚越大，大到空气托不住就掉下来——这就是<strong>雨</strong>。</p>
+</div>
+
+<div class="exp-area">
+  <div class="et">🎮 造云模拟器</div>
+  <div class="cv-wrap" id="cvWrap"><canvas id="cv"></canvas></div>
+
+  <div class="info-panel">
+    <div class="info-box"><div class="il">☁️ 云的类型</div><div class="iv" id="cloudType" style="color:var(--accent)">—</div></div>
+    <div class="info-box"><div class="il">🌧️ 降雨概率</div><div class="iv" id="rainProb" style="color:var(--amber)">0%</div></div>
+    <div class="info-box"><div class="il">💧 云层厚度</div><div class="iv" id="cloudThick">0 m</div></div>
+    <div class="info-box"><div class="il">🌡️ 地面温度</div><div class="iv" id="groundTemp">25°C</div></div>
+  </div>
+
+  <div class="ctrl-grid">
+    <div class="cb"><div class="cl"><span>🌡️ 温度</span><b id="tempText">25°C</b></div><input type="range" id="sTemp" min="5" max="45" value="25" step="1" oninput="updateUI()"></div>
+    <div class="cb"><div class="cl"><span>💧 湿度</span><b id="humText">60%</b></div><input type="range" id="sHum" min="10" max="100" value="60" step="5" oninput="updateUI()"></div>
+    <div class="cb"><div class="cl"><span>🌬️ 风速</span><b id="windText">3 m/s</b></div><input type="range" id="sWind" min="0" max="10" value="3" step="1" oninput="updateUI()"></div>
+    <div class="cb"><div class="cl"><span>🏔️ 海拔</span><b id="altText">500 m</b></div><input type="range" id="sAlt" min="0" max="4" value="1" step="1" oninput="updateUI()"></div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn green" onclick="toggleRain()">🌧️ 让天下雨/停雨</button>
+    <button class="btn" onclick="resetScene()">🔄 重置天气</button>
+  </div>
+</div>
+
+<div class="sec">
+  <div class="snum"><span class="tag">02</span> 实验总结</div>
+  <h2>看云识天气</h2>
+  <div class="steps">
+    <div class="step"><div class="sicon">☁️</div><div class="st">积云</div><div class="sd">白色蓬松 = 好天气</div></div>
+    <div class="step"><div class="sicon">🌥️</div><div class="st">层云</div><div class="sd">灰色均匀 = 阴天或小雨</div></div>
+    <div class="step"><div class="sicon">⛈️</div><div class="st">积雨云</div><div class="sd">黑压压 = 雷雨要来</div></div>
+  </div>
+  <p style="margin-top:12px">和小宋一起做实验：每天出门前抬头看云，猜猜今天会不会下雨。记下来验证。一周后你就是"小小气象员"了！</p>
+</div>
+
+<div class="ft">EnvLab · <em>亲子科学实验室</em> · 和小宋一起玩科学</div>
+</div>
+
+<script>
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+let W,H;
+let raining=false;
+let rainDrops=[];
+let cloudData={type:'—',prob:0,thick:0};
+
+const cloudNames=[
+  {min:-999,max:0,type:'☀️ 无云',icon:'☀️'},
+  {min:0,max:20,type:'☁️ 积云 (晴)',icon:'☁️'},
+  {min:20,max:45,type:'🌥️ 层积云',icon:'🌥️'},
+  {min:45,max:65,type:'☁️ 高层云',icon:'☁️'},
+  {min:65,max:85,type:'🌧️ 雨层云',icon:'🌧️'},
+  {min:85,max:999,type:'⛈️ 积雨云 (雷雨)',icon:'⛈️'},
+];
+
+function resize(){
+  const w=document.getElementById('cvWrap');
+  W=w.offsetWidth;H=w.offsetHeight;
+  cv.width=W*2;cv.height=H*2;
+  drawScene();
+}
+
+function getCloudType(prob){
+  for(let c of cloudNames){
+    if(prob>c.min&&prob<=c.max)return c;
+  }return cloudNames[0];
+}
+
+function calcCloud(){
+  const t=parseInt(document.getElementById('sTemp').value);
+  const h=parseInt(document.getElementById('sHum').value);
+  const w=parseInt(document.getElementById('sWind').value);
+  const a=parseInt(document.getElementById('sAlt').value)*200+100;
+  // 露点温度近似: Tdew = T - (100-h)/5
+  const tdew=t-(100-h)/5;
+  // 温度露点差越小，云越多
+  const diff=t-tdew;
+  let prob=0;
+  if(diff<=0)prob=95;
+  else if(diff<5)prob=70-diff*5;
+  else if(diff<15)prob=40-diff*2;
+  else prob=Math.max(0,20-diff);
+  // 海拔越高成云概率越大
+  prob+=a*0.01;
+  // 风速大云散
+  prob-=w*1.5;
+  prob=Math.max(0,Math.min(100,prob));
+  const thick=Math.round(prob*1.8);
+  const ct=getCloudType(prob);
+  return {type:ct.type,icon:ct.icon,prob:Math.round(prob),thick};
+}
+
+function updateUI(){
+  const cd=calcCloud();
+  cloudData=cd;
+  document.getElementById('cloudType').textContent=cd.icon+' '+cd.type;
+  document.getElementById('rainProb').textContent=cd.prob+'%';
+  document.getElementById('cloudThick').textContent=cd.thick+' m';
+  document.getElementById('groundTemp').textContent=document.getElementById('sTemp').value+'°C';
+  document.getElementById('tempText').textContent=document.getElementById('sTemp').value+'°C';
+  document.getElementById('humText').textContent=document.getElementById('sHum').value+'%';
+  document.getElementById('windText').textContent=document.getElementById('sWind').value+' m/s';
+  document.getElementById('altText').textContent=['0m','200m','500m','1000m','1500m'][parseInt(document.getElementById('sAlt').value)];
+  if(!raining)drawScene();
+}
+
+function drawScene(){
+  ctx.setTransform(2,0,0,2,0,0);
+  ctx.clearRect(0,0,W,H);
+  const cd=cloudData;
+  const t=parseInt(document.getElementById('sTemp').value);
+  const w=parseInt(document.getElementById('sWind').value);
+  const prob=cd.prob;
+
+  // 天空
+  const skyGrad=ctx.createLinearGradient(0,0,0,H*0.55);
+  const skyColor=prob<20?'#0ea5e9':prob<50?'#64748b':prob<80?'#475569':'#1e293b';
+  skyGrad.addColorStop(0,'#1e293b');skyGrad.addColorStop(1,skyColor);
+  ctx.fillStyle=skyGrad;ctx.fillRect(0,0,W,H*0.55);
+  if(raining){
+    ctx.fillStyle='rgba(100,116,139,.15)';
+    ctx.fillRect(0,0,W,H*0.55);
+  }
+
+  // 太阳/主题
+  if(prob<50){
+    ctx.fillStyle='#fbbf24';ctx.shadowColor='rgba(251,191,36,.3)';ctx.shadowBlur=30;
+    ctx.beginPath();ctx.arc(W*0.88,H*0.07,20,0,Math.PI*2);ctx.fill();
+    ctx.shadowBlur=0;
+  }
+
+  // 云 - 多层绘制
+  const cloudY=H*0.08;
+  const cloudH=Math.min(80,10+prob*0.8);
+  const cloudW=Math.min(W*0.6,80+prob*2.5);
+
+  if(prob>5){
+    const alpha=Math.min(0.9,0.2+prob*0.008);
+    const gray=Math.round(180+prob*0.6);
+    ctx.fillStyle=`rgba(${gray},${gray},${gray+20},${alpha})`;
+    // 多层云球
+    const cx=W*0.5-Math.sin(Date.now()/5000)*w*2;
+    const cy=cloudY+Math.cos(Date.now()/3000)*2;
+    for(let i=0;i<3+Math.floor(prob/20);i++){
+      const ox=(i-1)*cloudW*0.25;
+      const oy=Math.sin(i*2.5)*6;
+      const r=cloudH*0.4+Math.sin(i*1.3)*cloudH*0.15;
+      ctx.beginPath();ctx.arc(cx+ox,cy+oy,r,0,Math.PI*2);ctx.fill();
+    }
+    // 底层更宽的云
+    if(prob>30){
+      ctx.fillStyle=`rgba(${gray-30},${gray-30},${gray},${alpha*0.7})`;
+      ctx.beginPath();ctx.arc(cx,cy+cloudH*0.25,cloudW*0.3,0,Math.PI*2);ctx.fill();
+      ctx.beginPath();ctx.arc(cx-cloudW*0.2,cy+cloudH*0.2,cloudW*0.25,0,Math.PI*2);ctx.fill();
+    }
+    // 标签
+    ctx.fillStyle='rgba(255,255,255,.3)';ctx.font='9px sans-serif';ctx.textAlign='center';
+    ctx.fillText(cd.type,cx,cy+cloudH+16);
+  }
+
+  // 地面
+  ctx.fillStyle='#292524';ctx.fillRect(0,H*0.55,W,H*0.45);
+  ctx.fillStyle='#0f172a';ctx.fillRect(0,H*0.55,W,4);
+  // 树
+  const trees=[W*0.1,W*0.3,W*0.6,W*0.8];
+  if(!raining||true){
+    trees.forEach(x=>{
+      ctx.fillStyle='#292524';ctx.fillRect(x-2,H*0.55-12,4,12);
+      ctx.fillStyle='#166534';ctx.beginPath();ctx.arc(x,H*0.55-16,12,0,Math.PI*2);ctx.fill();
+    });
+  }
+
+  // 雨滴
+  if(raining){
+    const rSpeed=3+prob*0.05;
+    for(let i=rainDrops.length-1;i>=0;i--){
+      const d=rainDrops[i];
+      d.x+=Math.sin(d.phase)*0.3;d.y+=rSpeed+Math.random()*2;
+      if(d.y>H*0.93||d.x<0||d.x>W){rainDrops.splice(i,1);continue;}
+      ctx.strokeStyle=`rgba(148,163,184,${d.alpha})`;ctx.lineWidth=1;
+      ctx.beginPath();ctx.moveTo(d.x,d.y);ctx.lineTo(d.x-1,d.y-6);ctx.stroke();
+    }
+    // 补充雨滴
+    while(rainDrops.length<Math.min(300,30+prob*2)){
+      rainDrops.push({x:Math.random()*W,y:Math.random()*H*0.5,alpha:0.2+Math.random()*0.4,phase:Math.random()*Math.PI*2});
+    }
+  }
+
+  ctx.fillStyle='#64748b';ctx.font='9px sans-serif';ctx.textAlign='left';
+  ctx.fillText('🌡️ '+t+'°C 💧 '+document.getElementById('sHum').value+'% 🌬️ '+w+'m/s',8,14);
+}
+
+function toggleRain(){
+  raining=!raining;
+  if(!raining)rainDrops=[];
+  drawScene();
+}
+
+function resetScene(){
+  raining=false;rainDrops=[];
+  document.getElementById('sTemp').value=25;
+  document.getElementById('sHum').value=60;
+  document.getElementById('sWind').value=3;
+  document.getElementById('sAlt').value=1;
+  updateUI();drawScene();
+}
+
+// Animation loop
+let animFrame;
+function animate(){
+  drawScene();
+  if(raining){
+    // 简单补帧
+  }
+  animFrame=requestAnimationFrame(animate);
+}
+
+updateUI();
+window.addEventListener('resize',resize);
+window.addEventListener('load',()=>{resize();animate();});
+</script>
+</body>
+</html>

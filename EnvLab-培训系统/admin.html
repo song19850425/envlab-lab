@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>培训记录台 | EnvLab</title>
+<style>
+  :root{ --accent:#f59e0b; --bg:#0b1020; --panel:#121a30; --line:#22304f; --txt:#e8eefc; --mut:#8aa0c6; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Microsoft YaHei",Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6}
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 20px 60px}
+  header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px}
+  .badge{display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:20px;padding:2px 12px;margin-bottom:10px}
+  h1{margin:0;font-size:26px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;margin-bottom:16px}
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  select,input{background:#0c1428;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:8px 10px;font-size:13px}
+  .btn{background:var(--accent);color:#0b1020;border:none;border-radius:8px;padding:9px 16px;font-size:13px;font-weight:700;cursor:pointer}
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  .btn.b2{background:transparent;color:var(--mut);border:1px solid var(--line)}
+  .stats{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:10px}
+  .stat{background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:10px 16px}
+  .stat b{display:block;font-size:24px;color:var(--accent)}
+  .stat span{font-size:12px;color:var(--mut)}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{border:1px solid var(--line);padding:8px 10px;text-align:left;vertical-align:top}
+  th{background:#0c1428;color:var(--mut);position:sticky;top:0}
+  .ok{color:#22c55e}.bad{color:#ef4444}.warn{color:#f59e0b}
+  .empty{color:var(--mut);text-align:center;padding:30px}
+  footer{color:var(--mut);font-size:12px;text-align:center;margin-top:30px}
+  a{color:var(--accent)}
+  label{display:block;font-size:13px;color:var(--mut);margin:12px 0 6px}
+  .req{color:var(--accent)}
+  .login-inputs{max-width:420px}
+  .err{color:#ff8a8a;font-size:13px;margin-top:8px;min-height:16px}
+  .lock{text-align:center;font-size:13px;color:var(--mut);margin-bottom:6px}
+  /* ===== 移动端适配 ===== */
+  @media (max-width:680px){
+    .wrap{padding:18px 12px 40px}
+    .toolbar{flex-direction:column;align-items:stretch;gap:8px}
+    .toolbar select,.toolbar input{width:100%}
+    .toolbar .btn,.toolbar a.btn{width:100%;text-align:center;justify-content:center}
+    input{font-size:16px}              /* ≥16px 防 iOS 聚焦自动缩放 */
+    table{font-size:12px}
+    th,td{padding:6px 8px}
+    .stat b{font-size:20px}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <span class="badge">EnvLab 培训记录台</span>
+      <h1>学员培训记录 <small id="adminName" style="font-size:14px;color:var(--mut)"></small></h1>
+    </div>
+    <button class="btn b2" id="adminLogout" style="display:none">退出管理员</button>
+  </header>
+
+  <!-- 管理员登录闸门 -->
+  <div class="card" id="loginWrap">
+    <div class="lock">🔒 培训记录仅管理员可查看，请先登录</div>
+    <div class="login-inputs">
+      <label>管理员姓名 <span class="req">*</span></label>
+      <input id="aName" placeholder="如：ENVLAB">
+      <label>工号 <span class="req">*</span></label>
+      <input id="aEmp" placeholder="如：001">
+      <label>所属实验室 / 部门</label>
+      <input id="aLab" placeholder="如：001">
+      <label>手机号</label>
+      <input id="aPhone" placeholder="如：001">
+      <div class="err" id="loginErr"></div>
+      <button class="btn" id="adminLoginBtn">登录并查看记录</button>
+      <a class="btn ghost" href="train-standalone.html" style="text-decoration:none;margin-left:8px">返回培训</a>
+    </div>
+  </div>
+
+  <!-- 记录区（仅管理员可见） -->
+  <div id="recWrap" style="display:none">
+    <div class="card">
+      <div class="stats" id="stats"></div>
+      <div class="toolbar">
+        <label style="font-size:12px;color:var(--mut)">仪器</label>
+        <select id="fInst"><option value="">全部</option></select>
+        <label style="font-size:12px;color:var(--mut)">结果</label>
+        <select id="fPass"><option value="">全部</option><option value="1">仅通过</option><option value="0">仅未通过</option></select>
+        <input id="fName" placeholder="搜姓名/工号">
+        <button class="btn" id="expCsv">导出 CSV</button>
+        <button class="btn ghost" id="clearBtn">清空本机记录</button>
+        <a class="btn ghost" href="train-standalone.html" style="text-decoration:none">去培训</a>
+      </div>
+      <div style="overflow:auto;max-height:60vh">
+        <table id="tbl">
+          <thead><tr><th>时间</th><th>学员</th><th>工号</th><th>部门</th><th>仪器</th><th>得分</th><th>红线</th><th>结果</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+      <div class="empty" id="empty" style="display:none">暂无记录。请先在 train-standalone.html 完成一次培训。</div>
+    </div>
+    <footer>记录存于本机浏览器（localStorage）· 数据不出实验室 · EnvLab 仪器操作培训系统</footer>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<!--API_BASE-->
+<script src="api.js"></script>
+<script>
+const LS_KEY = "envlab_training_records";
+const LS_CURRENT = "envlab_current";
+const ADMIN = { name:"ENVLAB", emp:"001", lab:"001", phone:"001" };
+const $ = s => document.querySelector(s);
+let ALL = [];
+
+function getCurrent(){ try{ return JSON.parse(localStorage.getItem(LS_CURRENT)||"null"); }catch(e){ return null; } }
+function isAdmin(){ const c=getCurrent(); return !!(c && c.role==="admin"); }
+
+function showRecords(){
+  const c = getCurrent();
+  $("#adminName").textContent = c ? "· " + c.name + (c.emp? "（"+c.emp+"）":"") : "";
+  $("#adminLogout").style.display = "inline-block";
+  $("#loginWrap").style.display = "none";
+  $("#recWrap").style.display = "block";
+  load();
+}
+function showLogin(msg){
+  $("#recWrap").style.display = "none";
+  $("#adminLogout").style.display = "none";
+  $("#loginWrap").style.display = "block";
+  if(msg) $("#loginErr").textContent = msg;
+}
+
+async function load(){
+  // 云端优先：若后端可用，记录来自云端数据库（多端共享）
+  if(window.Cloud && Cloud.available()){
+    try{
+      ALL = await Cloud.adminRecords();
+      const insts = [...new Set(ALL.map(r=>r.instrumentName))];
+      $("#fInst").innerHTML = '<option value="">全部</option>' + insts.map(i=>`<option>${i}</option>`).join("");
+      render();
+      return;
+    }catch(e){ /* 回退本机 */ }
+  }
+  try{ ALL = JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ ALL=[]; }
+  const insts = [...new Set(ALL.map(r=>r.instrumentName))];
+  $("#fInst").innerHTML = '<option value="">全部</option>' + insts.map(i=>`<option>${i}</option>`).join("");
+  render();
+}
+function render(){
+  const fi = $("#fInst").value, fp = $("#fPass").value, fn = $("#fName").value.trim().toLowerCase();
+  const rows = ALL.filter(r=>
+    (!fi || r.instrumentName===fi) &&
+    (fp==="" || (fp==="1"?(r.passed?1:0)===1:(r.passed?0:1)===1)) &&
+    (!fn || (r.trainee+ (r.emp||"")).toLowerCase().includes(fn))
+  );
+  const pass = rows.filter(r=>r.passed).length;
+  const fatal = rows.reduce((a,r)=>a+r.fatalHits,0);
+  $("#stats").innerHTML = `
+    <div class="stat"><b>${rows.length}</b><span>当前筛选记录</span></div>
+    <div class="stat"><b class="ok">${pass}</b><span>通过</span></div>
+    <div class="stat"><b class="bad">${rows.length-pass}</b><span>未通过</span></div>
+    <div class="stat"><b class="warn">${fatal}</b><span>致命红线触发(次)</span></div>`;
+  const tb = $("#tbody");
+  if(rows.length===0){ $("#empty").style.display="block"; tb.innerHTML=""; return; }
+  $("#empty").style.display="none";
+  tb.innerHTML = rows.slice().reverse().map(r=>`<tr>
+    <td>${new Date(r.ts).toLocaleString('zh-CN')}</td>
+    <td>${r.trainee}</td><td>${r.emp||'—'}</td><td>${r.lab}</td>
+    <td>${r.instrumentName}<br><small style="color:var(--mut)">${r.model}</small></td>
+    <td><b style="color:${r.passed?'#22c55e':'#ef4444'}">${r.score}</b></td>
+    <td class="${r.fatalHits?'bad':''}">${r.fatalHits}</td>
+    <td class="${r.passed?'ok':'bad'}">${r.passed?'通过':'未通过'}</td>
+  </tr>`).join("");
+}
+function exportCsv(){
+  const head = ["时间","学员","工号","部门","仪器","型号","得分","致命红线次数","结果"];
+  const lines = ALL.map(r=>[new Date(r.ts).toLocaleString('zh-CN'),r.trainee,r.emp||"",r.lab,r.instrumentName,r.model,r.score,r.fatalHits,r.passed?"通过":"未通过"].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(","));
+  const csv = "﻿"+head.join(",")+"\n"+lines.join("\n");
+  const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
+  const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="EnvLab培训记录.csv"; a.click();
+}
+
+// 管理员登录
+$("#adminLoginBtn").addEventListener("click", async ()=>{
+  const name = $("#aName").value.trim();
+  const emp  = $("#aEmp").value.trim();
+  const lab  = $("#aLab").value.trim();
+  const phone= $("#aPhone").value.trim();
+  if(name.toUpperCase()!==ADMIN.name || emp!==ADMIN.emp){
+    $("#loginErr").textContent = "账号或密码错误：管理员为 姓名 ENVLAB / 工号 001。";
+    return;
+  }
+  const p = { name:ADMIN.name, emp:ADMIN.emp, lab:(lab||ADMIN.lab), phone:(phone||ADMIN.phone), role:"admin" };
+  localStorage.setItem(LS_CURRENT, JSON.stringify(p));
+  showRecords();
+  // 云端登录（若后端可用）
+  if(window.Cloud && Cloud.available()){
+    try{ await Cloud.adminLogin(p); load(); }
+    catch(e){ $("#loginErr").textContent = "云端登录失败（已用本机记录）：" + e.message; load(); }
+  }
+});
+$("#adminLogout").addEventListener("click", ()=>{
+  localStorage.removeItem(LS_CURRENT);
+  location.href = "admin.html";
+});
+$("#fInst").addEventListener("change",render);
+$("#fPass").addEventListener("change",render);
+$("#fName").addEventListener("input",render);
+$("#expCsv").addEventListener("click",exportCsv);
+$("#clearBtn").addEventListener("click",()=>{
+  if(confirm("确认清空本机全部培训记录？此操作不可恢复。")){ localStorage.removeItem(LS_KEY); load(); }
+});
+
+// 闸门：仅管理员可见记录
+if(isAdmin()){ showRecords(); } else { showLogin(); }
+</script>
+  <script src="demo-seed.js"></script>
+</body>
+</html>

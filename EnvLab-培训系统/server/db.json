@@ -1,0 +1,88 @@
+{
+  "trainees": {
+    "CJ-0213": {
+      "name": "张三",
+      "emp": "CJ-0213",
+      "lab": "某省环境检测一室",
+      "phone": "13800000000",
+      "role": "trainee",
+      "updatedAt": 1784535898606
+    },
+    "CJ-0214": {
+      "name": "李四",
+      "emp": "CJ-0214",
+      "lab": "某省环境检测一室",
+      "phone": "139",
+      "role": "trainee",
+      "updatedAt": 1784535898639
+    }
+  },
+  "tokens": {
+    "9885c9048b57df558884d2f9fce804fb802cf5b36d2632d4": {
+      "emp": "CJ-0213",
+      "role": "trainee",
+      "ts": 1784535898607
+    },
+    "dbacff8329b1b45672e8274dbce487b53f70993bfd3aa74e": {
+      "emp": "CJ-0214",
+      "role": "trainee",
+      "ts": 1784535898640
+    },
+    "d92b704e1f301ef7c04241a6324f5aa4182d4ae47b846a0a": {
+      "emp": "CJ-0213",
+      "role": "trainee",
+      "ts": 1784535898645
+    },
+    "be2c9fe83a641ab241eaea0d1855a340d268ad4787aaaeff": {
+      "emp": "001",
+      "role": "admin",
+      "ts": 1784535898666
+    }
+  },
+  "trainings": [
+    {
+      "id": "TR1901575adf",
+      "ts": "2026-07-20T08:24:58.636Z",
+      "emp": "CJ-0213",
+      "trainee": "张三",
+      "lab": "某省环境检测一室",
+      "instrumentId": "aas-900t",
+      "instrumentName": "原子吸收分光光度计",
+      "model": "AAS-900T（示例机型）",
+      "durationSec": 120,
+      "score": 100,
+      "fatalHits": 0,
+      "passed": true,
+      "steps": [
+        {
+          "q": "开机顺序",
+          "correct": true,
+          "partial": false,
+          "fatal": false
+        }
+      ]
+    },
+    {
+      "id": "TR8781bed2b5",
+      "ts": "2026-07-20T08:24:58.643Z",
+      "emp": "CJ-0214",
+      "trainee": "李四",
+      "lab": "某省环境检测一室",
+      "instrumentId": "uv-vis-l5s",
+      "instrumentName": "紫外可见分光光度计",
+      "model": "L5S（示例机型）",
+      "durationSec": 90,
+      "score": 60,
+      "fatalHits": 1,
+      "passed": false,
+      "steps": [
+        {
+          "q": "比色皿",
+          "correct": false,
+          "partial": false,
+          "fatal": true
+        }
+      ]
+    }
+  ]
+}

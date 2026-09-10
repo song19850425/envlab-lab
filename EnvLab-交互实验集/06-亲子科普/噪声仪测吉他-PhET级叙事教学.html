@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>噪声仪测爸爸的吉他声 · PhET级叙事教学</title>
+<style>
+:root{
+  --bg:#0a0a14;--card:#111122;--card2:#16162d;--accent:#0ea5e9;--accent2:#f472b6;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--purple:#a78bfa;
+  --text:#e2e8f0;--muted:#64748b;--border:#1a1a3a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;overflow-x:hidden}
+.wrap{max-width:820px;margin:0 auto;padding:0 14px 60px}
+.hero{position:relative;padding:44px 28px 36px;text-align:center;background:linear-gradient(135deg,#1a0a1a 0%,#0f172a 100%);overflow:hidden;border-radius:0 0 20px 20px;margin-bottom:20px}
+.hero::before{content:'';position:absolute;top:-60%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(244,114,182,.07) 0%,transparent 50%),radial-gradient(circle at 70% 60%,rgba(251,191,36,.04) 0%,transparent 40%);pointer-events:none}
+.hero h1{font-size:24px;font-weight:700;position:relative;z-index:1}
+.hero h1 em{color:var(--accent2);font-style:normal}
+.hero .hb{font-size:12px;color:var(--muted);margin-top:6px;position:relative;z-index:1}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:14px}
+.sec .snum{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent2);font-weight:600;margin-bottom:6px;letter-spacing:1px}
+.sec h2{font-size:17px;font-weight:600;margin-bottom:10px}
+.sec h3{font-size:14px;font-weight:600;margin:12px 0 6px;color:var(--accent2)}
+.sec p{font-size:13px;color:#cbd5e1;margin-bottom:8px;line-height:1.8}
+.sec ul{padding-left:18px;margin:4px 0 8px}
+.sec ul li{font-size:13px;color:#cbd5e1;margin-bottom:3px}
+.steps{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:500px){.steps{grid-template-columns:1fr}}
+.step{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.step .sicon{font-size:28px;margin-bottom:6px}
+.step .st{font-size:13px;font-weight:600;margin-bottom:4px}
+.step .sd{font-size:11px;color:var(--muted)}
+/* 实验区 */
+.exp-area{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin:14px 0}
+.exp-area .et{font-size:14px;font-weight:600;margin-bottom:12px;text-align:center;color:var(--accent2)}
+.exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:680px){.exp-grid{grid-template-columns:1fr}}
+/* 吉他 */
+.guitar-area{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center}
+.guitar-area .gt{font-size:12px;font-weight:600;margin-bottom:8px;color:var(--muted);font-size:11px}
+.guitar{position:relative;width:100%;max-width:200px;margin:0 auto;aspect-ratio:1/1.8}
+.guitar canvas{width:100%;height:100%;display:block;border-radius:8px}
+.guitar-strings{display:flex;justify-content:center;gap:6px;margin:8px 0;flex-wrap:wrap}
+.string-btn{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--card);color:var(--text);font-size:11px;cursor:pointer;transition:.15s;font-weight:600}
+.string-btn:hover{border-color:var(--accent2);background:rgba(244,114,182,.1)}
+.string-btn.active{background:rgba(244,114,182,.2);border-color:var(--accent2);color:var(--accent2)}
+.string-btn .note{font-size:9px;color:var(--muted);display:block;font-weight:400}
+/* 声级计 */
+.slm-area{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;display:flex;flex-direction:column;align-items:center}
+.slm{width:100%;max-width:220px;background:#0a0a12;border:2px solid #2a2a3a;border-radius:12px;padding:14px 10px;position:relative}
+.slm .slm-title{text-align:center;font-size:9px;color:var(--muted);margin-bottom:6px;letter-spacing:2px}
+.slm .display{background:#000;border:2px solid #1a3a1a;border-radius:6px;padding:10px 8px;text-align:center;margin-bottom:8px}
+.slm .display .db-val{font-size:36px;font-weight:700;font-family:'Courier New',monospace;transition:color .2s}
+.slm .display .db-unit{font-size:11px;color:var(--muted);margin-top:-4px}
+.slm .bar-wrap{height:8px;background:#1a1a2a;border-radius:4px;overflow:hidden;margin:6px 0}
+.slm .bar-wrap .bar-fill{height:100%;border-radius:4px;transition:width .15s,background .3s}
+.slm .scale{display:flex;justify-content:space-between;font-size:8px;color:var(--muted);padding:0 2px;margin-top:2px}
+.slm .scale .sl{width:20px;text-align:center}
+.slm .slm-label{display:flex;justify-content:space-between;font-size:9px;color:var(--muted);margin-top:6px;padding:0 2px}
+.slm .slm-label .sll{width:30px;text-align:center}
+/* 日常声音对比 */
+.sound-ref{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin:8px 0;width:100%}
+.sound-ref .sref{display:flex;justify-content:space-between;padding:3px 8px;border-radius:4px;background:rgba(0,0,0,.2);font-size:10px}
+.sound-ref .sref .sr-n{color:var(--text)}
+.sound-ref .sref .sr-v{color:var(--muted)}
+/* 信息条 */
+.info-bar{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding:8px 12px;background:var(--card2);border-radius:8px;border:1px solid var(--border);font-size:11px;color:var(--muted);align-items:center}
+.info-bar .ib{display:flex;align-items:center;gap:4px}
+.info-bar .ib .ibv{color:var(--text);font-weight:600}
+/* 总结 */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.summary-grid .scard{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+.summary-grid .scard .sct{font-size:12px;color:var(--accent2);font-weight:600;margin-bottom:3px}
+.summary-grid .scard .scv{font-size:22px;font-weight:700}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin:0 1px}
+.tag.g{background:rgba(34,197,55,.15);color:var(--green)}
+.tag.b{background:rgba(14,165,233,.15);color:var(--accent)}
+.tag.y{background:rgba(251,191,36,.15);color:var(--amber)}
+.tag.r{background:rgba(239,68,68,.15);color:var(--red)}
+.ft{text-align:center;padding:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:10px}
+.ft em{color:var(--accent2);font-style:normal}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>🎸 爸爸的吉他到底有多响？<br>用<em>声级计</em>测一测</h1>
+  <div class="hb">EnvLab · 亲子科学实验室 · 弹琴、看分贝、学声学</div>
+</div>
+
+<div class="wrap">
+
+<!-- 第一幕 -->
+<div class="sec">
+  <div class="snum"><span class="tag">01</span> 声音有多大？</div>
+  <h2>用数字"看见"声音</h2>
+  <p>你有没有想过——为什么弹吉他比说话响，但比飞机起飞轻？声音的大小到底是怎么衡量的？</p>
+  <p><strong>分贝（dB）</strong> 就是用来量声音大小的单位。但它不是一个"均匀"的尺子——分贝是对数刻度。30dB（图书馆）到60dB（正常说话）的差距，听起来是"大了两倍"，但实际能量差了<strong>1000倍</strong>。</p>
+  <p>2026年7月的今天，我们用一个声级计（手机App也行），把爸爸的吉他、妈妈的话、你自己的声音都测一遍——然后你会发现，你最爱的玩具可能比爸爸妈妈吵架还响。</p>
+</div>
+
+<!-- 第二幕 -->
+<div class="sec">
+  <div class="snum"><span class="tag">02</span> 声音是怎么产生的</div>
+  <h2>弹弦→振动→声波→耳朵</h2>
+  <ul>
+    <li><strong>🎸 吉他弦振动：</strong> 你拨动琴弦，弦开始快速振动</li>
+    <li><strong>🌊 声波传播：</strong> 振动挤压周围的空气，像水波一样传开</li>
+    <li><strong>👂 耳朵接收：</strong> 声波进入耳道，振动鼓膜——大脑解读为"声音"</li>
+    <li><strong>🎛️ 声级计：</strong> 用麦克风代替耳朵，把声波的强度转成分贝数字</li>
+  </ul>
+  <p style="margin-top:6px;color:var(--amber);font-size:13px">💡 粗的弦振动慢 → 声音低沉（低频）；细的弦振动快 → 声音清脆（高频）</p>
+</div>
+
+<!-- 第三幕 -->
+<div class="sec">
+  <div class="snum"><span class="tag">03</span> 怎么测？</div>
+  <h2>三步搞定</h2>
+  <div class="steps">
+    <div class="step"><div class="sicon">📱</div><div class="st">打开声级计</div><div class="sd">手机下载App或用实体声级计，靠近声源30cm</div></div>
+    <div class="step"><div class="sicon">🎸</div><div class="st">弹吉他</div><div class="sd">依次拨动每根弦，从6弦（最粗）到1弦（最细）</div></div>
+    <div class="step"><div class="sicon">📊</div><div class="st">记录对比</div><div class="sd">看看哪根弦最响？弹唱比独奏响多少？</div></div>
+  </div>
+  <p style="font-size:12px;color:var(--muted);text-align:center">👇 下面在模拟器里试试——点弦、看声级计、学知识</p>
+</div>
+
+<!-- 第四幕：交互 -->
+<div class="exp-area">
+  <div class="et">🎛️ 交互实验室</div>
+  <div class="exp-grid">
+    <!-- 吉他 -->
+    <div class="guitar-area">
+      <div class="gt">🎸 点弦弹奏</div>
+      <div class="guitar" id="guitarWrap">
+        <canvas id="guitarCanvas"></canvas>
+      </div>
+      <div class="guitar-strings" id="stringBtns"></div>
+      <div style="font-size:11px;color:var(--muted);margin-top:6px">💡 点击琴弦播放声音</div>
+    </div>
+    <!-- 声级计 -->
+    <div class="slm-area">
+      <div class="slm">
+        <div class="slm-title">SOUND LEVEL METER</div>
+        <div class="display">
+          <div class="db-val" id="dbDisplay" style="color:var(--green)">0.0</div>
+          <div class="db-unit">dB</div>
+        </div>
+        <div class="bar-wrap"><div class="bar-fill" id="dbBar" style="width:0%;background:var(--green)"></div></div>
+        <div class="scale">
+          <span class="sl">0</span><span class="sl">30</span><span class="sl">60</span><span class="sl">90</span><span class="sl">120</span>
+        </div>
+        <div class="slm-label">
+          <span class="sll">🤫 静</span>
+          <span class="sll">💬 语</span>
+          <span class="sll">🎸 琴</span>
+          <span class="sll">🎵 噪</span>
+          <span class="sll">🚨 痛</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--accent2);font-weight:600;margin:8px 0 4px" id="dbDesc">🔇 安静中…</div>
+      <!-- 日常声音参考 -->
+      <div style="width:100%">
+        <div style="font-size:10px;color:var(--muted);margin-bottom:4px">📋 日常声音对比</div>
+        <div class="sound-ref">
+          <div class="sref"><span class="sr-n">🤫 树叶沙沙</span><span class="sr-v">20dB</span></div>
+          <div class="sref"><span class="sr-n">📚 图书馆</span><span class="sr-v">30dB</span></div>
+          <div class="sref"><span class="sr-n">💬 正常说话</span><span class="sr-v">50-60dB</span></div>
+          <div class="sref"><span class="sr-n">🚗 车流声</span><span class="sr-v">70-80dB</span></div>
+          <div class="sref"><span class="sr-n">🎸 木吉他</span><span class="sr-v">75-85dB</span></div>
+          <div class="sref"><span class="sr-n">🎸 电吉他(音箱)</span><span class="sr-v">90-110dB</span></div>
+          <div class="sref"><span class="sr-n">🚨 警笛</span><span class="sr-v">110-120dB</span></div>
+          <div class="sref"><span class="sr-n">✈️ 飞机起飞</span><span class="sr-v">130dB</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 尝试其他声音 -->
+  <div style="margin-top:12px;padding:12px;background:var(--card2);border:1px solid var(--border);border-radius:10px">
+    <div style="font-size:12px;font-weight:600;margin-bottom:8px;color:var(--accent2)">🔊 试试这些声音</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px">
+      <button class="string-btn" onclick="playSound('whisper',30,55)">🤫 耳语 30dB</button>
+      <button class="string-btn" onclick="playSound('talk',50,60)">💬 说话 55dB</button>
+      <button class="string-btn" onclick="playSound('shout',70,80)">🗣️ 喊叫 75dB</button>
+      <button class="string-btn" onclick="playSound('dry',75,85)">🎸 吉他独奏 80dB</button>
+      <button class="string-btn" onclick="playSound('amp',90,105)">🎸 电吉他 98dB</button>
+      <button class="string-btn" onclick="playSound('drill',95,110)">🔧 电钻 103dB</button>
+      <button class="string-btn" onclick="playSound('concert',105,115)">🎵 演唱会 110dB</button>
+    </div>
+  </div>
+
+  <div class="info-bar">
+    <span class="ib"><span class="ibl">当前声源：</span><span class="ibv" id="iSource">--</span></span>
+    <span class="ib"><span class="ibl">分贝值：</span><span class="ibv" id="iDb">0.0 dB</span></span>
+    <span class="ib"><span class="ibl">安全等级：</span><span class="ibv" id="iSafe">🔇 安全</span></span>
+  </div>
+</div>
+
+<!-- 第五幕 -->
+<div class="sec" style="border-left:4px solid var(--accent2)">
+  <div class="snum"><span class="tag">04</span> 保护好耳朵</div>
+  <h2>分贝和耳朵的安全</h2>
+  <div class="summary-grid">
+    <div class="scard"><div class="sct">木吉他最大声</div><div class="scv" style="color:var(--amber)">~85dB</div><div style="font-size:10px;color:var(--muted)">安全范围，但长时间也累</div></div>
+    <div class="scard"><div class="sct">电吉他+音箱</div><div class="scv" style="color:var(--red)">~110dB</div><div style="font-size:10px;color:var(--muted)">⚠️ 15分钟就可能损伤</div></div>
+  </div>
+  <ul>
+    <li><span class="tag g">安全区 &lt; 70dB</span> — 听多久都行</li>
+    <li><span class="tag y">注意区 70-85dB</span> — 每天不超过8小时</li>
+    <li><span class="tag r">危险区 85-100dB</span> — 每增加3dB，安全时间减半</li>
+    <li><span class="tag r">损伤区 &gt; 100dB</span> — 几分钟就可能不可逆损伤</li>
+  </ul>
+  <p style="margin-top:8px;color:var(--muted);font-size:12px">这就是为什么摇滚音乐会发耳塞——不是矫情，是科学。下次爸爸弹吉他的时候，你可以说：<strong>"爸爸，你弹得太响了，超过85dB了，我要戴耳塞！"</strong></p>
+</div>
+
+<div class="ft">🧪 在家也能做！用手机下载一个声级计App（免费），测遍你家的所有声音吧！<br>EnvLab · <em>亲子科学实验室</em> · 和小宋一起玩科学</div>
+
+</div>
+
+<script>
+// === 吉他弦数据 ===
+const strings=[
+  {name:'6弦',note:'E2 (低)', freq:82, color:'#c0392b', dbRange:[76,82]},
+  {name:'5弦',note:'A2', freq:110, color:'#e67e22', dbRange:[75,80]},
+  {name:'4弦',note:'D3', freq:147, color:'#f1c40f', dbRange:[74,79]},
+  {name:'3弦',note:'G3', freq:196, color:'#2ecc71', dbRange:[73,78]},
+  {name:'2弦',note:'B3', freq:247, color:'#3498db', dbRange:[72,77]},
+  {name:'1弦',note:'E4 (高)',freq:330, color:'#9b59b6', dbRange:[71,76]}
+];
+
+// 渲染弦按钮
+const btnContainer=document.getElementById('stringBtns');
+strings.forEach((s,i)=>{
+  const btn=document.createElement('button');
+  btn.className='string-btn';
+  btn.innerHTML=`${s.name} <span class="note">${s.note}</span>`;
+  btn.addEventListener('click',()=>playString(i));
+  btnContainer.appendChild(btn);
+});
+
+// 吉他Canvas
+const gCanvas=document.getElementById('guitarCanvas');
+const gWrap=document.getElementById('guitarWrap');
+
+function resizeGuitar(){
+  const w=gWrap.offsetWidth;
+  const h=w*1.6;
+  gCanvas.width=w*2;
+  gCanvas.height=h*2;
+  gCanvas.style.width=w+'px';
+  gCanvas.style.height=h+'px';
+  drawGuitar(-1);
+}
+
+function drawGuitar(pluckedIdx){
+  const ctx=gCanvas.getContext('2d');
+  const W=gCanvas.width,H=gCanvas.height;
+  ctx.clearRect(0,0,W,H);
+  
+  // 吉他身体
+  ctx.save();
+  ctx.translate(W/2,H*0.55);
+  
+  // 琴体
+  ctx.shadowColor='rgba(244,114,182,.15)';
+  ctx.shadowBlur=20;
+  ctx.fillStyle='#2a1a0a';
+  ctx.beginPath();
+  ctx.ellipse(0,0,W*0.3,H*0.35,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.fillStyle='#3a2a1a';
+  ctx.beginPath();
+  ctx.ellipse(0,-H*0.08,W*0.22,H*0.26,0,0,Math.PI*2);
+  ctx.fill();
+  
+  // 音孔
+  ctx.shadowBlur=0;
+  ctx.fillStyle='#0a0a0a';
+  ctx.beginPath();
+  ctx.ellipse(0,H*0.02,W*0.08,H*0.09,0,0,Math.PI*2);
+  ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,.1)';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.ellipse(0,H*0.02,W*0.09,H*0.10,0,0,Math.PI*2);
+  ctx.stroke();
+  
+  // 琴颈
+  ctx.fillStyle='#3a2a1a';
+  ctx.fillRect(-W*0.035,-H*0.6,W*0.07,H*0.6);
+  // 品丝
+  ctx.strokeStyle='rgba(200,200,200,.2)';
+  ctx.lineWidth=1;
+  for(let i=0;i<5;i++){
+    const y=-H*0.55+i*H*0.1;
+    ctx.beginPath();
+    ctx.moveTo(-W*0.035,y);
+    ctx.lineTo(W*0.035,y);
+    ctx.stroke();
+  }
+  // 琴头
+  ctx.fillStyle='#1a0a0a';
+  ctx.fillRect(-W*0.025,-H*0.68,W*0.05,H*0.08);
+  
+  // 琴弦
+  const stringX=[-W*0.025,-W*0.015,-W*0.005,W*0.005,W*0.015,W*0.025];
+  strings.forEach((s,i)=>{
+    const x=stringX[i];
+    const isPlucked=i===pluckedIdx;
+    ctx.strokeStyle=s.color;
+    ctx.lineWidth=isPlucked?2.5:1.5;
+    ctx.shadowColor=isPlucked?s.color:'transparent';
+    ctx.shadowBlur=isPlucked?8:0;
+    ctx.globalAlpha=isPlucked?1:0.6;
+    
+    ctx.beginPath();
+    const vib=isPlucked?Date.now()*.002:0;
+    for(let t=0;t<=1;t+=0.02){
+      const yy=-H*0.58+t*H*0.58;
+      const xx=x+Math.sin(t*Math.PI*6+vib*10*(1-t))*((isPlucked?4:0)*(1-t));
+      t===0?ctx.moveTo(xx,yy):ctx.lineTo(xx,yy);
+    }
+    ctx.stroke();
+    ctx.shadowBlur=0;
+    ctx.globalAlpha=1;
+  });
+  
+  ctx.restore();
+}
+
+// === 声音播放与声级计 ===
+let currentDb=0;
+let targetDb=0;
+let dbInterval=null;
+
+function animateDB(target){
+  targetDb=target;
+  if(dbInterval)clearInterval(dbInterval);
+  dbInterval=setInterval(()=>{
+    const diff=targetDb-currentDb;
+    if(Math.abs(diff)<0.5){
+      currentDb=targetDb;
+      updateDBDisplay();
+      clearInterval(dbInterval);
+      dbInterval=null;
+    } else {
+      currentDb+=diff*0.08;
+      updateDBDisplay();
+    }
+  },30);
+}
+
+function updateDBDisplay(){
+  const db=Math.round(currentDb*10)/10;
+  document.getElementById('dbDisplay').textContent=db.toFixed(1);
+  document.getElementById('iDb').textContent=db.toFixed(1)+' dB';
+  
+  const pct=Math.min(100,db/120*100);
+  const bar=document.getElementById('dbBar');
+  bar.style.width=pct+'%';
+  
+  // 颜色
+  let color,safe,desc;
+  if(db<30){color='#22c55e';safe='🔇 安全';desc='🔇 非常安静';}
+  else if(db<50){color='#34d399';safe='🔇 安全';desc='📖 安静环境';}
+  else if(db<70){color='#fbb03b';safe='✅ 安全';desc='💬 正常交谈';}
+  else if(db<85){color='#f59e0b';safe='⚠️ 注意';desc='⚠️ 长时间可能疲劳';}
+  else if(db<100){color='#ef4444';safe='⚠️ 警告';desc='⚠️ 持续暴露有损伤风险';}
+  else {color='#dc2626';safe='🚨 危险！';desc='🚨 短时间就可能损伤听力！';}
+  
+  document.getElementById('dbDisplay').style.color=color;
+  bar.style.background=color;
+  document.getElementById('iSafe').textContent=safe;
+  document.getElementById('dbDesc').textContent=desc;
+}
+
+function playString(idx){
+  const s=strings[idx];
+  const db=s.dbRange[0]+Math.random()*(s.dbRange[1]-s.dbRange[0]);
+  animateDB(db);
+  drawGuitar(idx);
+  document.getElementById('iSource').textContent=`🎸 ${s.name} (${s.note})`;
+  // 弦高亮
+  document.querySelectorAll('.string-btn').forEach((b,i)=>b.classList.toggle('active',i===idx));
+  setTimeout(()=>{
+    drawGuitar(-1);
+    document.querySelectorAll('.string-btn').forEach(b=>b.classList.remove('active'));
+  },1000);
+}
+
+function playSound(name,minDb,maxDb){
+  const db=minDb+Math.random()*(maxDb-minDb);
+  animateDB(db);
+  drawGuitar(-1);
+  const labels={
+    whisper:'🤫 耳语', talk:'💬 说话', shout:'🗣️ 喊叫',
+    dry:'🎸 吉他独奏', amp:'🎸 电吉他',
+    drill:'🔧 电钻', concert:'🎵 演唱会'
+  };
+  document.getElementById('iSource').textContent=labels[name]||name;
+  document.querySelectorAll('.string-btn').forEach(b=>b.classList.remove('active'));
+}
+
+// 随机小波动（模拟环境噪声）
+setInterval(()=>{
+  if(!dbInterval && currentDb<8){
+    currentDb=2+Math.random()*4;
+    updateDBDisplay();
+  }
+},2000);
+
+// 启动
+window.addEventListener('resize',resizeGuitar);
+window.addEventListener('load',()=>{
+  resizeGuitar();
+  currentDb=3;
+  updateDBDisplay();
+  document.getElementById('iSource').textContent='🔇 安静中';
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>十万分之一天平称羽毛 · 亲子科学实验室</title>
+<style>
+:root{
+  --bg:#0a0a14;--card:#111122;--card2:#16162d;--accent:#0ea5e9;--accent2:#f472b6;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--purple:#a78bfa;
+  --text:#e2e8f0;--muted:#64748b;--border:#1a1a3a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;overflow-x:hidden}
+.wrap{max-width:820px;margin:0 auto;padding:0 14px 60px}
+.hero{position:relative;padding:44px 28px 36px;text-align:center;background:linear-gradient(135deg,#0f172a 0%,#1a0a1a 100%);overflow:hidden;border-radius:0 0 20px 20px;margin-bottom:20px}
+.hero::before{content:'';position:absolute;top:-60%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(244,114,182,.07) 0%,transparent 50%),radial-gradient(circle at 70% 60%,rgba(14,165,233,.04) 0%,transparent 40%);pointer-events:none}
+.hero h1{font-size:24px;font-weight:700;position:relative;z-index:1}
+.hero h1 em{color:var(--accent2);font-style:normal}
+.hero .hb{font-size:12px;color:var(--muted);margin-top:6px;position:relative;z-index:1}
+.sec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px;margin-bottom:14px}
+.sec .snum{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent2);font-weight:600;margin-bottom:6px;letter-spacing:1px}
+.sec h2{font-size:17px;font-weight:600;margin-bottom:10px}
+.sec h3{font-size:14px;font-weight:600;margin:12px 0 6px;color:var(--accent2)}
+.sec p{font-size:13px;color:#cbd5e1;margin-bottom:8px;line-height:1.8}
+.sec ul{padding-left:18px;margin:4px 0 8px}
+.sec ul li{font-size:13px;color:#cbd5e1;margin-bottom:3px}
+.steps{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}
+@media(max-width:500px){.steps{grid-template-columns:1fr}}
+.step{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.step .sicon{font-size:28px;margin-bottom:6px}
+.step .st{font-size:13px;font-weight:600;margin-bottom:4px}
+.step .sd{font-size:11px;color:var(--muted)}
+/* 实验区 */
+.exp-area{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin:14px 0}
+.exp-area .et{font-size:14px;font-weight:600;margin-bottom:12px;text-align:center;color:var(--accent2)}
+.exp-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media(max-width:680px){.exp-grid{grid-template-columns:1fr}}
+/* 天平显示器 */
+.balance-display{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.bal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.bal-head .bname{font-size:12px;font-weight:600;color:var(--accent2);letter-spacing:1px}
+.bal-head .bstatus{font-size:10px;padding:2px 8px;border-radius:10px;background:rgba(34,197,55,.1);color:var(--green);font-weight:600}
+.bal-head .bstatus.warn{background:rgba(251,191,36,.1);color:var(--amber)}
+.bal-head .bstatus.bad{background:rgba(239,68,68,.1);color:var(--red)}
+.bal-screen{background:#000;border:2px solid #1a3a3a;border-radius:10px;padding:16px 12px;margin-bottom:10px;position:relative;overflow:hidden}
+.bal-screen::before{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(74,222,128,.03),transparent);pointer-events:none}
+.bal-val{font-size:38px;font-weight:800;font-family:'Courier New',monospace;color:var(--green);text-shadow:0 0 12px rgba(74,222,128,.15);transition:color .2s}
+.bal-val.warn{color:var(--amber);text-shadow:0 0 12px rgba(251,191,36,.1)}
+.bal-val.bad{color:var(--red);text-shadow:0 0 12px rgba(239,68,68,.1)}
+.bal-unit{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:1px}
+.bal-stable{font-size:10px;color:var(--muted);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px}
+.bal-stable .dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:blink 1.2s infinite}
+.bal-stable .dot.off{background:var(--muted);animation:none}
+.bal-stable .dot.warn{background:var(--amber);animation:blink .6s infinite}
+.bal-stable .dot.bad{background:var(--red);animation:blink .3s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.bal-bar{height:6px;background:#1a1a2a;border-radius:3px;overflow:hidden;margin-top:8px}
+.bal-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--green),var(--accent));transition:width .3s,background .3s}
+/* 天平托盘可视化 */
+.pan-viz{background:var(--card2);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;position:relative}
+.pan-viz .pv-title{font-size:11px;color:var(--muted);margin-bottom:8px}
+.pan-canvas-wrap{position:relative;width:100%;max-width:220px;margin:0 auto;aspect-ratio:1/1}
+.pan-canvas-wrap canvas{width:100%;height:100%;display:block;border-radius:8px;background:linear-gradient(180deg,#0f0f1a,#16162d)}
+.draft-glass{position:absolute;inset:0;border:2px dashed rgba(14,165,233,.3);border-radius:8px;pointer-events:none;transition:opacity .3s,transform .3s;background:rgba(14,165,233,.03)}
+.draft-glass.open{opacity:.2;transform:translateY(-10px)}
+/* 样品选择 */
+.sample-tray{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:10px 0}
+.sample-btn{padding:8px 10px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:11px;cursor:pointer;transition:.2s;display:flex;align-items:center;gap:6px}
+.sample-btn:hover{border-color:var(--accent2);background:rgba(244,114,182,.1)}
+.sample-btn.active{border-color:var(--accent2);background:rgba(244,114,182,.15);color:var(--accent2)}
+.sample-btn .sico{font-size:18px}
+.sample-btn .sw{font-size:9px;color:var(--muted);margin-left:auto}
+/* 控制区 */
+.ctrl-area{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+@media(max-width:500px){.ctrl-area{grid-template-columns:1fr}}
+.ctrl-box{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:12px}
+.ctrl-box .cl{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:6px}
+.ctrl-box .cl b{color:var(--text);font-weight:600}
+.ctrl-box input[type=range]{width:100%;height:4px;-webkit-appearance:none;background:#1a1a2a;border-radius:2px;outline:none}
+.ctrl-box input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent2);cursor:pointer;box-shadow:0 0 10px rgba(244,114,182,.3)}
+.btn-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:10px 0}
+.btn{padding:8px 18px;border-radius:20px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12px;cursor:pointer;transition:.2s;font-weight:600}
+.btn:hover{background:rgba(14,165,233,.1);border-color:var(--accent)}
+.btn.primary{background:rgba(244,114,182,.15);border-color:var(--accent2);color:var(--accent2)}
+.btn.primary:hover{background:rgba(244,114,182,.25)}
+.btn.green{background:rgba(34,197,55,.15);border-color:var(--green);color:var(--green)}
+.btn.green:hover{background:rgba(34,197,55,.25)}
+.info-bar{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding:8px 12px;background:var(--card2);border-radius:8px;border:1px solid var(--border);font-size:11px;color:var(--muted);align-items:center}
+.info-bar .ib{display:flex;align-items:center;gap:4px}
+.info-bar .ib .ibv{color:var(--text);font-weight:600}
+.result-box{padding:10px 14px;background:var(--card2);border:1px solid var(--border);border-radius:8px;text-align:center;margin-top:10px}
+.result-box .rv{font-size:16px;font-weight:700;color:var(--accent2)}
+.result-box .rd{font-size:11px;color:var(--muted);margin-top:4px}
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.summary-grid .scard{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+.summary-grid .scard .sct{font-size:12px;color:var(--accent2);font-weight:600;margin-bottom:3px}
+.summary-grid .scard .scv{font-size:22px;font-weight:700}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin:0 1px}
+.tag.g{background:rgba(34,197,55,.15);color:var(--green)}
+.tag.b{background:rgba(14,165,233,.15);color:var(--accent)}
+.tag.y{background:rgba(251,191,36,.15);color:var(--amber)}
+.tag.r{background:rgba(239,68,68,.15);color:var(--red)}
+.ft{text-align:center;padding:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:10px}
+.ft em{color:var(--accent2);font-style:normal}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <h1>⚖️ 一片羽毛有多重？<br>让<em>十万分之一天平</em>告诉你</h1>
+  <div class="hb">EnvLab · 亲子科学实验室 · 放样品、开防风罩、看读数怎么跳</div>
+</div>
+
+<div class="wrap">
+
+<!-- 第一幕 -->
+<div class="sec">
+  <div class="snum"><span class="tag">01</span> 0.01 mg 是什么概念？</div>
+  <h2>比你想象的还要轻</h2>
+  <p>我们平时说"一克"、"一公斤"，但环境实验室里经常要称的东西比这轻几千倍。比如一片 PM2.5 滤膜上的灰尘，可能只有<strong>0.1 毫克</strong>。</p>
+  <p>十万分之一天平的屏幕能读到 <strong>0.01 mg</strong>（0.00001 g），大概是：</p>
+  <ul>
+    <li>一根蚂蚁腿的重量</li>
+    <li>一片标准羽毛的 1/70</li>
+    <li>一粒细盐的几百分之一</li>
+  </ul>
+  <p>在这个精度下，你<strong>吹一口气</strong>、<strong>拍一下桌子</strong>，甚至<strong>体温</strong>都会让读数跳舞。</p>
+</div>
+
+<!-- 第二幕 -->
+<div class="sec">
+  <div class="snum"><span class="tag">02</span> 它为什么这么敏感？</div>
+  <h2>天平的三个"护身法宝"</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="sicon">🛡️</div>
+      <div class="st">防风罩</div>
+      <div class="sd">隔绝空气流动，气流能让读数跳 0.5 mg</div>
+    </div>
+    <div class="step">
+      <div class="sicon">⚡</div>
+      <div class="st">电磁力平衡</div>
+      <div class="sd">用电磁力"托住"样品，精度达到 0.01 mg</div>
+    </div>
+    <div class="step">
+      <div class="sicon">🪨</div>
+      <div class="st">防震台</div>
+      <div class="sd">大理石台面，吸收走动和关门带来的振动</div>
+    </div>
+  </div>
+  <p>十万分之一天平不是"称不准"，而是它太忠实了——它把环境里每一个微小的扰动都如实记录下来。你看到的"跳字"，其实是实验室的真实状态。</p>
+</div>
+
+<!-- 第三幕 -->
+<div class="sec">
+  <div class="snum"><span class="tag">03</span> 怎么称才准确？</div>
+  <h2>减量法：最精密的称量秘诀</h2>
+  <p>称药粉的时候，如果直接倒到秤盘上，粉末会粘得到处都是，误差很大。实验室里最常用的是<strong>减量法</strong>：</p>
+  <ul>
+    <li>先称"小瓶子 + 药粉"的总重 m₁</li>
+    <li>倒一点药粉到目标容器里</li>
+    <li>再称"小瓶子 + 剩余药粉"的重量 m₂</li>
+    <li>实际倒出的药粉 = m₁ − m₂</li>
+  </ul>
+  <p>这样即使药粉粘在瓶口没倒出来，也不影响结果——因为我们称的是<strong>少掉的重量</strong>。</p>
+</div>
+
+<!-- 第四幕：交互实验 -->
+<div class="exp-area">
+  <div class="et">🎮 亲子实验：十万分之一天平模拟器</div>
+
+  <div class="exp-grid">
+    <!-- 左侧：天平和托盘 -->
+    <div class="balance-display">
+      <div class="bal-head">
+        <div class="bname">⚖️ METTLER 十万分之一</div>
+        <div class="bstatus" id="bstatus">稳定</div>
+      </div>
+      <div class="bal-screen">
+        <div class="bal-val" id="balVal">0.00000</div>
+        <div class="bal-unit">g · 0.01 mg 分度</div>
+        <div class="bal-stable" id="balStable">
+          <span class="dot" id="stableDot"></span>
+          <span id="stableText">读数稳定</span>
+        </div>
+      </div>
+      <div class="bal-bar"><div class="bal-bar-fill" id="balBar" style="width:0%"></div></div>
+      <div class="pan-viz" style="margin-top:14px">
+        <div class="pv-title">防风罩状态 · 点击右侧开关</div>
+        <div class="pan-canvas-wrap">
+          <canvas id="panCanvas" width="220" height="220"></canvas>
+          <div class="draft-glass" id="draftGlass"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧：样品和控制 -->
+    <div>
+      <div class="sample-tray" id="sampleTray">
+        <button class="sample-btn" onclick="placeS(0)"><span class="sico">🪶</span>羽毛<span class="sw">0.12mg</span></button>
+        <button class="sample-btn" onclick="placeS(1)"><span class="sico">🦟</span>蚂蚁腿<span class="sw">0.05mg</span></button>
+        <button class="sample-btn" onclick="placeS(2)"><span class="sico">✨</span>药粉<span class="sw">12.34mg</span></button>
+        <button class="sample-btn" onclick="placeS(3)"><span class="sico">🧻</span>滤膜<span class="sw">125.45mg</span></button>
+        <button class="sample-btn" onclick="placeS(4)"><span class="sico">🪙</span>硬币<span class="sw">2.50g</span></button>
+        <button class="sample-btn" onclick="placeS(5)"><span class="sico">🧪</span>称量瓶<span class="sw">18.54g</span></button>
+      </div>
+
+      <div class="ctrl-area">
+        <div class="ctrl-box">
+          <div class="cl"><span>🛡️ 防风罩</span><b id="draftText">关闭</b></div>
+          <input type="range" id="draftSlider" min="0" max="1" value="1" step="1">
+        </div>
+        <div class="ctrl-box">
+          <div class="cl"><span>📳 振动干扰</span><b id="vibeText">无</b></div>
+          <input type="range" id="vibeSlider" min="0" max="2" value="0" step="1">
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn primary" onclick="tare()">TARE 去皮</button>
+        <button class="btn green" onclick="doWeigh()">📋 记录结果</button>
+        <button class="btn" onclick="resetAll()">🔄 重置</button>
+      </div>
+
+      <div class="result-box" id="resultBox">
+        <div class="rv">—</div>
+        <div class="rd">选择一样样品放到天平上，观察读数变化</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-bar">
+    <div class="ib"><span class="ibv">💡 小提示：</span><span>防风罩打开时，气流会让读数波动 ±0.5 mg；振动剧烈时可达 ±15 mg</span></div>
+  </div>
+</div>
+
+<!-- 第五幕：总结 -->
+<div class="sec">
+  <div class="snum"><span class="tag">04</span> 实验总结</div>
+  <h2>十万分之一天平的四个黄金法则</h2>
+  <div class="summary-grid">
+    <div class="scard">
+      <div class="sct">🌡️ 预热</div>
+      <div class="scv" style="font-size:18px">开机 ≥30 min</div>
+    </div>
+    <div class="scard">
+      <div class="sct">🛡️ 关罩</div>
+      <div class="scv" style="font-size:18px">防风罩关闭</div>
+    </div>
+    <div class="scard">
+      <div class="sct">🪨 防震</div>
+      <div class="scv" style="font-size:18px">大理石台面</div>
+    </div>
+    <div class="scard">
+      <div class="sct">📉 减量</div>
+      <div class="scv" style="font-size:18px">m₁ − m₂</div>
+    </div>
+  </div>
+  <p style="margin-top:12px">和小宋一起做实验：找家里最轻的东西——一根头发、一粒米、一小片纸——猜猜它们有多少毫克？然后记住：<strong>精密不是复杂，而是对环境足够敏感。</strong></p>
+</div>
+
+<div class="ft">EnvLab · <em>亲子科学实验室</em> · 和小宋一起玩科学</div>
+
+</div>
+
+<script>
+// 样品数据：重量用 mg 存储，显示时转换为 g
+const SAMPLES = [
+  {icon:'🪶',name:'羽毛',weight:0.12,desc:'轻到几乎感觉不到'},
+  {icon:'🦟',name:'蚂蚁腿',weight:0.05,desc:'比羽毛还轻'},
+  {icon:'✨',name:'药粉',weight:12.34,desc:'实验室常见样品'},
+  {icon:'🧻',name:'滤膜',weight:125.45,desc:'测 PM2.5 用的滤膜'},
+  {icon:'🪙',name:'硬币',weight:2500.00,desc:'常见一元硬币'},
+  {icon:'🧪',name:'称量瓶',weight:18543.20,desc:'带样品的小瓶子'}
+];
+
+let state = {
+  sampleIdx: -1,
+  tare: 0,        // mg
+  draftClosed: true,
+  vibration: 0,   // 0=none 1=light 2=heavy
+  lastStable: null,
+  noiseInterval: null
+};
+
+const balVal = document.getElementById('balVal');
+const balStable = document.getElementById('balStable');
+const stableDot = document.getElementById('stableDot');
+const stableText = document.getElementById('stableText');
+const bstatus = document.getElementById('bstatus');
+const balBar = document.getElementById('balBar');
+const draftText = document.getElementById('draftText');
+const vibeText = document.getElementById('vibeText');
+const draftGlass = document.getElementById('draftGlass');
+const resultBox = document.getElementById('resultBox');
+
+// 画布绘制天平托盘
+const panCanvas = document.getElementById('panCanvas');
+const pCtx = panCanvas.getContext('2d');
+function drawPan(){
+  const w = panCanvas.width, h = panCanvas.height;
+  pCtx.clearRect(0,0,w,h);
+  // 底座
+  pCtx.fillStyle = 'rgba(255,255,255,.04)';
+  pCtx.fillRect(w*0.15,h*0.72,w*0.7,h*0.18);
+  pCtx.strokeStyle = 'rgba(255,255,255,.08)';
+  pCtx.strokeRect(w*0.15,h*0.72,w*0.7,h*0.18);
+  // 支柱
+  pCtx.fillStyle = 'rgba(255,255,255,.08)';
+  pCtx.fillRect(w*0.47,h*0.38,w*0.06,h*0.34);
+  // 托盘
+  pCtx.fillStyle = 'rgba(13,148,136,.12)';
+  pCtx.beginPath();
+  pCtx.ellipse(w*0.5,h*0.42,w*0.32,h*0.06,0,0,Math.PI*2);
+  pCtx.fill();
+  pCtx.strokeStyle = 'rgba(13,148,136,.25)';
+  pCtx.stroke();
+  // 样品图标
+  if(state.sampleIdx >= 0){
+    pCtx.font = '40px sans-serif';
+    pCtx.textAlign = 'center';
+    pCtx.textBaseline = 'middle';
+    pCtx.fillText(SAMPLES[state.sampleIdx].icon, w*0.5, h*0.35);
+  }
+  // 防风罩关闭时画玻璃反光
+  if(state.draftClosed){
+    pCtx.strokeStyle = 'rgba(14,165,233,.12)';
+    pCtx.setLineDash([4,4]);
+    pCtx.beginPath();
+    pCtx.arc(w*0.5,h*0.42,w*0.38,Math.PI,0);
+    pCtx.stroke();
+    pCtx.setLineDash([]);
+  }
+}
+
+function updateDisplay(){
+  const base = state.sampleIdx >= 0 ? SAMPLES[state.sampleIdx].weight : 0;
+  const net = Math.max(0, base - state.tare); // mg
+  const netG = net / 1000; // g
+
+  // 噪声
+  let noise = 0;
+  if(!state.draftClosed) noise += (Math.random()-0.5)*0.5; // 防风罩打开 ±0.5mg
+  if(state.vibration === 1) noise += (Math.random()-0.5)*3; // 轻微 ±3mg
+  if(state.vibration === 2) noise += (Math.random()-0.5)*15; // 剧烈 ±15mg
+  if(state.draftClosed && state.vibration === 0) noise += (Math.random()-0.5)*0.02; // 基准 ±0.02mg
+
+  const totalMg = Math.max(0, net + noise);
+  const totalG = totalMg / 1000;
+
+  // 显示 5 位小数 g
+  balVal.textContent = totalG.toFixed(5);
+
+  // 稳定性判断
+  const noiseLevel = Math.abs(noise);
+  let status = '稳定';
+  let statusClass = '';
+  if(noiseLevel < 0.05 && state.draftClosed){
+    balVal.className = 'bal-val';
+    stableDot.className = 'dot';
+    stableText.textContent = '读数稳定';
+    bstatus.textContent = '稳定';
+    bstatus.className = 'bstatus';
+    state.lastStable = netG;
+  } else if(noiseLevel < 2){
+    balVal.className = 'bal-val warn';
+    stableDot.className = 'dot warn';
+    stableText.textContent = '轻微波动';
+    bstatus.textContent = '轻微波动';
+    bstatus.className = 'bstatus warn';
+  } else {
+    balVal.className = 'bal-val bad';
+    stableDot.className = 'dot bad';
+    stableText.textContent = '严重波动';
+    bstatus.textContent = '严重波动';
+    bstatus.className = 'bstatus bad';
+  }
+
+  // 进度条：按最大 2.5g 的硬币
+  const pct = Math.min(100, (totalG/2.5)*100);
+  balBar.style.width = pct + '%';
+  balBar.style.background = noiseLevel < 0.05 ? 'linear-gradient(90deg,var(--green),var(--accent))' :
+                             noiseLevel < 2 ? 'linear-gradient(90deg,var(--amber),var(--red))' : 'linear-gradient(90deg,var(--red),var(--purple))';
+}
+
+function placeS(i){
+  state.sampleIdx = i;
+  document.querySelectorAll('.sample-btn').forEach((b,j)=>b.classList.toggle('active',j===i));
+  resultBox.querySelector('.rv').textContent = '—';
+  resultBox.querySelector('.rd').textContent = `${SAMPLES[i].name} 已放到托盘上，观察读数变化`;
+  drawPan();
+}
+
+function tare(){
+  const base = state.sampleIdx >= 0 ? SAMPLES[state.sampleIdx].weight : 0;
+  state.tare = base;
+  resultBox.querySelector('.rv').textContent = '⚖️ 已去皮';
+  resultBox.querySelector('.rd').textContent = state.sampleIdx >= 0 ? `${SAMPLES[state.sampleIdx].name} 当前重量已设为 0.00000 g` : '空载去皮，读数归零';
+}
+
+function doWeigh(){
+  if(state.sampleIdx < 0){
+    resultBox.querySelector('.rv').textContent = '⚠️ 请先放样品';
+    resultBox.querySelector('.rd').textContent = '从样品栏选择一样物品';
+    return;
+  }
+  const base = SAMPLES[state.sampleIdx].weight;
+  const net = base - state.tare;
+  if(net < 0){
+    resultBox.querySelector('.rv').textContent = '❌ 负值';
+    resultBox.querySelector('.rd').textContent = '去皮值大于样品重量，请重置';
+    return;
+  }
+  const netG = net/1000;
+  const netMg = net;
+  resultBox.querySelector('.rv').textContent = netG.toFixed(5) + ' g';
+  resultBox.querySelector('.rd').textContent = `= ${netMg.toFixed(2)} mg · 样品：${SAMPLES[state.sampleIdx].name} · 已去皮：${(state.tare/1000).toFixed(3)} g`;
+}
+
+function resetAll(){
+  state.sampleIdx = -1;
+  state.tare = 0;
+  state.draftClosed = true;
+  state.vibration = 0;
+  state.lastStable = null;
+  document.querySelectorAll('.sample-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('draftSlider').value = 1;
+  document.getElementById('vibeSlider').value = 0;
+  draftText.textContent = '关闭';
+  vibeText.textContent = '无';
+  draftGlass.classList.remove('open');
+  balVal.textContent = '0.00000';
+  balVal.className = 'bal-val';
+  stableDot.className = 'dot';
+  stableText.textContent = '读数稳定';
+  bstatus.textContent = '稳定';
+  bstatus.className = 'bstatus';
+  balBar.style.width = '0%';
+  resultBox.querySelector('.rv').textContent = '—';
+  resultBox.querySelector('.rd').textContent = '选择一样样品放到天平上，观察读数变化';
+  drawPan();
+}
+
+// Sliders
+document.getElementById('draftSlider').addEventListener('input', function(){
+  state.draftClosed = parseInt(this.value) > 0;
+  draftText.textContent = state.draftClosed ? '关闭' : '打开';
+  draftGlass.classList.toggle('open', !state.draftClosed);
+});
+document.getElementById('vibeSlider').addEventListener('input', function(){
+  state.vibration = parseInt(this.value);
+  vibeText.textContent = state.vibration === 0 ? '无' : state.vibration === 1 ? '轻微' : '剧烈';
+});
+
+// Animation loop
+function startLoop(){
+  if(state.noiseInterval) clearInterval(state.noiseInterval);
+  state.noiseInterval = setInterval(updateDisplay, 200);
+}
+startLoop();
+drawPan();
+
+// 高分辨率 canvas
+panCanvas.width = 220 * 2;
+panCanvas.height = 220 * 2;
+drawPan();
+</script>
+</body>
+</html>

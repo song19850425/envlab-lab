@@ -1,0 +1,13 @@
+{
+  "name": "envlab-training-server",
+  "version": "1.0.0",
+  "description": "EnvLab 仪器操作培训系统后端：真实账号 + 云端培训记录（零外部依赖）",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}

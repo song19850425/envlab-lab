@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>显微镜看一滴污水里的微生物 · PhET级叙事教学</title>
+<style>
+:root{
+  --bg:#0a0a14;--card:#111122;--card2:#16162d;--accent:#0ea5e9;--accent2:#f472b6;
+  --green:#22c55e;--amber:#f59e0b;--red:#ef4444;--purple:#a78bfa;
+  --text:#e2e8f0;--muted:#64748b;--border:#1a1a3a;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;line-height:1.7;overflow-x:hidden}
+.wrap{max-width:820px;margin:0 auto;padding:0 14px 60px}
+/* === Hero === */
+.hero{position:relative;padding:44px 28px 36px;text-align:center;background:linear-gradient(135deg,#0f172a,#1a1a2e);overflow:hidden;border-radius:0 0 20px 20px;margin-bottom:20px}
+.hero::before{content:'';position:absolute;top:-60%;left:-50%;width:200%;height:200%;background:radial-gradient(circle at 30% 40%,rgba(14,165,233,.07) 0%,transparent 50%),radial-gradient(circle at 70% 60%,rgba(52,211,153,.04) 0%,transparent 40%);pointer-events:none}
+.hero h1{font-size:24px;font-weight:700;position:relative;z-index:1}
+.hero h1 em{color:var(--accent);font-style:normal}
+.hero .hb{font-size:12px;color:var(--muted);margin-top:6px;position:relative;z-index:1}
+.hero .hgl{position:absolute;top:20px;left:50%;transform:translateX(-50%);width:200px;height:200px;background:radial-gradient(circle,rgba(14,165,233,.04),transparent 70%);pointer-events:none;border-radius:50%}
+/* === 章节通用 === */
+.sec{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:24px 24px;margin-bottom:14px}
+.sec .snum{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px;letter-spacing:1px}
+.sec h2{font-size:17px;font-weight:600;margin-bottom:10px}
+.sec h3{font-size:14px;font-weight:600;margin:12px 0 6px;color:var(--accent)}
+.sec p{font-size:13px;color:#cbd5e1;margin-bottom:8px;line-height:1.8}
+.sec ul{padding-left:18px;margin:4px 0 8px}
+.sec ul li{font-size:13px;color:#cbd5e1;margin-bottom:3px}
+/* === 三步流程 === */
+.steps{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:12px 0}
+.step{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center}
+.step .sicon{font-size:28px;margin-bottom:6px}
+.step .st{font-size:13px;font-weight:600;margin-bottom:4px}
+.step .sd{font-size:11px;color:var(--muted)}
+/* === 显微镜交互区 === */
+.micro-section{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:20px;margin:14px 0}
+.micro-section .mt{font-size:14px;font-weight:600;color:var(--accent);margin-bottom:12px;text-align:center}
+.micro-layout{display:grid;grid-template-columns:240px 1fr;gap:14px}
+@media(max-width:700px){.micro-layout{grid-template-columns:1fr}}
+/* 显微镜机身 */
+.scope{background:var(--card2);border:1px solid var(--border);border-radius:10px;padding:14px;display:flex;flex-direction:column;align-items:center}
+.scope .scope-svg{width:100%;max-width:200px;height:auto}
+.scope .controls{width:100%;margin-top:10px}
+.scope .ctrl-row{display:flex;justify-content:space-between;align-items:center;margin:6px 0;font-size:11px}
+.scope .ctrl-row label{color:var(--muted)}
+.scope .ctrl-row .val{color:var(--accent);font-weight:600;min-width:40px;text-align:right}
+.scope input[type=range]{flex:1;margin:0 8px;accent-color:var(--accent);height:4px}
+.scope .scope-btn{width:100%;padding:7px;border-radius:8px;border:1px solid var(--border);background:var(--card2);color:var(--text);font-size:12px;cursor:pointer;transition:.2s;margin-top:4px}
+.scope .scope-btn:hover{background:rgba(14,165,233,.1);border-color:var(--accent)}
+.scope .scope-btn.primary{background:rgba(14,165,233,.15);border-color:var(--accent);color:var(--accent)}
+/* 目镜视图 */
+.eyepiece-wrap{position:relative;background:#0a0a12;border:3px solid #2a2a3a;border-radius:50%;overflow:hidden;aspect-ratio:1;max-width:400px;margin:0 auto;box-shadow:0 4px 30px rgba(0,0,0,.5),inset 0 0 40px rgba(0,0,0,.3);cursor:crosshair}
+.eyepiece-wrap canvas{display:block;width:100%;height:100%}
+.eyepiece-label{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:10px;color:rgba(255,255,255,.3);pointer-events:none;z-index:2}
+/* 缩放覆盖 */
+.mag-overlay{position:absolute;top:8px;left:8px;font-size:11px;color:rgba(255,255,255,.5);font-weight:600;z-index:2;padding:3px 8px;background:rgba(0,0,0,.4);border-radius:4px}
+/* === 微生物图鉴 === */
+.bestiary{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin:10px 0}
+.bcard{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;transition:.2s;cursor:default}
+.bcard.found{border-color:var(--accent);box-shadow:0 0 10px rgba(14,165,233,.1)}
+.bcard .bicon{font-size:26px;margin-bottom:2px}
+.bcard .bn{font-size:12px;font-weight:600}
+.bcard .bl{font-size:10px;color:var(--muted);margin-top:2px}
+.bcard .bstatus{font-size:9px;padding:1px 8px;border-radius:10px;display:inline-block;margin-top:3px}
+.bcard .bstatus.ok{background:rgba(34,197,55,.15);color:var(--green)}
+.bcard .bstatus.no{background:rgba(100,116,139,.1);color:var(--muted)}
+/* 信息条 */
+.info-bar{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;padding:8px 12px;background:var(--card2);border-radius:8px;border:1px solid var(--border);font-size:11px;color:var(--muted);align-items:center}
+.info-bar .ib{display:flex;align-items:center;gap:4px}
+.info-bar .ib .ibv{color:var(--text);font-weight:600}
+/* 总结 */
+.summary-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}
+.summary-grid .scard{background:var(--card2);border:1px solid var(--border);border-radius:8px;padding:14px;text-align:center}
+.summary-grid .scard .sct{font-size:12px;color:var(--accent);font-weight:600;margin-bottom:3px}
+.summary-grid .scard .scv{font-size:22px;font-weight:700}
+.ft{text-align:center;padding:24px;font-size:11px;color:var(--muted);border-top:1px solid var(--border);margin-top:10px}
+.ft em{color:var(--accent);font-style:normal}
+.tag{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;margin:0 1px}
+.tag.g{background:rgba(34,197,55,.15);color:var(--green)}
+.tag.b{background:rgba(14,165,233,.15);color:var(--accent)}
+.tag.y{background:rgba(251,191,36,.15);color:var(--amber)}
+.tag.r{background:rgba(239,68,68,.15);color:var(--red)}
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hgl"></div>
+  <h1>🔬 显微镜下的一滴污水<br>里面到底藏着什么？</h1>
+  <div class="hb">EnvLab · 亲子科学实验室 · 调节焦距，自己寻找微生物</div>
+</div>
+
+<div class="wrap">
+
+<!-- === 第一幕：引入 === -->
+<div class="sec">
+  <div class="snum"><span class="tag b">01</span> 为什么看一滴污水？</div>
+  <h2>一滴水 · 一个世界</h2>
+  <p>从你家旁边的小河里取一滴水，放在显微镜下——你会看到一个你从来没想过会存在的世界。</p>
+  <p style="margin-top:6px">这不是科幻片。<strong>每一滴天然水里都生活着成千上万的微生物</strong>——它们游泳、捕食、繁殖、死亡，在一滴水里完成整个生命周期。有些肉眼几乎看不见，有些连显微镜下都要找半天。</p>
+  <p>而如果这滴水是受污染的——里面的"居民"会完全不一样。干净的水里有什么微生物，污水里又有什么微生物——这是环境检测工程师判断水质的重要方法之一。</p>
+</div>
+
+<!-- === 第二幕：显微镜原理 === -->
+<div class="sec">
+  <div class="snum"><span class="tag b">02</span> 显微镜怎么看？</div>
+  <h2>不是"看"，是"探"</h2>
+  <p>显微镜不是放大镜。它用几组镜片把光线弯曲，让微小的东西在你的眼睛里"变大"。</p>
+  <ul>
+    <li><strong>物镜：</strong> 靠近样品的镜头。有4×、10×、40×、100×几个档位</li>
+    <li><strong>目镜：</strong> 你眼睛凑上去看的那个。通常 10×</li>
+    <li><strong>总放大倍数 = 物镜 × 目镜</strong>。比如 40×物镜 + 10×目镜 = 400×</li>
+    <li><strong>调焦：</strong> 让画面从模糊变清晰的过程。微生物大小不同，每个都需要重新对焦</li>
+  </ul>
+  <p style="margin-top:6px;color:var(--amber);font-size:13px">💡 一个冷知识：显微镜的"分辨率"比"放大倍数"重要得多。放得再大，看不清也没用。</p>
+</div>
+
+<!-- === 第三幕：操作流程 === -->
+<div class="sec">
+  <div class="snum"><span class="tag b">03</span> 怎么看到微生物？</div>
+  <h2>三步走</h2>
+  <div class="steps">
+    <div class="step">
+      <div class="sicon">💧</div>
+      <div class="st">采样</div>
+      <div class="sd">用滴管取一滴污水，滴在载玻片中央</div>
+    </div>
+    <div class="step">
+      <div class="sicon">🔼</div>
+      <div class="st">制片</div>
+      <div class="sd">盖上盖玻片，吸走多余水分，放到载物台上</div>
+    </div>
+    <div class="step">
+      <div class="sicon">🔬</div>
+      <div class="st">观察</div>
+      <div class="sd">从低倍→高倍，调节焦距，寻找游动的微生物</div>
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--muted);text-align:center">👇 下面就是你通过显微镜看到的画面 —— 动手试试</p>
+</div>
+
+<!-- === 第四幕：交互实验 === -->
+<div class="micro-section">
+  <div class="mt">🔬 显微镜交互模拟</div>
+  <div class="micro-layout">
+    <!-- 显微镜控制 -->
+    <div class="scope">
+      <div class="scope-svg">
+        <svg viewBox="0 0 140 200" style="width:100%;height:auto">
+          <rect x="55" y="8" width="30" height="30" rx="4" fill="#2a2a3a" stroke="#444" stroke-width="1.5"/>
+          <rect x="62" y="15" width="16" height="16" rx="8" fill="#0a0a12" stroke="#555" stroke-width="1"/>
+          <line x1="70" y1="31" x2="70" y2="42" stroke="#555" stroke-width="3"/>
+          <line x1="60" y1="42" x2="80" y2="42" stroke="#555" stroke-width="3"/>
+          <line x1="70" y1="42" x2="70" y2="60" stroke="#555" stroke-width="3"/>
+          <rect x="58" y="60" width="24" height="5" rx="2" fill="#444"/>
+          <rect x="62" y="65" width="16" height="14" rx="2" fill="#3a3a4a" stroke="#555" stroke-width=".8"/>
+          <circle cx="70" cy="72" r="6" fill="#0ea5e9" opacity=".15"/>
+          <rect x="62" y="80" width="16" height="1" rx="1" fill="#555"/>
+          <rect x="50" y="81" width="40" height="6" rx="2" fill="#3a3a4a"/>
+          <rect x="60" y="87" width="20" height="18" rx="3" fill="#2a2a3a" stroke="#555" stroke-width="1"/>
+          <rect x="63" y="90" width="14" height="12" rx="2" fill="#0a0a12"/>
+          <rect x="55" y="105" width="30" height="5" rx="2" fill="#444"/>
+          <line x1="70" y1="110" x2="70" y2="135" stroke="#555" stroke-width="2"/>
+          <rect x="55" y="135" width="30" height="4" rx="2" fill="#555"/>
+          <rect x="40" y="139" width="60" height="6" rx="3" fill="#3a3a4a"/>
+          <line x1="100" y1="100" x2="130" y2="95" stroke="#555" stroke-width="1.5"/>
+          <circle cx="130" cy="95" r="5" fill="#3a3a4a"/>
+          <text x="110" y="120" font-size="6" fill="#64748b" text-anchor="end">调焦旋钮</text>
+        </svg>
+      </div>
+      <div class="controls">
+        <div class="ctrl-row">
+          <label>放大倍数</label>
+          <input type="range" id="magSlider" min="0" max="3" step="1" value="1">
+          <span class="val" id="magDisplay">400×</span>
+        </div>
+        <div class="ctrl-row">
+          <label>调焦</label>
+          <input type="range" id="focusSlider" min="0" max="100" value="65">
+          <span class="val" id="focusVal">65</span>
+        </div>
+        <button class="scope-btn primary" id="btnNewDrop">💧 换一滴水</button>
+        <button class="scope-btn" id="btnIdentify">🔍 点击识别微生物</button>
+      </div>
+    </div>
+
+    <!-- 目镜视图 -->
+    <div class="eyepiece-wrap" id="eyepieceWrap">
+      <div class="mag-overlay" id="magOverlay">400×</div>
+      <canvas id="cv"></canvas>
+      <div class="eyepiece-label">🔬 目镜视野</div>
+    </div>
+  </div>
+
+  <!-- 微生物图鉴 -->
+  <div style="margin-top:12px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+      <span style="font-size:12px;font-weight:600;color:var(--accent)">🧬 图鉴（共7种）</span>
+      <span style="font-size:11px;color:var(--muted)">找到 <span id="foundCount" style="color:var(--green);font-weight:600">0</span> / 7</span>
+    </div>
+    <div class="bestiary" id="bestiary"></div>
+  </div>
+
+  <!-- 信息栏 -->
+  <div class="info-bar">
+    <span class="ib"><span class="ibl">当前放大：</span><span class="ibv" id="iMag">400×</span></span>
+    <span class="ib"><span class="ibl">微生物数：</span><span class="ibv" id="iCount">0</span></span>
+    <span class="ib"><span class="ibl">样品：</span><span class="ibv" id="iSample">河水样本 #1</span></span>
+  </div>
+</div>
+
+<!-- === 第五幕：总结 === -->
+<div class="sec" style="border-left:4px solid var(--accent)">
+  <div class="snum"><span class="tag b">04</span> 你发现了什么？</div>
+  <h2>污水里到底有什么？</h2>
+  <div class="summary-grid">
+    <div class="scard"><div class="sct">你找到的微生物</div><div class="scv" style="color:var(--green)" id="sFound">0</div><div style="font-size:10px;color:var(--muted)">种</div></div>
+    <div class="scard"><div class="sct">放大倍数</div><div class="scv" style="color:var(--accent)" id="sMag">400×</div></div>
+  </div>
+  <p style="margin-top:10px;font-size:13px">一滴污水里可以找到草履虫、轮虫、绿藻、变形虫……这些微生物是判断水质好坏的重要指标。</p>
+  <ul>
+    <li><span class="tag g">干净水体</span> 常见：钟虫、轮虫、水蚤——它们需要较多溶解氧</li>
+    <li><span class="tag y">轻度污染</span> 常见：绿藻、草履虫——耐受力中等</li>
+    <li><span class="tag r">严重污染</span> 常见：大量细菌、变形虫——溶解氧极低</li>
+  </ul>
+  <p style="margin-top:8px;color:var(--muted);font-size:12px">这就是环境检测中用到的一个方法——<strong>生物指示法</strong>。不用仪器，只看一滴水里的"居民"，就能大致判断水质。</p>
+</div>
+
+<div class="ft">🧪 在家也能做！用吸管取一滴池塘水，放在显微镜下试试吧！<br>EnvLab · <em>亲子科学实验室</em> · 和小宋一起玩科学</div>
+
+</div>
+
+<script>
+// === 微生物数据 ===
+const microbes=[
+  {id:'para', name:'草履虫', emoji:'🦠', desc:'拖鞋形，全身纤毛摆动', size:200, color:'#8bc34a', speed:1.2, mag:1, w:18, h:8, found:false},
+  {id:'rotifer',name:'轮虫',emoji:'🌀',desc:'头上有轮盘旋转',size:250,color:'#ffb74d',speed:.7,mag:1,w:14,h:10,found:false},
+  {id:'algae', name:'绿藻', emoji:'🌿', desc:'绿色球状或丝状', size:80, color:'#4caf50', speed:.2, mag:0, w:9, h:9, found:false},
+  {id:'amoeba', name:'变形虫',emoji:'🧫',desc:'形状不断变化',size:300,color:'#ce93d8',speed:.4,mag:1,w:16,h:12,found:false},
+  {id:'daphnia',name:'水蚤',emoji:'🦐',desc:'像小虾米一样游动',size:400,color:'#ff8a65',speed:1.5,mag:0,w:20,h:12,found:false},
+  {id:'bacteria',name:'细菌群',emoji:'•',desc:'细小颗粒，大量聚集',size:40,color:'#ef5350',speed:.8,mag:2,w:4,h:4,found:false},
+  {id:'vorticella',name:'钟虫',emoji:'🔔',desc:'像钟一样挂在丝上',size:180,color:'#4dd0e1',speed:.1,mag:1,w:10,h:14,found:false}
+];
+
+// 图鉴DOM
+const bestiaryEl=document.getElementById('bestiary');
+microbes.forEach(m=>{
+  const d=document.createElement('div');
+  d.className='bcard';
+  d.id='card-'+m.id;
+  d.innerHTML=`
+    <div class="bicon">${m.emoji}</div>
+    <div class="bn">${m.name}</div>
+    <div class="bl">${m.desc}</div>
+    <div class="bstatus no">❓ 未发现</div>
+  `;
+  bestiaryEl.appendChild(d);
+});
+
+// Canvas 设置
+const canvas=document.getElementById('cv');
+const wrap=document.getElementById('eyepieceWrap');
+let W,H;
+
+function resizeCanvas(){
+  const rect=wrap.getBoundingClientRect();
+  const s=Math.min(rect.width,rect.height,400);
+  canvas.style.width=s+'px';
+  canvas.style.height=s+'px';
+  canvas.width=s*2;
+  canvas.height=s*2;
+  W=canvas.width;
+  H=canvas.height;
+}
+
+// 微生物粒子
+let particles=[];
+let focusLevel=65;
+let magLevel=1;
+const mags=[100,400,1000];
+const magLabels=['100×','400×','1000×'];
+let sampleId=0;
+
+function spawnParticles(){
+  particles=[];
+  const m=mags[magLevel];
+  microbes.forEach(mb=>{
+    // 高倍镜下只有细菌；低倍镜下看不到细菌
+    let count=0;
+    if(mb.id==='bacteria'){
+      count = (m>=1000) ? 40+Math.floor(Math.random()*30) : (m>=400?5+Math.floor(Math.random()*8):0);
+    } else if(mb.id==='algae'){
+      count=3+Math.floor(Math.random()*4);
+    } else if(mb.id==='daphnia'){
+      count = (m<=400) ? 1+Math.floor(Math.random()*2) : 0;
+    } else if(mb.id==='rotifer'||mb.id==='para'){
+      count=2+Math.floor(Math.random()*3);
+    } else if(mb.id==='amoeba'){
+      count=1+Math.floor(Math.random()*2);
+    } else if(mb.id==='vorticella'){
+      count=(m>=400)?2+Math.floor(Math.random()*2):0;
+    }
+    for(let i=0;i<count;i++){
+      const overlap=50;
+      particles.push({
+        id:mb.id, emoji:mb.emoji, name:mb.name,
+        x:overlap+Math.random()*(W-overlap*2),
+        y:overlap+Math.random()*(H-overlap*2),
+        vx:(Math.random()-0.5)*mb.speed*2,
+        vy:(Math.random()-0.5)*mb.speed*2,
+        size:mb.size/400*W/2*0.7,
+        color:mb.color, mag:mb.mag,
+        w:mb.w*2+Math.random()*2,
+        h:mb.h*2+Math.random()*2,
+        phase:Math.random()*Math.PI*2,
+        found:false
+      });
+    }
+  });
+  document.getElementById('iCount').textContent=particles.length;
+  updateFound();
+}
+
+function updateFound(){
+  // 统计哪些微生物类型被找到了（鼠标悬浮/点击识别过）
+  let totalFound=0;
+  microbes.forEach(mb=>{
+    const found=particles.some(p=>p.id===mb.id);
+    const card=document.getElementById('card-'+mb.id);
+    if(card){
+      if(found){
+        card.classList.add('found');
+        card.querySelector('.bstatus').className='bstatus ok';
+        card.querySelector('.bstatus').textContent='✅ 已发现';
+        if(!mb.found){mb.found=true;totalFound++;}
+      } else {
+        card.classList.remove('found');
+        card.querySelector('.bstatus').className='bstatus no';
+        card.querySelector('.bstatus').textContent='❓ 未发现';
+      }
+    }
+  });
+  const cnt=microbes.filter(m=>m.found).length;
+  document.getElementById('foundCount').textContent=cnt;
+  document.getElementById('sFound').textContent=cnt;
+}
+
+// 绘制
+let animId=null;
+function draw(){
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  // 背景
+  const focus=mags[magLevel]===100?1:focusLevel/100;
+  const blurAmt=Math.max(0,1.2-focus*1.1);
+  ctx.fillStyle='#0a0a12';
+  ctx.fillRect(0,0,W,H);
+  
+  // 网格线（模拟显微镜刻度）
+  ctx.strokeStyle=`rgba(14,165,233,${.04+blurAmt*.02})`;
+  ctx.lineWidth=.5;
+  const step=W/12;
+  for(let i=0;i<=12;i++){
+    ctx.beginPath();ctx.moveTo(i*step,0);ctx.lineTo(i*step,H);ctx.stroke();
+    ctx.beginPath();ctx.moveTo(0,i*step);ctx.lineTo(W,i*step);ctx.stroke();
+  }
+
+  // 更新位置
+  const m=mags[magLevel];
+  particles.forEach(p=>{
+    p.x+=p.vx;
+    p.y+=p.vy;
+    if(p.x<-20)p.x=W+20;
+    if(p.x>W+20)p.x=-20;
+    if(p.y<-20)p.y=H+20;
+    if(p.y>H+20)p.y=-20;
+    // 变形虫变形
+    if(p.id==='amoeba'){
+      p.phase+=.02;
+      p.w=14+Math.sin(p.phase)*6;
+      p.h=10+Math.cos(p.phase*1.3)*5;
+    }
+    // 钟虫伸缩
+    if(p.id==='vorticella'){
+      p.phase+=.015;
+      p.h=12+Math.sin(p.phase)*4;
+    }
+  });
+
+  // 按大小排序绘制（小的先画，大的盖在上面）
+  const sorted=[...particles].sort((a,b)=>a.w*a.h-b.w*b.h);
+  
+  sorted.forEach(p=>{
+    // 某些微生物在高倍镜下才有
+    if(p.id==='bacteria' && m<1000 && m<400) return;
+    if(p.id==='daphnia' && m>400) return;
+    
+    // 模糊效果
+    ctx.save();
+    const blur=blurAmt*(p.id==='bacteria'?1.5:1);
+    if(blur>.05){
+      ctx.filter=`blur(${blur}px)`;
+    }
+    ctx.globalAlpha=Math.min(1,.6+focus*0.4);
+
+    // 颜色光晕
+    ctx.shadowColor=p.color;
+    ctx.shadowBlur=p.id==='bacteria'?4:8;
+
+    if(p.id==='bacteria'){
+      // 细菌是小点
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,2,0,Math.PI*2);
+      ctx.fill();
+    } else if(p.id==='algae'){
+      // 绿藻是圆形
+      const r=5+Math.sin(p.phase+Date.now()*.001)*1;
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.arc(p.x,p.y,r,0,Math.PI*2);
+      ctx.fill();
+      ctx.fillStyle='rgba(255,255,255,.2)';
+      ctx.beginPath();
+      ctx.arc(p.x-1.5,p.y-1.5,r*.4,0,Math.PI*2);
+      ctx.fill();
+    } else if(p.id==='amoeba'){
+      // 变形虫
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      const pts=12;
+      for(let i=0;i<pts;i++){
+        const a=i/pts*Math.PI*2;
+        const r=8+Math.sin(a*3+p.phase)*4+Math.sin(a*5+p.phase*.7)*2;
+        const px=p.x+Math.cos(a)*r;
+        const py=p.y+Math.sin(a)*r;
+        i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
+      }
+      ctx.closePath();ctx.fill();
+      // 细胞核
+      ctx.fillStyle='rgba(255,255,255,.2)';
+      ctx.beginPath();
+      ctx.arc(p.x-2,p.y-2,3,0,Math.PI*2);
+      ctx.fill();
+    } else if(p.id==='vorticella'){
+      // 钟虫
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.ellipse(p.x,p.y-4,4,6,0,0,Math.PI*2);
+      ctx.fill();
+      // 柄
+      ctx.strokeStyle='rgba(255,255,255,.15)';
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(p.x,p.y+2);
+      ctx.lineTo(p.x+Math.sin(p.phase)*2,p.y+10);
+      ctx.stroke();
+      // 口缘纤毛
+      ctx.fillStyle='rgba(255,255,255,.3)';
+      ctx.beginPath();
+      ctx.arc(p.x-3,p.y-6,1.5,0,Math.PI*2);
+      ctx.arc(p.x+3,p.y-6,1.5,0,Math.PI*2);
+      ctx.fill();
+    } else if(p.id==='daphnia'){
+      // 水蚤 - 像小虾
+      ctx.fillStyle=p.color;
+      // 身体
+      ctx.beginPath();
+      ctx.ellipse(p.x,p.y,8,5,0,0,Math.PI*2);
+      ctx.fill();
+      // 触角
+      ctx.strokeStyle='rgba(255,255,255,.2)';
+      ctx.lineWidth=1;
+      ctx.beginPath();
+      ctx.moveTo(p.x+6,p.y-3);
+      ctx.lineTo(p.x+14,p.y-10);
+      ctx.moveTo(p.x+6,p.y+3);
+      ctx.lineTo(p.x+14,p.y+10);
+      ctx.stroke();
+      // 眼睛
+      ctx.fillStyle='#000';
+      ctx.beginPath();
+      ctx.arc(p.x-3,p.y-2,1.5,0,Math.PI*2);
+      ctx.fill();
+    } else {
+      // 草履虫/轮虫：椭圆形+特征
+      ctx.fillStyle=p.color;
+      ctx.beginPath();
+      ctx.ellipse(p.x,p.y,p.w/2,p.h/2,0,0,Math.PI*2);
+      ctx.fill();
+      // 纤毛或特征
+      if(p.id==='para'){
+        ctx.strokeStyle='rgba(255,255,255,.15)';
+        ctx.lineWidth=.5;
+        for(let i=-4;i<=4;i++){
+          ctx.beginPath();
+          ctx.moveTo(p.x+i*2,p.y-p.h/2);
+          ctx.lineTo(p.x+i*2.5,p.y-p.h/2-3);
+          ctx.stroke();
+        }
+        // 细胞核
+        ctx.fillStyle='rgba(255,255,255,.2)';
+        ctx.beginPath();
+        ctx.arc(p.x-2,p.y,2,0,Math.PI*2);
+        ctx.fill();
+      }
+      if(p.id==='rotifer'){
+        // 轮盘
+        ctx.strokeStyle='rgba(255,255,255,.2)';
+        ctx.lineWidth=.8;
+        ctx.beginPath();
+        ctx.arc(p.x-4,p.y-p.h/2-1,3,0,Math.PI*2);
+        ctx.arc(p.x+4,p.y-p.h/2-1,3,0,Math.PI*2);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
+  });
+
+  animId=requestAnimationFrame(draw);
+}
+
+// 点击识别
+function handleIdentify(e){
+  const rect=canvas.getBoundingClientRect();
+  const ex=(e.clientX-rect.left)/rect.width*W;
+  const ey=(e.clientY-rect.top)/rect.height*H;
+  // 找最近的微生物
+  let nearest=null,minDist=Infinity;
+  particles.forEach(p=>{
+    const d=Math.hypot(p.x-ex,p.y-ey);
+    if(d<minDist && d<60){minDist=d;nearest=p;}
+  });
+  if(nearest){
+    const mb=microbes.find(m=>m.id===nearest.id);
+    if(mb){
+      mb.found=true;
+      const card=document.getElementById('card-'+mb.id);
+      if(card){
+        card.classList.add('found');
+        card.querySelector('.bstatus').className='bstatus ok';
+        card.querySelector('.bstatus').textContent='✅ 已发现';
+      }
+      document.getElementById('foundCount').textContent=microbes.filter(m=>m.found).length;
+      document.getElementById('sFound').textContent=microbes.filter(m=>m.found).length;
+    }
+  }
+}
+
+// === 控件绑定 ===
+document.getElementById('magSlider').addEventListener('input',function(){
+  magLevel=parseInt(this.value);
+  document.getElementById('magDisplay').textContent=magLabels[magLevel];
+  document.getElementById('magOverlay').textContent=magLabels[magLevel];
+  document.getElementById('iMag').textContent=magLabels[magLevel];
+  document.getElementById('sMag').textContent=magLabels[magLevel];
+  spawnParticles();
+});
+
+document.getElementById('focusSlider').addEventListener('input',function(){
+  focusLevel=parseInt(this.value);
+  document.getElementById('focusVal').textContent=focusLevel;
+});
+
+document.getElementById('btnNewDrop').addEventListener('click',()=>{
+  sampleId++;
+  document.getElementById('iSample').textContent=`河水样本 #${sampleId}`;
+  microbes.forEach(m=>m.found=false);
+  document.querySelectorAll('.bcard').forEach(c=>{
+    c.classList.remove('found');
+    c.querySelector('.bstatus').className='bstatus no';
+    c.querySelector('.bstatus').textContent='❓ 未发现';
+  });
+  document.getElementById('foundCount').textContent=0;
+  document.getElementById('sFound').textContent=0;
+  spawnParticles();
+});
+
+document.getElementById('btnIdentify').addEventListener('click',()=>{
+  // 开启点击识别模式 — 下次点击canvas触发识别
+  canvas.style.cursor='crosshair';
+  const handler=function(e){
+    handleIdentify(e);
+    canvas.style.cursor='crosshair';
+    canvas.removeEventListener('click',handler);
+  };
+  canvas.addEventListener('click',handler);
+  // 提示用户
+  document.getElementById('btnIdentify').textContent='👆 在视野中点击微生物';
+  setTimeout(()=>{document.getElementById('btnIdentify').textContent='🔍 点击识别微生物';},2000);
+});
+
+// 点击canvas直接识别（不通过按钮）
+canvas.addEventListener('click',handleIdentify);
+
+// === 启动 ===
+window.addEventListener('resize',()=>{resizeCanvas();});
+window.addEventListener('load',()=>{
+  resizeCanvas();
+  spawnParticles();
+  draw();
+});
+
+</script>
+</body>
+</html>

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>仪器操作培训 | EnvLab</title>
+<style>
+  :root{ --accent:#f59e0b; --bg:#0b1020; --panel:#121a30; --line:#22304f; --txt:#e8eefc; --mut:#8aa0c6; }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:-apple-system,"Microsoft YaHei",Segoe UI,Roboto,sans-serif;background:var(--bg);color:var(--txt);line-height:1.6}
+  .wrap{max-width:820px;margin:0 auto;padding:28px 20px 60px}
+  header{border-bottom:1px solid var(--line);padding-bottom:16px;margin-bottom:22px}
+  .badge{display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:20px;padding:2px 12px;margin-bottom:10px}
+  h1{margin:0;font-size:26px}
+  .hero-sub{color:var(--mut);font-size:13px;margin-top:6px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+  label{display:block;font-size:13px;color:var(--mut);margin:12px 0 6px}
+  input{width:100%;background:#0c1428;border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:10px 12px;font-size:14px}
+  input:focus{outline:none;border-color:var(--accent)}
+  .btn{display:inline-block;background:var(--accent);color:#0b1020;border:none;border-radius:8px;padding:11px 22px;font-size:15px;font-weight:700;cursor:pointer;margin-top:14px}
+  .btn:disabled{opacity:.4;cursor:not-allowed}
+  .btn.ghost{background:transparent;color:var(--accent);border:1px solid var(--accent)}
+  .step-no{color:var(--accent);font-size:13px;font-weight:700;letter-spacing:.5px}
+  .q{font-size:18px;margin:8px 0 18px;font-weight:600}
+  .opt{display:block;width:100%;text-align:left;background:#0c1428;border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:13px 16px;margin-bottom:10px;font-size:15px;cursor:pointer;transition:.15s}
+  .opt:hover{border-color:var(--accent)}
+  .opt.correct{border-color:#22c55e;background:rgba(34,197,94,.12)}
+  .opt.wrong{border-color:#ef4444;background:rgba(239,68,68,.12)}
+  .opt.dim{opacity:.45;pointer-events:none}
+  .feedback{margin-top:6px;padding:12px 14px;border-radius:10px;font-size:14px;display:none}
+  .feedback.info{display:block;background:rgba(138,160,198,.12);border-left:3px solid var(--mut)}
+  .feedback.fatal{display:block;background:rgba(239,68,68,.14);border-left:3px solid #ef4444;color:#ffd9d9}
+  .progress{height:6px;background:#0c1428;border-radius:6px;overflow:hidden;margin:6px 0 18px}
+  .progress > i{display:block;height:100%;width:0;background:var(--accent);transition:.3s}
+  .log{font-size:12.5px;color:var(--mut);max-height:180px;overflow:auto;border-top:1px dashed var(--line);margin-top:14px;padding-top:10px}
+  .log div{margin:3px 0}
+  .ok{color:#22c55e}.bad{color:#ef4444}.warn{color:#f59e0b}
+  .result{text-align:center;padding:30px 10px}
+  .score{font-size:54px;font-weight:800;color:var(--accent)}
+  .pass{color:#22c55e;font-size:20px;font-weight:700;margin:6px 0}
+  .fail{color:#ef4444;font-size:20px;font-weight:700;margin:6px 0}
+  .picker a{display:block;background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:10px;text-decoration:none;color:var(--txt)}
+  .picker a:hover{border-color:var(--accent)}
+  .picker small{color:var(--mut)}
+  footer{color:var(--mut);font-size:12px;text-align:center;margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
+  .note{font-size:12px;color:var(--mut);background:rgba(138,160,198,.08);border-radius:8px;padding:8px 12px;margin:10px 0}
+  /* SOP 学习区 */
+  .sop .sop-sec{background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:12px}
+  .sop .sop-sec h3{margin:0 0 8px;font-size:15px;color:var(--accent)}
+  .sop ul{margin:0;padding-left:20px}
+  .sop li{margin:3px 0;font-size:14px}
+  .redline{margin-top:8px;background:rgba(239,68,68,.12);border-left:3px solid #ef4444;border-radius:6px;padding:8px 12px;font-size:13px;color:#ffd9d9}
+  .redline b{color:#ff8a8a}
+  /* SOP 完整交互页嵌入 */
+  .sop-embed{margin:14px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .sop-embed-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;background:#0c1428;border-bottom:1px solid var(--line);font-size:13px;color:var(--mut)}
+  .sop-frame{width:100%;height:68vh;border:0;display:block}
+  .sop-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <span class="badge">EnvLab 仪器操作培训</span>
+    <h1 id="title">仪器操作培训</h1>
+    <div class="hero-sub" id="heroSub">依据受控 SOP 构建（已脱敏）</div>
+  </header>
+
+  <div id="app"></div>
+
+  <footer>和小宋一起玩科学 · EnvLab 仪器操作培训 · 依据受控 SOP 构建（已脱敏）<br>本培训系统为配置驱动，记录留存于本机浏览器，若已接入后端则同步至云端数据库，数据不出实验室。</footer>
+</div>
+
+<script src="config.js"></script>
+<!--API_BASE-->
+<script src="api.js"></script>
+<script>
+const LS_KEY = "envlab_training_records";
+const LS_PROFILES = "envlab_profiles";
+const LS_CURRENT = "envlab_current";
+function getProfiles(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILES)||"[]"); }catch(e){ return []; } }
+function getCurrent(){ try{ return JSON.parse(localStorage.getItem(LS_CURRENT)||"null"); }catch(e){ return null; } }
+function setCurrent(p){ try{ localStorage.setItem(LS_CURRENT, JSON.stringify(p)); }catch(e){} }
+const $ = s => document.querySelector(s);
+const params = new URLSearchParams(location.search);
+const instId = params.get("inst");
+
+let INST = null;
+let trainee = null;
+let stepIndex = 0;
+let logLines = [];
+let startTime = 0;
+let stepState = [];
+
+function buildSop(){
+  if(!INST.sop || !INST.sop.length) return "";
+  return INST.sop.map(s=>`
+    <div class="sop-sec">
+      <h3>${s.title}</h3>
+      <ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>
+      ${(s.redLines&&s.redLines.length)?`<div class="redline"><b>⚠ 红线：</b>${s.redLines.map(r=>`<div>• ${r}</div>`).join("")}</div>`:""}
+    </div>`).join("");
+}
+
+function loadInst(id){
+  fetch("instruments/"+id+".json").then(r=>r.json()).then(j=>{
+    INST=j; stepState = j.steps.map(()=>({attemptsWrong:0,fatalHit:false}));
+    document.documentElement.style.setProperty('--accent', j.accent||'#f59e0b');
+    boot();
+  }).catch(e=>{
+    $("#app").innerHTML = '<div class="card">加载仪器配置失败：'+e.message+'<br>请通过本地服务器打开（见说明），勿用 file:// 直接打开。</div>';
+  });
+}
+
+function boot(){
+  $("#title").textContent = INST.name;
+  $("#heroSub").textContent = "示例机型：" + INST.model + " · " + (INST.remark||"");
+  renderSop();   // 先学 SOP
+}
+
+function renderSop(){
+  const embed = INST.sopPage ? `
+    <div class="sop-embed">
+      <div class="sop-embed-bar">
+        <span>📟 完整交互培训（已做好的对应 SOP 仿真，可点开实操演练）</span>
+        <a class="btn ghost" href="${INST.sopPage}" target="_blank" rel="noopener" style="margin:0">↗ 新标签打开</a>
+      </div>
+      <iframe class="sop-frame" src="${INST.sopPage}" title="SOP 完整交互培训"></iframe>
+    </div>` : "";
+  $("#app").innerHTML = `
+    <div class="card">
+      <div class="step-no">培训前 · 第一步：学习 SOP</div>
+      <h2 style="margin:6px 0 4px;font-size:20px">${INST.name} 标准操作规程（要点）</h2>
+      <div class="note">请先在上方「完整交互培训」中通读并演练标准操作；下方为要点速记，供快速对照。确认理解后再进入作答；作答途中也可随时「查看 SOP」。</div>
+      ${embed}
+      <h3 style="margin:18px 0 6px;font-size:15px;color:var(--accent)">要点速记</h3>
+      <div class="sop">${buildSop()}</div>
+      <button class="btn" id="toForm">我已学习，开始作答 →</button>
+    </div>`;
+  $("#toForm").addEventListener("click", renderForm);
+}
+
+function renderForm(){
+  const cur = getCurrent();
+  const curName = cur ? cur.name : "";
+  const curEmp  = cur ? (cur.emp||"") : "";
+  const curLab  = cur ? (cur.lab||"演示实验室") : "演示实验室";
+  $("#app").innerHTML = `
+    <div class="card">
+      <div class="step-no">培训前 · 第二步：培训登记</div>
+      <h2 style="margin:6px 0 4px;font-size:20px">确认学员信息后开始</h2>
+      ${cur?`<div class="note" style="border-left:3px solid var(--accent);background:rgba(138,160,198,.1)">当前登录学员：<b style="color:var(--txt)">${cur.name}</b>${cur.emp?`（${cur.emp}）`:''} · ${cur.lab}${cur.phone?` · ${cur.phone}`:''}　<a class="btn ghost" href="index.html?logout=1" style="margin:0;padding:4px 10px;font-size:12px">切换 / 注销</a></div>`:`<div class="note">未检测到登录信息，也可直接填写后开始（记录仅存本机）。建议从主页登记后再进入，便于集中留痕。</div>`}
+      <label>姓名 / 工号称呼 *</label>
+      <input id="tName" value="${curName}" placeholder="如：张某某 / 03号操作员">
+      <label>工号（选填）</label>
+      <input id="tEmp" value="${curEmp}" placeholder="如：CJ-0213">
+      <label>所属实验室 / 部门（选填）</label>
+      <input id="tLab" value="${curLab}" placeholder="如：某省环境检测一室">
+      <div style="margin-top:14px"><button class="btn ghost" id="backSop">← 重看 SOP</button></div>
+      <button class="btn" id="startBtn" ${cur?'':'disabled'}>开始作答</button>
+      <div class="note">记录仅保存在本机浏览器（localStorage），用于生成培训佐证。管理员可在 admin.html 查看汇总。</div>
+    </div>`;
+  $("#backSop").addEventListener("click", renderSop);
+  $("#tName").addEventListener("input", e=>{ $("#startBtn").disabled = !e.target.value.trim(); });
+  $("#startBtn").addEventListener("click", ()=>{
+    trainee = { name:$("#tName").value.trim(), emp:$("#tEmp").value.trim(), lab:$("#tLab").value.trim()||"演示实验室" };
+    startTime = Date.now();
+    stepIndex = 0; logLines = [];
+    renderStep();
+  });
+}
+
+function renderStep(){
+  const s = INST.steps[stepIndex];
+  const total = INST.steps.length;
+  const pct = Math.round(stepIndex/total*100);
+  $("#app").innerHTML = `
+    <div class="card">
+      <div class="sop-actions">
+        <button class="btn ghost" id="sopToggle">📖 查看要点</button>
+        ${INST.sopPage?`<a class="btn ghost" href="${INST.sopPage}" target="_blank" rel="noopener" style="margin:0">↗ 打开完整交互培训</a>`:""}
+      </div>
+      <div id="sopPanel" style="display:none;margin-bottom:14px">${buildSop()}</div>
+      <div class="step-no">第 ${stepIndex+1} / ${total} 步</div>
+      <div class="q">${s.q}</div>
+      <div class="progress"><i style="width:${pct}%"></i></div>
+      <div id="opts"></div>
+      <div class="feedback" id="fb"></div>
+      <div class="log" id="log">${logLines.join("")}</div>
+    </div>`;
+  $("#sopToggle").addEventListener("click", ()=>{
+    const p = $("#sopPanel");
+    p.style.display = p.style.display==="none" ? "block" : "none";
+    $("#sopToggle").textContent = p.style.display==="none" ? "📖 查看要点" : "📖 收起要点";
+  });
+  const box = $("#opts");
+  s.options.forEach((o,i)=>{
+    const b = document.createElement("button");
+    b.className="opt"; b.textContent=o.text; b.dataset.i=i;
+    b.addEventListener("click", ()=>choose(o,b));
+    box.appendChild(b);
+  });
+}
+
+function choose(o, btn){
+  const s = INST.steps[stepIndex];
+  const st = stepState[stepIndex];
+  const fb = $("#fb");
+  if(o.fatal){
+    st.fatalHit = true;
+    logLines.push(`<div class="bad">✕ 第${stepIndex+1}步 触发致命红线：${o.text}</div>`);
+    fb.className="feedback fatal";
+    fb.textContent = "⚠ 红线警告：" + s.explain;
+    btn.classList.add("wrong");
+    $("#log").innerHTML = logLines.join("");
+    return;
+  }
+  if(o.correct){
+    let credit;
+    if(st.fatalHit) credit = 0;
+    else if(st.attemptsWrong===0) credit = 1;
+    else credit = 0.5;
+    btn.classList.add("correct");
+    [...$("#opts").children].forEach(c=>c.classList.add("dim"));
+    logLines.push(`<div class="${st.fatalHit?'warn':'ok'}">${st.fatalHit?'⚠':'✓'} 第${stepIndex+1}步 正确${st.fatalHit?'（曾触发红线，本步记0分）':''}</div>`);
+    fb.className="feedback info"; fb.textContent = s.explain;
+    stepState[stepIndex].credit = credit;
+    $("#log").innerHTML = logLines.join("");
+    setTimeout(advance, 650);
+    return;
+  }
+  st.attemptsWrong++;
+  btn.classList.add("wrong");
+  fb.className="feedback info";
+  fb.textContent = "这一步不对，注意：" + s.explain;
+  $("#log").innerHTML = logLines.join("");
+}
+
+function advance(){
+  stepIndex++;
+  if(stepIndex >= INST.steps.length){ finish(); return; }
+  renderStep();
+}
+
+function finish(){
+  const dur = Math.round((Date.now()-startTime)/1000);
+  const credits = stepState.map(st=> st.credit!==undefined?st.credit:(st.fatalHit?0:0));
+  const score = Math.round(credits.reduce((a,b)=>a+b,0)/credits.length*100);
+  const fatalHits = stepState.filter(st=>st.fatalHit).length;
+  const passed = (fatalHits===0 && score >= (INST.passThreshold||80));
+  const rec = {
+    id: "TR"+Date.now(),
+    ts: new Date().toISOString(),
+    trainee: trainee.name, emp: trainee.emp, lab: trainee.lab,
+    instrumentId: INST.id, instrumentName: INST.name, model: INST.model,
+    durationSec: dur, score, fatalHits, passed,
+    steps: INST.steps.map((s,i)=>({q:s.q, correct: stepState[i].credit===1, partial: stepState[i].credit===0.5, fatal: stepState[i].fatalHit}))
+  };
+  saveRecord(rec);
+  renderResult(rec);
+}
+
+function saveRecord(rec){
+  try{
+    const all = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
+    all.push(rec);
+    localStorage.setItem(LS_KEY, JSON.stringify(all));
+  }catch(e){ console.warn("记录保存失败", e); }
+  // 云端同步（若后端可用；失败不影响本机留存）
+  if(window.Cloud && Cloud.available()){
+    Cloud.saveTraining(rec).catch(e=>console.warn("云端记录保存失败（已留本机）:", e.message));
+  }
+}
+
+function renderResult(rec){
+  const cls = rec.passed ? "pass" : "fail";
+  const txt = rec.passed ? "✓ 培训通过" : (rec.fatalHits>0 ? "✕ 未通过（触发致命红线，需重新培训）" : "✕ 未通过（得分未达阈值）");
+  $("#app").innerHTML = `
+    <div class="card result">
+      <div class="step-no">培训结果</div>
+      <div class="score">${rec.score}</div>
+      <div class="${cls}">${txt}</div>
+      <div class="hero-sub">学员：${rec.trainee} · ${rec.lab} · 用时 ${rec.durationSec}s · 致命红线 ${rec.fatalHits} 次</div>
+      <div style="margin-top:18px">
+        <button class="btn" id="certBtn">导出培训证明</button>
+        <a class="btn ghost" href="admin.html" style="text-decoration:none">查看记录台</a>
+      </div>
+      <div class="note">本记录已存入本机浏览器。换设备或清缓存会丢失，重要佐证请点「导出培训证明」留存。</div>
+    </div>`;
+  $("#certBtn").addEventListener("click", ()=>exportCert(rec));
+}
+
+function exportCert(rec){
+  const w = window.open("", "_blank");
+  const rows = rec.steps.map((s,i)=>`<tr><td>${i+1}</td><td>${s.q}</td><td>${s.fatal?'<span style="color:#ef4444">触发红线</span>':s.correct?'<span style="color:#16a34a">正确</span>':(s.partial?'<span style="color:#f59e0b">纠正后正确</span>':'—')}</td></tr>`).join("");
+  w.document.write(`<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>培训证明</title>
+  <style>body{font-family:"Microsoft YaHei",sans-serif;padding:40px;color:#1a2238;max-width:720px;margin:auto}
+  h1{color:#b45309;border-bottom:2px solid #b45309;padding-bottom:10px}
+  .meta{display:flex;flex-wrap:wrap;gap:18px;margin:18px 0;font-size:14px}
+  .big{font-size:40px;font-weight:800;color:${rec.passed?'#16a34a':'#dc2626'}}
+  table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
+  td,th{border:1px solid #cbd5e1;padding:8px;text-align:left;vertical-align:top}
+  th{background:#f1f5f9}.stamp{margin-top:24px;font-size:12px;color:#64748b}
+  @media print{body{padding:0}}</style></head><body>
+  <h1>EnvLab 仪器操作培训 · 完成证明</h1>
+  <div class="meta">
+    <div><b>学员：</b>${rec.trainee}</div>
+    <div><b>工号：</b>${rec.emp||'—'}</div>
+    <div><b>部门：</b>${rec.lab}</div>
+  </div>
+  <div class="meta">
+    <div><b>仪器：</b>${rec.instrumentName}（${rec.model}）</div>
+    <div><b>时间：</b>${new Date(rec.ts).toLocaleString('zh-CN')}</div>
+    <div><b>用时：</b>${rec.durationSec}s</div>
+  </div>
+  <div class="big">综合得分 ${rec.score} · ${rec.passed?'通过':'未通过'}</div>
+  <p style="font-size:13px;color:#475569">致命红线触发：${rec.fatalHits} 次。本证明由交互培训系统自动生成，作为人员操作能力确认的过程记录，不替代现场监督与授权考核。</p>
+  <table><tr><th>步</th><th>操作环节</th><th>结果</th></tr>${rows}</table>
+  <div class="stamp">EnvLab 仪器操作培训系统 · 依据受控 SOP 构建（已脱敏）· 记录编号 ${rec.id}</div>
+  <script>window.onload=function(){setTimeout(()=>window.print(),300)}<\/script>
+  </body></html>`);
+  w.document.close();
+}
+
+if(instId){
+  loadInst(instId);
+}else{
+  const cur = getCurrent();
+  const banner = cur ? `<div class="note" style="border-left:3px solid var(--accent)">当前登录学员：<b>${cur.name}</b>${cur.emp?`（${cur.emp}）`:''} · ${cur.lab}　<a class="btn ghost" href="index.html?logout=1" style="margin:0;padding:4px 10px;font-size:12px">切换 / 注销</a></div>` : "";
+  fetch("instruments/index.json").then(r=>r.json()).then(list=>{
+    $("#app").innerHTML = banner + '<div class="card picker"><div class="step-no">选择培训仪器</div>'+
+      list.map(i=>`<a href="?inst=${i.id}"><b>${i.name}</b> <small>· ${i.model} · ${i.category}</small></a>`).join("")+'</div>';
+  }).catch(e=>{ $("#app").innerHTML='<div class="card">未找到仪器清单，请通过本地服务器打开。</div>'; });
+}
+</script>
+</body>
+</html>
