@@ -6,298 +6,292 @@
 <title>EnvLab · 环境监测与污染控制 交互实验在线演示</title>
 <meta name="description" content="EnvLab 交互实验在线演示：环境监测采样布点、水与废水、气与废气、土壤、噪声、仪器分析、大气污染控制工程实验。做错即提醒的 PhET 级单文件网页仿真。">
 <style>
-  :root{
-    --bg:#f5f7fa; --panel:#ffffff; --ink:#1f2933; --mut:#5b6776; --line:#e3e8ef;
-    --accent:#0f9d76; --accent2:#185fa5; --rose:#c2410c; --amber:#b45309; --purple:#6d54c9;
-  }
-  *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--ink);line-height:1.65;
-       font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Microsoft YaHei",Roboto,"Helvetica Neue",sans-serif;
-       -webkit-font-smoothing:antialiased}
-  .wrap{max-width:1120px;margin:0 auto;padding:40px 22px 72px}
-
-  /* 头部 */
-  header{border-bottom:1px solid var(--line);padding-bottom:24px;margin-bottom:8px}
-  .badge{display:inline-block;font-size:12px;letter-spacing:.5px;color:var(--accent);
-         border:1px solid var(--accent);border-radius:20px;padding:3px 14px;margin-bottom:14px}
-  h1{margin:0;font-size:31px;font-weight:700;letter-spacing:-.4px}
-  .hero-sub{color:var(--mut);font-size:14.5px;margin-top:10px;max-width:820px}
-
-  /* 演示路径 */
-  .path{margin:26px 0 6px;background:#eefcf5;border:1px solid #bfead9;border-radius:14px;padding:18px 20px}
-  .path .pt{font-size:13px;font-weight:700;color:#0a3d2c;letter-spacing:.4px;margin-bottom:10px}
-  .path .step{font-size:13.5px;color:#0c4a36;padding:5px 0;display:flex;gap:10px;align-items:flex-start}
-  .path .step i{flex:0 0 auto;font-style:normal;font-weight:700;color:var(--accent);
-                background:#fff;border:1px solid #bfead9;border-radius:50%;
-                width:21px;height:21px;line-height:19px;text-align:center;font-size:12px;margin-top:2px}
-  .path a{color:#0a6b4f;font-weight:600;text-decoration:none;border-bottom:1px solid #a8dcc8}
-  .path a:hover{border-bottom-color:var(--accent)}
-
-  /* 统计条 */
-  .stats{display:flex;flex-wrap:wrap;gap:10px;margin:22px 0 6px}
-  .stats span{font-size:12.5px;background:#fff;border:1px solid var(--line);border-radius:8px;
-              padding:6px 13px;color:var(--mut)}
-  .stats b{color:var(--ink)}
-
-  /* 分组 */
-  h2.grp{font-size:16px;font-weight:700;margin:34px 0 14px;padding-left:12px;
-         border-left:4px solid var(--accent);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
-  h2.grp .n{font-size:12.5px;font-weight:400;color:var(--mut)}
-  h2.grp .star{font-size:11.5px;font-weight:700;color:#fff;background:var(--rose);
-               border-radius:5px;padding:2px 8px;letter-spacing:.3px}
-  h2.grp .sub{font-size:12.5px;font-weight:400;color:var(--mut)}
-
-  .cat{display:grid;grid-template-columns:repeat(auto-fill,minmax(268px,1fr));gap:12px}
-  .cat a{display:flex;gap:12px;align-items:flex-start;background:var(--panel);
-         border:1px solid var(--line);border-radius:11px;padding:14px 15px;
-         text-decoration:none;color:inherit;transition:.15s}
-  .cat a:hover{border-color:var(--accent);box-shadow:0 5px 18px rgba(15,157,118,.10);transform:translateY(-2px)}
-  .cat .ico{font-size:19px;line-height:1.3;flex:0 0 auto}
-  .cat .info{min-width:0}
-  .cat .nm{font-size:14px;font-weight:600;color:var(--ink)}
-  .cat .sg{font-size:12.5px;color:var(--mut);margin-top:3px}
-
-  /* 页脚 */
-  footer{margin-top:46px;border-top:1px solid var(--line);padding-top:20px;
-         font-size:12.5px;color:var(--mut);line-height:1.85}
-  footer b{color:var(--ink)}
-  footer .disc{margin-top:10px;background:#fff;border:1px solid var(--line);
-               border-left:3px solid var(--amber);border-radius:10px;padding:12px 15px;font-size:12.5px}
-  @media print{ body{background:#fff} .cat a:hover{transform:none;box-shadow:none} }
-  @media (max-width:520px){ h1{font-size:24px} .wrap{padding:26px 16px 50px} }
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#0a0e17;color:#e2e8f0;overflow-x:hidden}
+:root{--ink:#0a0e17;--card:#131a2e;--card2:#0f1526;--border:rgba(255,255,255,.06);--accent:#38bdf8;--glow:#7dd3fc;--abg:rgba(56,189,248,.12);--green:#34d399;--amber:#f59e0b;--rose:#fb7185}
+#sp{position:fixed;top:0;left:0;height:3px;width:0%;background:linear-gradient(90deg,var(--accent),var(--glow));z-index:1000}
+.hr{min-height:72vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 24px;background:linear-gradient(180deg,#0a0e17 0%,#0b2033 50%,#0a0e17 100%);position:relative}
+.hg{position:absolute;inset:0;background-image:radial-gradient(rgba(56,189,248,.06) 1px,transparent 1px);background-size:24px 24px;z-index:0}
+.hgl{position:absolute;top:-20%;right:-10%;width:320px;height:320px;background:radial-gradient(circle,rgba(56,189,248,.13),transparent 70%);border-radius:50%}
+.h1{font-size:clamp(28px,5vw,50px);font-weight:900;line-height:1.15;z-index:1}
+.h1 em{color:var(--glow);font-style:normal}
+.hb{display:inline-block;padding:5px 16px;border-radius:20px;background:var(--abg);color:var(--glow);font-size:11px;font-weight:600;margin-bottom:20px;border:1px solid rgba(56,189,248,.2);z-index:1}
+.hs{margin-top:14px;font-size:15px;color:#64748b;z-index:1;max-width:660px;line-height:1.7}
+.hs b{color:#94a3b8}
+.hst{display:flex;gap:34px;margin-top:26px;flex-wrap:wrap;justify-content:center;z-index:1}
+.hst .n{font-size:30px;font-weight:800;color:var(--glow)}.hst .l{font-size:11px;color:#64748b;margin-top:2px}
+.hst div{text-align:center}
+.sec{max-width:960px;margin:0 auto;padding:70px 24px;opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s}.sec.visible{opacity:1;transform:translateY(0)}
+.sn{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--accent)}
+.st{font-size:clamp(21px,3.4vw,32px);font-weight:800;line-height:1.2;margin-bottom:12px}
+.sd{font-size:14px;color:#94a3b8;line-height:1.75;max-width:720px;margin-bottom:22px}
+.sd b{color:#e2e8f0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.g2{grid-template-columns:1fr}}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}@media(max-width:700px){.g3{grid-template-columns:1fr}}
+.ic{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.ic .ii{font-size:20px;margin-bottom:6px}.ic .in{font-size:14px;font-weight:700;margin-bottom:4px}
+.ic .id{font-size:12px;color:#94a3b8;line-height:1.65}
+.ic .id b{color:#e2e8f0}
+.ic .id a{color:var(--glow);text-decoration:none;border-bottom:1px solid rgba(125,211,252,.35)}
+.ic .id a:hover{border-bottom-color:var(--glow)}
+.ic .it{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;margin-top:8px;background:var(--abg);color:var(--glow)}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:14px;position:relative;overflow:hidden}
+.mc::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:#334155}
+.mc.ok::before{background:var(--green)}
+.mc.gap::before{background:var(--amber)}
+.mc.core::before{background:var(--rose)}
+.mh{display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:8px;margin-bottom:6px}
+.mn{font-size:16px;font-weight:800}
+.mn span{font-size:11px;color:#64748b;font-weight:600;margin-right:6px}
+.mhr{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;background:rgba(255,255,255,.04);color:#94a3b8;white-space:nowrap}
+.mhr.hot{background:rgba(251,113,133,.12);color:#fda4af}
+.md{font-size:12.5px;color:#94a3b8;line-height:1.7;margin-bottom:12px}
+.md b{color:#e2e8f0}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:8px;font-size:11.5px;background:rgba(52,211,153,.09);color:#6ee7b7;border:1px solid rgba(52,211,153,.18);text-decoration:none;transition:.2s}
+.chip:hover{border-color:var(--green);background:rgba(52,211,153,.16)}
+.chip.miss{background:rgba(245,158,11,.08);color:#fcd34d;border-color:rgba(245,158,11,.2);border-style:dashed;cursor:default}
+.chip.miss:hover{border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.08)}
+.chip.new{background:var(--abg);color:var(--glow);border-color:rgba(56,189,248,.28)}
+.chip.new:hover{border-color:var(--accent);background:rgba(56,189,248,.2)}
+.mlbl{font-size:10px;font-weight:700;letter-spacing:1.5px;color:#475569;margin:12px 0 6px}
+.note{background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18);border-left:3px solid var(--amber);border-radius:8px;padding:14px 16px;font-size:12.5px;color:#fcd34d;line-height:1.7;margin:16px 0}
+.note b{color:#fde68a}
+.note.blue{background:var(--abg);border-color:rgba(56,189,248,.18);border-left-color:var(--accent);color:#bae6fd}
+.note.blue b{color:#e0f2fe}
+.ft{text-align:center;padding:40px 24px;color:#475569;font-size:12px;border-top:1px solid var(--border);line-height:1.8}
+.ft b{color:var(--glow)}
+.ft .box{max-width:720px;margin:14px auto 0;text-align:left;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18);border-left:3px solid var(--amber);border-radius:8px;padding:13px 16px;color:#fcd34d}
+.ft .box b{color:#fde68a}
+@media print{body{background:#fff;color:#111}.sec{opacity:1;transform:none}#sp{display:none}}
 </style>
 </head>
 <body>
-<div class="wrap">
+<div id="sp"></div>
 
-  <header>
-    <div class="badge">ENVLAB · 在线演示</div>
-    <h1>EnvLab 交互实验在线演示</h1>
-    <p class="hero-sub">
-      环境监测与污染控制方向的虚拟仿真实验，全部为<b>单文件网页</b>——打开即用，不装插件、不注册、不需要服务器。
-      与常见"把流程演一遍"的仿真不同，这里的每一页都内置<b>判错机制</b>：顺序做错会被拦住，
-      参数改了已测数据自动作废，结果异常时页面会告诉你<b>为什么</b>异常，而不是只弹一句"错误"。
-    </p>
-  </header>
-
-  <div class="path">
-    <div class="pt">建议的浏览路径（约 8 分钟）</div>
-    <div class="step"><i>1</i><div>先扫一眼下面的各个方向，了解资源覆盖范围：<b>水与废水 / 气与废气 / 土壤与修复 / 噪声 / 仪器分析</b>，以及<b>大气污染控制工程实验</b>。</div></div>
-    <div class="step"><i>2</i><div>重点看这一页 —— <a href="EnvLab-交互实验集/08-大气污染控制/旋风除尘器性能测定-PhET级升级.html">旋风除尘器性能测定</a>：<b>故意跳过风速直接做效率测定</b>，看它如何拦住你并说明理由；再把排灰口漏风率调到 15%，看总效率从 82% 掉到 51% 时给出的物理解释。</div></div>
-    <div class="step"><i>3</i><div>再看记录与举证 —— <a href="EnvLab-培训系统/index.html">仪器操作培训系统</a>：学员记录、步骤得分、红线触发次数，以及自动生成的训练证明。</div></div>
+<section class="hr">
+  <div class="hg"></div><div class="hgl"></div>
+  <div class="hb">EnvLab · 在线演示</div>
+  <h1 class="h1">环境监测与污染控制<br><em>交互实验在线演示</em></h1>
+  <div class="hs">
+    全部为<b>单文件网页</b>——打开即用，不装插件、不注册、不需要服务器。<br>
+    与常见"把流程演一遍"的仿真不同，这里的每一页都内置<b>判错机制</b>：
+    顺序做错会被拦住，参数改了已测数据自动作废，结果异常时页面会告诉你<b>为什么</b>异常，而不是只弹一句"错误"。
   </div>
-
-  <div class="stats">
-    <span><b>水 / 气 / 土 / 噪声 / 仪器分析 / 污染控制</b> 六个方向</span>
-    <span><b>90+</b> 个交互页面</span>
-    <span>单文件 · 可离线</span>
-    <span>支持移动端与打印</span>
+  <div class="hst">
+    <div><span class="n">6</span><span class="l">覆盖方向</span></div>
+    <div><span class="n">90+</span><span class="l">交互页面</span></div>
+    <div><span class="n">3</span><span class="l">培训系统</span></div>
+    <div><span class="n">0</span><span class="l">安装依赖</span></div>
   </div>
+</section>
 
-  <!-- ============ 1 大气污染控制工程实验 ============ -->
-  <h2 class="grp">
-    <span class="star">主推</span> 大气污染控制工程实验
-    <span class="n">6 个页面 · 污染控制技术性能测定</span>
-  </h2>
-  <div class="cat">
-    <a href="EnvLab-交互实验集/08-大气污染控制/00-大气污染控制工程实验-课程对照总览.html">
-      <span class="ico">🎓</span><div class="info">
-      <div class="nm">课程对照总览</div>
-      <div class="sg">教材五模块 × 现有资源对照 · 三种设课模式 · 缺口清单</div></div></a>
-    <a href="EnvLab-交互实验集/08-大气污染控制/旋风除尘器性能测定-PhET级升级.html">
-      <span class="ico">🌪️</span><div class="info">
-      <div class="nm">旋风除尘器性能测定</div>
-      <div class="sg">分级效率 · 粒径分布 · 漏风影响 · 顺序红线样板页</div></div></a>
-    <a href="EnvLab-交互实验集/08-大气污染控制/填料塔吸收SO2性能测定-PhET级升级.html">
-      <span class="ico">🫧</span><div class="info">
-      <div class="nm">填料塔吸收 SO₂ 性能测定</div>
-      <div class="sg">传质单元数 · 泛点气速 · 液气比寻优 · 出口浓度</div></div></a>
-    <a href="EnvLab-交互实验集/08-大气污染控制/活性炭吸附VOCs性能测定-PhET级升级.html">
-      <span class="ico">⬛</span><div class="info">
-      <div class="nm">活性炭吸附 VOCs 性能测定</div>
-      <div class="sg">Thomas 穿透曲线 · 饱和吸附量核算 · 更换时机判断</div></div></a>
-    <a href="EnvLab-交互实验集/08-大气污染控制/催化净化NOx性能测定-PhET级升级.html">
-      <span class="ico">🔥</span><div class="info">
-      <div class="nm">催化净化 NOx 性能测定（SCR 脱硝）</div>
-      <div class="sg">温度窗口 · 氨氮比 · 效率与氨逃逸的权衡</div></div></a>
-    <a href="EnvLab-交互实验集/08-大气污染控制/烟气参数测定-PhET级升级.html">
-      <span class="ico">📐</span><div class="info">
-      <div class="nm">烟气参数测定</div>
-      <div class="sg">动压 / 温度 / 湿度 → 流速与标干流量换算</div></div></a>
-  </div>
-
-  <!-- ============ 2 仪器分析 ============ -->
-  <h2 class="grp">仪器分析 <span class="n">6 个代表页面 · 大型仪器操作与谱图</span></h2>
-  <div class="cat">
-    <a href="EnvLab-交互实验集/03-仪器分析/AAS原子吸收-PhET级升级.html">
-      <span class="ico">🔆</span><div class="info"><div class="nm">原子吸收分光光度法 AAS</div>
-      <div class="sg">空心阴极灯 · 标准曲线 · 灵敏度与干扰</div></div></a>
-    <a href="EnvLab-交互实验集/03-仪器分析/FTIR红外光谱-PhET级升级.html">
-      <span class="ico">📈</span><div class="info"><div class="nm">傅里叶变换红外光谱 FTIR</div>
-      <div class="sg">特征吸收峰识别 · 谱图解析</div></div></a>
-    <a href="EnvLab-交互实验集/03-仪器分析/GC-MS气质联用-PhET级升级.html">
-      <span class="ico">🧪</span><div class="info"><div class="nm">气相色谱-质谱联用 GC-MS</div>
-      <div class="sg">进样 · 柱分离 · 检测器响应 · 定性定量</div></div></a>
-    <a href="EnvLab-交互实验集/03-仪器分析/HPLC液相色谱-PhET级升级.html">
-      <span class="ico">💧</span><div class="info"><div class="nm">高效液相色谱 HPLC</div>
-      <div class="sg">高压输液 · 柱分离 · 非挥发性物质分析</div></div></a>
-    <a href="EnvLab-交互实验集/03-仪器分析/iCapRQ-电感耦合等离子体质谱仪-PhET级升级.html">
-      <span class="ico">⚛️</span><div class="info"><div class="nm">电感耦合等离子体质谱 ICP-MS</div>
-      <div class="sg">痕量金属 · 内标校正 · 干扰扣除非</div></div></a>
-    <a href="EnvLab-交互实验集/03-仪器分析/崂应3012H-D烟尘自动测试仪-PhET级升级.html">
-      <span class="ico">🏭</span><div class="info"><div class="nm">烟尘自动测试仪</div>
-      <div class="sg">固定源采样 · 等速采样 · 皮托管测压</div></div></a>
-  </div>
-
-  <!-- ============ 3 水与废水 ============ -->
-  <h2 class="grp">水与废水 <span class="n">4 个页面 · 从水样到报出结果</span></h2>
-  <div class="cat">
-    <a href="EnvLab-交互实验集/02-检测实验/总氮测定-PhET级升级.html">
-      <span class="ico">🧫</span><div class="info"><div class="nm">总氮测定</div>
-      <div class="sg">碱性过硫酸钾消解 · 紫外分光光度法 · 空白漂移排查</div></div></a>
-    <a href="EnvLab-交互实验集/02-检测实验/水质四项-COD氨氮总磷总氮实验.html">
-      <span class="ico">📊</span><div class="info"><div class="nm">水质四项（COD / 氨氮 / 总磷 / 总氮）</div>
-      <div class="sg">国标方法全流程 · 平行样与质控</div></div></a>
-    <a href="EnvLab-交互实验集/02-检测实验/浊度测定-PhET级升级.html">
-      <span class="ico">🌫️</span><div class="info"><div class="nm">浊度测定</div>
-      <div class="sg">浊度计校准 · 干扰判别 · 结果表述</div></div></a>
-    <a href="EnvLab-交互实验集/02-检测实验/井水重金属-砷镉汞铅-ICP-MS.html">
-      <span class="ico">⚠️</span><div class="info"><div class="nm">井水重金属（砷镉汞铅）</div>
-      <div class="sg">ICP-MS 法 · 消解 · 限值判定</div></div></a>
-  </div>
-
-  <!-- ============ 4 气与废气 ============ -->
-  <h2 class="grp">气与废气 <span class="n">3 个页面 · 环境空气与固定源</span></h2>
-  <div class="cat">
-    <a href="EnvLab-交互实验集/02-检测实验/环境空气NOx检测实验.html">
-      <span class="ico">🟤</span><div class="info"><div class="nm">环境空气 NOx 检测</div>
-      <div class="sg">采样体积换算 · 浓度计算 · 数据有效性判定</div></div></a>
-    <a href="EnvLab-交互实验集/02-检测实验/环境空气VOCs-罐采样GC-MS全流程.html">
-      <span class="ico">🛢️</span><div class="info"><div class="nm">环境空气 VOCs（罐采样 + GC-MS）</div>
-      <div class="sg">采样体积不足的假阴性陷阱 · 全流程溯源</div></div></a>
-    <a href="EnvLab-交互实验集/01-采样布点/固定源废气采样-PhET级升级.html">
-      <span class="ico">🏭</span><div class="info"><div class="nm">固定源废气采样</div>
-      <div class="sg">测点选择 · 等速采样 · 现场记录联动</div></div></a>
-  </div>
-
-  <!-- ============ 5 土壤与修复 ============ -->
-  <h2 class="grp">土壤与修复 <span class="n">5 个页面 · 调查、检测与修复技术</span></h2>
-  <div class="cat">
-    <a href="EnvLab-交互实验集/02-检测实验/土壤ICP-MS-锰铁铜砷汞.html">
-      <span class="ico">🧱</span><div class="info"><div class="nm">土壤重金属（锰铁铜砷汞 · ICP-MS）</div>
-      <div class="sg">王水消解 · 干扰校正 · 结果报出</div></div></a>
-    <a href="EnvLab-交互实验集/05-修复技术/SVE土壤气提-PhET级升级.html">
-      <span class="ico">💨</span><div class="info"><div class="nm">SVE 土壤气相抽提</div>
-      <div class="sg">影响半径 · 抽提流量 · 去除效率</div></div></a>
-    <a href="EnvLab-交互实验集/05-修复技术/土壤淋洗洗脱-PhET级升级.html">
-      <span class="ico">🚿</span><div class="info"><div class="nm">土壤淋洗 / 洗脱</div>
-      <div class="sg">淋洗剂选择 · 液固比 · 去除率与二次污染</div></div></a>
-    <a href="EnvLab-交互实验集/05-修复技术/P&amp;T抽水处理-PhET级升级.html">
-      <span class="ico">⛲</span><div class="info"><div class="nm">P&amp;T 抽出-处理</div>
-      <div class="sg">地下水污染羽控制 · 抽出速率</div></div></a>
-    <a href="EnvLab-交互实验集/05-修复技术/微生物修复-PhET级升级.html">
-      <span class="ico">🦠</span><div class="info"><div class="nm">微生物修复</div>
-      <div class="sg">营养盐配比 · 降解动力学 · 条件控制</div></div></a>
-  </div>
-
-  <!-- ============ 6 采样布点 ============ -->
-  <h2 class="grp">采样布点 <span class="n">5 个页面 · 现场采样的第一步</span></h2>
-  <div class="cat">
-    <a href="EnvLab-交互实验集/01-采样布点/地表水采样布点-PhET级升级.html">
-      <span class="ico">🌊</span><div class="info"><div class="nm">地表水采样布点</div>
-      <div class="sg">断面设置 · 垂线与点位 · 采样深度</div></div></a>
-    <a href="EnvLab-交互实验集/01-采样布点/土壤采样布点-PhET级升级.html">
-      <span class="ico">🗺️</span><div class="info"><div class="nm">土壤采样布点</div>
-      <div class="sg">布点方式选择 · 采样深度 · 混样与四分法</div></div></a>
-    <a href="EnvLab-交互实验集/01-采样布点/环境空气PM25采样-PhET级升级.html">
-      <span class="ico">🌁</span><div class="info"><div class="nm">环境空气 PM2.5 采样</div>
-      <div class="sg">滤膜恒重 · 流量与体积 · 称量误差控制</div></div></a>
-    <a href="EnvLab-交互实验集/01-采样布点/地下水洗井采样-PhET级升级.html">
-      <span class="ico">🕳️</span><div class="info"><div class="nm">地下水洗井采样</div>
-      <div class="sg">洗井判据 · 采样顺序 · 现场参数稳定</div></div></a>
-    <a href="EnvLab-交互实验集/04-案例/黑灯采样-自动化无人采样仿真演示.html">
-      <span class="ico">🌙</span><div class="info"><div class="nm">黑灯采样 · 无人化全流程仿真</div>
-      <div class="sg">自动化采样与记录链路演示</div></div></a>
-  </div>
-
-  <!-- ============ 7 噪声 ============ -->
-  <h2 class="grp">噪声与现场监测 <span class="n">采样上岗培训 · 含噪声模块</span></h2>
-  <div class="cat">
-    <a href="EnvLab-采样培训系统/train.html?mod=noise">
-      <span class="ico">🔊</span><div class="info"><div class="nm">环境噪声监测（采样培训 · 噪声模块）</div>
-      <div class="sg">声级计校准 · 传声器布放 · 气象条件与运行工况 · 5 步考核</div></div></a>
-    <a href="EnvLab-采样培训系统/index.html">
-      <span class="ico">📍</span><div class="info"><div class="nm">采样上岗培训系统（全四域）</div>
-      <div class="sg">水与废水 / 土壤 / 大气 / 噪声 · 作业序贯四阶段</div></div></a>
-  </div>
-
-  <!-- ============ 8 环境评价 ============ -->
-  <h2 class="grp">环境评价 · 读懂系列 <span class="n">8 个页面 · 把一份数据读成一句判断</span></h2>
-  <div class="cat">
-    <a href="EnvLab-交互实验集/04-环境评价/读一片天-AQI空气质量评价.html">
-      <span class="ico">🌤️</span><div class="info"><div class="nm">读一片天 · AQI 空气质量评价</div>
-      <div class="sg">分指数与首要污染物 · 超标判定</div></div></a>
-    <a href="EnvLab-交互实验集/04-环境评价/读懂一个湖-富营养化评价.html">
-      <span class="ico">🏞️</span><div class="info"><div class="nm">读懂一个湖 · 富营养化评价</div>
-      <div class="sg">综合营养状态指数 · 分级判定</div></div></a>
-    <a href="EnvLab-交互实验集/04-环境评价/读懂一块地-土壤质量评价.html">
-      <span class="ico">🟫</span><div class="info"><div class="nm">读懂一块地 · 土壤质量评价</div>
-      <div class="sg">筛选值与管制值 · 点位超标判断</div></div></a>
-    <a href="EnvLab-交互实验集/04-环境评价/读懂一场雨-酸雨评价.html">
-      <span class="ico">🌧️</span><div class="info"><div class="nm">读懂一场雨 · 酸雨评价</div>
-      <div class="sg">pH 与离子组成 · 酸化趋势</div></div></a>
-    <a href="EnvLab-交互实验集/04-环境评价/读懂一个厂-环保合规审计.html">
-      <span class="ico">🏗️</span><div class="info"><div class="nm">读懂一个厂 · 环保合规审计</div>
-      <div class="sg">证照 · 台账 · 排放 · 整改一体化梳理</div></div></a>
-    <a href="EnvLab-交互实验集/04-环境评价/环境质量综合体检中心.html">
-      <span class="ico">🩺</span><div class="info"><div class="nm">环境质量综合体检中心</div>
-      <div class="sg">水气土声多介质综合体检</div></div></a>
-  </div>
-
-  <!-- ============ 9 工具速查 ============ -->
-  <h2 class="grp">工具与速查 <span class="n">7 个工具 · 现场与案头都能用</span></h2>
-  <div class="cat">
-    <a href="EnvLab-交互实验集/07-工具速查/监测方案智能生成器-多类型.html">
-      <span class="ico">📋</span><div class="info"><div class="nm">监测方案智能生成器</div>
-      <div class="sg">地表水 / 地下水 / 土壤 / 废气多类型</div></div></a>
-    <a href="EnvLab-交互实验集/07-工具速查/水质评价标准速查表.html">
-      <span class="ico">📊</span><div class="info"><div class="nm">水质评价标准速查表</div>
-      <div class="sg">地表水 I~V 类 · 快速对照</div></div></a>
-    <a href="EnvLab-交互实验集/07-工具速查/气相色谱方法开发速查表.html">
-      <span class="ico">📐</span><div class="info"><div class="nm">气相色谱方法开发速查</div>
-      <div class="sg">柱选择 · 程序升温 · 检测器配置</div></div></a>
-    <a href="EnvLab-交互实验集/07-工具速查/检测因子实验室交互方案.html">
-      <span class="ico">📑</span><div class="info"><div class="nm">检测因子实验室交互方案</div>
-      <div class="sg">因子 · 方法 · 仪器 · 保存条件</div></div></a>
-    <a href="EnvLab-交互实验集/07-工具速查/实验分组任务单（可下发各实验组）.html">
-      <span class="ico">📌</span><div class="info"><div class="nm">实验分组任务单</div>
-      <div class="sg">各实验组任务分配 · 可打印下发</div></div></a>
-  </div>
-
-  <!-- ============ 10 培训系统 ============ -->
-  <h2 class="grp">培训系统 <span class="n">上岗培训 · 步骤级打分与红线拦截</span></h2>
-  <div class="cat">
-    <a href="EnvLab-培训系统/index.html">
-      <span class="ico">🎛️</span><div class="info"><div class="nm">仪器操作培训系统</div>
-      <div class="sg">6 台仪器 · 步骤级打分 · 红线拦截 · 训练证明生成</div></div></a>
-    <a href="EnvLab-采样培训系统/index.html">
-      <span class="ico">📍</span><div class="info"><div class="nm">采样上岗培训系统</div>
-      <div class="sg">水 / 土 / 气 / 噪四域 · 作业序贯四阶段</div></div></a>
-    <a href="EnvLab-交互实验集/index.html">
-      <span class="ico">🗂️</span><div class="info"><div class="nm">交互实验集 · 完整目录</div>
-      <div class="sg">按方向分组的全部页面索引</div></div></a>
-  </div>
-
-  <footer>
-    <b>EnvLab</b> · 环境监测与污染控制交互实验。<br>
-    本站为在线演示，所有页面均为<b>单文件 HTML</b>，可整目录下载离线使用（含无网络环境的机房）。<br>
-    页面内的标准方法、限值与计算公式均按现行国标与规范整理；演示用数据为构造数据，仅用于教学，不作为检测结果依据。
-    <div class="disc">
-      <b>关于判错机制：</b>页面会拦住顺序错误、在参数变更后作废已测数据、并对异常结果给出原因解释。
-      这些规则用于训练"知道什么是对的"，<b>不能替代真实仪器的操作训练、现场监督与授权考核</b>。
+<!-- 01 演示路径 -->
+<section class="sec" id="s1">
+  <div class="sn">01 建议路径</div>
+  <div class="st">约 8 分钟，看完主要能力</div>
+  <div class="sd">不需要一次性看全。按下面三步走一遍，就能判断"这东西能不能用在我的课上"。</div>
+  <div class="g3">
+    <div class="ic">
+      <div class="ii">🧭</div>
+      <div class="in">先看范围</div>
+      <div class="id">扫一眼下面的六个方向：<b>水与废水 / 气与废气 / 土壤与修复 / 噪声 / 仪器分析 / 大气污染控制</b>，了解资源覆盖到哪儿。</div>
+      <span class="it">① 约 2 分钟</span>
     </div>
-  </footer>
+    <div class="ic">
+      <div class="ii">🌪️</div>
+      <div class="in">重点看这一页</div>
+      <div class="id"><a href="EnvLab-交互实验集/08-大气污染控制/旋风除尘器性能测定-PhET级升级.html"><b>旋风除尘器性能测定</b></a>：故意跳过风速直接做效率测定，看它如何拦住你并说明理由；再把排灰口漏风率调到 15%，看总效率从 82% 掉到 51% 时给出的物理解释。</div>
+      <span class="it">② 约 4 分钟</span>
+    </div>
+    <div class="ic">
+      <div class="ii">📊</div>
+      <div class="in">再看记录与举证</div>
+      <div class="id"><a href="EnvLab-培训系统/index.html">仪器操作培训系统</a>：点「培训记录台」，<b>登录页会直接显示演示账号</b>；登录后可看到学员记录、步骤得分、红线触发次数与训练证明。</div>
+      <span class="it">③ 约 2 分钟</span>
+    </div>
+  </div>
+  <div class="note blue">
+    <b>关于判错机制</b>：页面会拦住顺序错误、在参数变更后作废已测数据、并对异常结果给出原因解释。这些规则用于训练<b>"知道什么是对的"</b>，不能替代真实仪器的操作训练、现场监督与授权考核。
+  </div>
+</section>
 
+<!-- 02 污染控制技术（主推） -->
+<section class="sec" id="s2">
+  <div class="sn">02 主推</div>
+  <div class="st">大气污染控制工程实验</div>
+  <div class="sd">污染控制技术性能测定——教材里<b>占学时最多、也最难在实验室开出来</b>的一块（高温烟气、有毒有害物系）。六页均按五幕叙事组织，每页一个真实物理模型。</div>
+  <div class="mc core">
+    <div class="mh">
+      <div class="mn"><span>模块 3</span>污染控制技术性能测定</div>
+      <div class="mhr hot">本次主推 · 6 个页面</div>
+    </div>
+    <div class="md">每个页面都具备<b>确定性物理模型 + 告警说原因 + 顺序红线 + 参数变更即失效</b>四层判错机制。可先看课程对照总览，了解与教材五模块的对应关系。</div>
+    <div class="chips">
+      <a class="chip new" href="EnvLab-交互实验集/08-大气污染控制/00-大气污染控制工程实验-课程对照总览.html">🎓 课程对照总览</a>
+      <a class="chip new" href="EnvLab-交互实验集/08-大气污染控制/旋风除尘器性能测定-PhET级升级.html">🌪️ 旋风除尘器性能测定</a>
+      <a class="chip new" href="EnvLab-交互实验集/08-大气污染控制/填料塔吸收SO2性能测定-PhET级升级.html">🫧 填料塔吸收 SO₂</a>
+      <a class="chip new" href="EnvLab-交互实验集/08-大气污染控制/活性炭吸附VOCs性能测定-PhET级升级.html">⬛ 活性炭吸附 VOCs</a>
+      <a class="chip new" href="EnvLab-交互实验集/08-大气污染控制/催化净化NOx性能测定-PhET级升级.html">🔥 催化净化 NOx（SCR）</a>
+      <a class="chip new" href="EnvLab-交互实验集/08-大气污染控制/烟气参数测定-PhET级升级.html">📐 烟气参数测定</a>
+    </div>
+  </div>
+</section>
+
+<!-- 03 现场与实验室 -->
+<section class="sec" id="s3">
+  <div class="sn">03 环境监测</div>
+  <div class="st">从现场采样到实验室检测</div>
+  <div class="sd">按<b>介质</b>分四块：采样布点决定数据代表性和可比性，检测实验走完"从样品到结果"的全流程。</div>
+
+  <div class="mc ok">
+    <div class="mh"><div class="mn"><span>01</span>采样布点</div><div class="mhr">5 个页面</div></div>
+    <div class="md">点位、断面、深度——现场采样的第一步，也是最容易被跳过的一步。</div>
+    <div class="chips">
+      <a class="chip" href="EnvLab-交互实验集/01-采样布点/地表水采样布点-PhET级升级.html">🌊 地表水采样布点</a>
+      <a class="chip" href="EnvLab-交互实验集/01-采样布点/土壤采样布点-PhET级升级.html">🗺️ 土壤采样布点</a>
+      <a class="chip" href="EnvLab-交互实验集/01-采样布点/环境空气PM25采样-PhET级升级.html">🌁 环境空气 PM2.5 采样</a>
+      <a class="chip" href="EnvLab-交互实验集/01-采样布点/地下水洗井采样-PhET级升级.html">🕳️ 地下水洗井采样</a>
+      <a class="chip" href="EnvLab-交互实验集/04-案例/黑灯采样-自动化无人采样仿真演示.html">🌙 黑灯采样 · 无人化全流程</a>
+    </div>
+  </div>
+
+  <div class="mc ok">
+    <div class="mh"><div class="mn"><span>02</span>水与废水</div><div class="mhr">4 个页面</div></div>
+    <div class="md">常规四项与重金属，含空白漂移、平行样与质控判定。</div>
+    <div class="chips">
+      <a class="chip" href="EnvLab-交互实验集/02-检测实验/总氮测定-PhET级升级.html">🧫 总氮测定</a>
+      <a class="chip" href="EnvLab-交互实验集/02-检测实验/水质四项-COD氨氮总磷总氮实验.html">📊 水质四项（COD/氨氮/总磷/总氮）</a>
+      <a class="chip" href="EnvLab-交互实验集/02-检测实验/浊度测定-PhET级升级.html">🌫️ 浊度测定</a>
+      <a class="chip" href="EnvLab-交互实验集/02-检测实验/井水重金属-砷镉汞铅-ICP-MS.html">⚠️ 井水重金属（砷镉汞铅）</a>
+    </div>
+  </div>
+
+  <div class="mc ok">
+    <div class="mh"><div class="mn"><span>03</span>气与废气</div><div class="mhr">3 个页面</div></div>
+    <div class="md">环境空气与固定源两侧；VOCs 页专门演示"采样体积不足导致假阴性"这个隐蔽陷阱。</div>
+    <div class="chips">
+      <a class="chip" href="EnvLab-交互实验集/02-检测实验/环境空气NOx检测实验.html">🟤 环境空气 NOx 检测</a>
+      <a class="chip" href="EnvLab-交互实验集/02-检测实验/环境空气VOCs-罐采样GC-MS全流程.html">🛢️ 环境空气 VOCs（罐采样 + GC-MS）</a>
+      <a class="chip" href="EnvLab-交互实验集/01-采样布点/固定源废气采样-PhET级升级.html">🏭 固定源废气采样</a>
+    </div>
+  </div>
+
+  <div class="mc ok">
+    <div class="mh"><div class="mn"><span>04</span>土壤与修复</div><div class="mhr">5 个页面</div></div>
+    <div class="md">从土壤重金属检测，到四类修复技术的工艺参数与去除效率。</div>
+    <div class="chips">
+      <a class="chip" href="EnvLab-交互实验集/02-检测实验/土壤ICP-MS-锰铁铜砷汞.html">🧱 土壤重金属（ICP-MS）</a>
+      <a class="chip" href="EnvLab-交互实验集/05-修复技术/SVE土壤气提-PhET级升级.html">💨 SVE 土壤气相抽提</a>
+      <a class="chip" href="EnvLab-交互实验集/05-修复技术/土壤淋洗洗脱-PhET级升级.html">🚿 土壤淋洗 / 洗脱</a>
+      <a class="chip" href="EnvLab-交互实验集/05-修复技术/P&amp;T抽水处理-PhET级升级.html">⛲ P&amp;T 抽出-处理</a>
+      <a class="chip" href="EnvLab-交互实验集/05-修复技术/微生物修复-PhET级升级.html">🦠 微生物修复</a>
+    </div>
+  </div>
+</section>
+
+<!-- 04 噪声 -->
+<section class="sec" id="s4">
+  <div class="sn">04 噪声</div>
+  <div class="st">噪声与现场监测</div>
+  <div class="sd">声级计校准、传声器布放、气象条件修正——噪声监测的失分点几乎全在现场操作规范上。</div>
+  <div class="mc ok">
+    <div class="mh"><div class="mn"><span>05</span>环境噪声监测</div><div class="mhr">采样培训 · 噪声模块</div></div>
+    <div class="md">采样上岗培训系统的噪声域，5 步考核，含声级计校准、监测目的、传声器布放、气象条件与运行工况。</div>
+    <div class="chips">
+      <a class="chip" href="EnvLab-采样培训系统/train.html?mod=noise">🔊 噪声监测模块（直接进入）</a>
+      <a class="chip" href="EnvLab-采样培训系统/index.html">📍 采样上岗培训系统（全四域）</a>
+    </div>
+  </div>
+</section>
+
+<!-- 05 仪器分析 -->
+<section class="sec" id="s5">
+  <div class="sn">05 仪器分析</div>
+  <div class="st">大型仪器操作与谱图</div>
+  <div class="sd">这是集里体量最大的一块（30+ 页），下面挑 6 个代表页面。每页都从开机、条件设置走到数据处理。</div>
+  <div class="mc ok">
+    <div class="mh"><div class="mn"><span>06</span>仪器分析</div><div class="mhr">6 个代表页面</div></div>
+    <div class="md">仪器分析共 30+ 页，分为<b>方法命名层</b>（原理与通用操作）与<b>型号操作层</b>（具体机型），完整清单见交互实验集总目录。</div>
+    <div class="chips">
+      <a class="chip" href="EnvLab-交互实验集/03-仪器分析/AAS原子吸收-PhET级升级.html">🔆 原子吸收 AAS</a>
+      <a class="chip" href="EnvLab-交互实验集/03-仪器分析/FTIR红外光谱-PhET级升级.html">📈 傅里叶变换红外光谱 FTIR</a>
+      <a class="chip" href="EnvLab-交互实验集/03-仪器分析/GC-MS气质联用-PhET级升级.html">🧪 气相色谱-质谱联用 GC-MS</a>
+      <a class="chip" href="EnvLab-交互实验集/03-仪器分析/HPLC液相色谱-PhET级升级.html">💧 高效液相色谱 HPLC</a>
+      <a class="chip" href="EnvLab-交互实验集/03-仪器分析/iCapRQ-电感耦合等离子体质谱仪-PhET级升级.html">⚛️ 电感耦合等离子体质谱 ICP-MS</a>
+      <a class="chip" href="EnvLab-交互实验集/03-仪器分析/崂应3012H-D烟尘自动测试仪-PhET级升级.html">🏭 烟尘自动测试仪</a>
+      <a class="chip" href="EnvLab-交互实验集/index.html">🗂️ 查看全部 79 个交互页面 →</a>
+    </div>
+  </div>
+</section>
+
+<!-- 06 环境评价 -->
+<section class="sec" id="s6">
+  <div class="sn">06 环境评价</div>
+  <div class="st">读懂系列 · 把数据读成判断</div>
+  <div class="sd">拿到一堆监测数据，怎么变成一句能说出口的结论？这一组专门练<b>评价与判定</b>，而不是测定。</div>
+  <div class="mc ok">
+    <div class="mh"><div class="mn"><span>07</span>环境评价</div><div class="mhr">6 个页面</div></div>
+    <div class="md">覆盖水、气、土、雨四个介质，以及面向企业端的合规审计视角。</div>
+    <div class="chips">
+      <a class="chip" href="EnvLab-交互实验集/04-环境评价/读一片天-AQI空气质量评价.html">🌤️ 读一片天 · AQI 空气质量评价</a>
+      <a class="chip" href="EnvLab-交互实验集/04-环境评价/读懂一个湖-富营养化评价.html">🏞️ 读懂一个湖 · 富营养化评价</a>
+      <a class="chip" href="EnvLab-交互实验集/04-环境评价/读懂一块地-土壤质量评价.html">🟫 读懂一块地 · 土壤质量评价</a>
+      <a class="chip" href="EnvLab-交互实验集/04-环境评价/读懂一场雨-酸雨评价.html">🌧️ 读懂一场雨 · 酸雨评价</a>
+      <a class="chip" href="EnvLab-交互实验集/04-环境评价/读懂一个厂-环保合规审计.html">🏗️ 读懂一个厂 · 环保合规审计</a>
+      <a class="chip" href="EnvLab-交互实验集/04-环境评价/环境质量综合体检中心.html">🩺 环境质量综合体检中心</a>
+    </div>
+  </div>
+</section>
+
+<!-- 07 工具与速查 -->
+<section class="sec" id="s7">
+  <div class="sn">07 工具速查</div>
+  <div class="st">现场与案头都能用的小工具</div>
+  <div class="sd">不是教学页，是直接拿来用的：生成监测方案、查标准限值、下发实验分组任务单。</div>
+  <div class="mc ok">
+    <div class="mh"><div class="mn"><span>08</span>工具与速查</div><div class="mhr">5 个工具</div></div>
+    <div class="chips">
+      <a class="chip" href="EnvLab-交互实验集/07-工具速查/监测方案智能生成器-多类型.html">📋 监测方案智能生成器（多类型）</a>
+      <a class="chip" href="EnvLab-交互实验集/07-工具速查/水质评价标准速查表.html">📊 水质评价标准速查表</a>
+      <a class="chip" href="EnvLab-交互实验集/07-工具速查/气相色谱方法开发速查表.html">📐 气相色谱方法开发速查</a>
+      <a class="chip" href="EnvLab-交互实验集/07-工具速查/检测因子实验室交互方案.html">📑 检测因子实验室交互方案</a>
+      <a class="chip" href="EnvLab-交互实验集/07-工具速查/实验分组任务单（可下发各实验组）.html">📌 实验分组任务单（可打印下发）</a>
+    </div>
+  </div>
+</section>
+
+<!-- 08 培训系统 -->
+<section class="sec" id="s8">
+  <div class="sn">08 培训与举证</div>
+  <div class="st">上岗培训 · 步骤级打分与红线拦截</div>
+  <div class="sd">这一类页面带<b>评分与记录</b>：每个步骤给分，踩到致命红线直接判不通过，并可导出记录、生成训练证明——这是"能不能用于认证举证"的关键一环。</div>
+  <div class="mc ok">
+    <div class="mh"><div class="mn"><span>09</span>培训系统</div><div class="mhr">2 套 · 10 个模块</div></div>
+    <div class="md">仪器操作培训（6 台仪器）+ 采样上岗培训（水 / 土 / 气 / 噪四域）。记录存于本机浏览器，接入后端后即为云端共享记录。</div>
+    <div class="chips">
+      <a class="chip" href="EnvLab-培训系统/index.html">🎛️ 仪器操作培训系统</a>
+      <a class="chip" href="EnvLab-采样培训系统/index.html">📍 采样上岗培训系统</a>
+    </div>
+    <div class="mlbl">举证边界</div>
+    <div class="md" style="margin-bottom:0">生成的记录是<b>过程性记录</b>，用于支撑"学生/员工确实按规范走过一遍"的举证，<b>不替代</b>现场监督与授权考核。</div>
+  </div>
+</section>
+
+<div class="ft">
+  <b>EnvLab</b> · 环境监测与污染控制交互实验<br>
+  本站为在线演示，所有页面均为<b>单文件 HTML</b>，可整目录下载离线使用（含无网络环境的机房）。<br>
+  页面内的标准方法、限值与计算公式按现行国标与规范整理；演示用数据为构造数据，仅用于教学，不作为检测结果依据。
+  <div class="box">
+    <b>关于判错机制：</b>用于训练"知道什么是对的"，<b>不能替代</b>真实仪器的操作训练、现场监督与授权考核。
+  </div>
 </div>
+
+<script>
+const sp=document.getElementById('sp');
+addEventListener('scroll',()=>{const h=document.documentElement;sp.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.12});
+document.querySelectorAll('.sec').forEach(s=>io.observe(s));
+</script>
 </body>
 </html>
