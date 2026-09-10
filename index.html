@@ -63,13 +63,48 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
 .ft b{color:var(--glow)}
 .ft .box{max-width:720px;margin:14px auto 0;text-align:left;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.18);border-left:3px solid var(--amber);border-radius:8px;padding:13px 16px;color:#fcd34d}
 .ft .box b{color:#fde68a}
+/* —— 吸顶导航选项卡 —— */
+html{scroll-behavior:smooth}
+.nav{position:sticky;top:0;z-index:900;background:rgba(10,14,23,.9);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border-bottom:1px solid var(--border)}
+.navi{max-width:1100px;margin:0 auto;display:flex;align-items:stretch;gap:0;padding:0 20px}
+.nvb{display:flex;align-items:center;font-size:13px;font-weight:900;letter-spacing:.5px;color:var(--glow);white-space:nowrap;padding-right:16px;margin-right:6px;border-right:1px solid var(--border);text-decoration:none}
+.nvt{display:flex;gap:1px;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none;flex:1}
+.nvt::-webkit-scrollbar{display:none}
+.nvt a{position:relative;display:inline-flex;align-items:center;gap:5px;padding:13px 11px;font-size:12.5px;font-weight:600;color:#94a3b8;text-decoration:none;white-space:nowrap;border-bottom:2px solid transparent;transition:.2s}
+.nvt a:hover{color:#e2e8f0;background:rgba(56,189,248,.06)}
+.nvt a i{font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.5px;color:#475569;transition:.2s}
+.nvt a.on{color:var(--glow);border-bottom-color:var(--accent);background:rgba(56,189,248,.07)}
+.nvt a.on i{color:var(--accent)}
+.nvt a.ext{color:#6ee7b7}
+.nvt a.ext i{color:#34d399;font-size:12px}
+.nvt a.ext:hover{color:#a7f3d0;background:rgba(52,211,153,.08)}
+.sec{scroll-margin-top:56px}
+@media(max-width:700px){.nvb{display:none}.navi{padding:0 12px}.nvt a{padding:12px 9px;font-size:12px}}
+@media print{.nav{display:none}html{scroll-behavior:auto}}
 @media print{body{background:#fff;color:#111}.sec{opacity:1;transform:none}#sp{display:none}}
 </style>
 </head>
 <body>
 <div id="sp"></div>
 
-<section class="hr">
+<nav class="nav">
+  <div class="navi">
+    <a class="nvb" href="#top" title="回到页面顶部">EnvLab</a>
+    <div class="nvt">
+      <a href="#s1" title="建议路径：约 8 分钟看完主要能力（3 步）"><i>01</i>建议路径</a>
+      <a href="#s2" title="大气污染控制工程实验 · 6 个页面 · 本次主推"><i>02</i>污染控制</a>
+      <a href="#s3" title="环境监测：采样布点 5 页 + 水 4 页 + 气 3 页 + 土 5 页"><i>03</i>环境监测</a>
+      <a href="#s4" title="噪声与现场监测：采样培训系统噪声模块（5 步考核）"><i>04</i>噪声</a>
+      <a href="#s5" title="大型仪器操作与谱图 · 全组 30+ 页，此处列 6 个代表"><i>05</i>仪器分析</a>
+      <a href="#s6" title="读懂系列：环境评价 6 个页面"><i>06</i>环境评价</a>
+      <a href="#s7" title="工具与速查：5 个可直接拿来用的工具"><i>07</i>工具速查</a>
+      <a href="#s8" title="培训与举证：2 套培训系统 · 10 个模块"><i>08</i>培训举证</a>
+      <a class="ext" href="EnvLab-交互实验集/index.html" title="打开交互实验集总目录，查看全部 79 个交互页面"><i>↗</i>全部目录</a>
+    </div>
+  </div>
+</nav>
+
+<section class="hr" id="top">
   <div class="hg"></div><div class="hgl"></div>
   <div class="hb">EnvLab · 在线演示</div>
   <h1 class="h1">环境监测与污染控制<br><em>交互实验在线演示</em></h1>
@@ -292,6 +327,17 @@ const sp=document.getElementById('sp');
 addEventListener('scroll',()=>{const h=document.documentElement;sp.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
 const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.12});
 document.querySelectorAll('.sec').forEach(s=>io.observe(s));
+
+/* 导航选项卡：滚动时就近高亮当前所在内容区 */
+const tabs=[...document.querySelectorAll('.nvt a[href^="#"]')];
+function spy(){
+  const y=scrollY+130; let cur=null;
+  tabs.forEach(a=>{const el=document.querySelector(a.getAttribute('href'));if(el&&el.offsetTop<=y)cur=a;});
+  tabs.forEach(a=>a.classList.toggle('on',a===cur));
+}
+addEventListener('scroll',spy,{passive:true});
+addEventListener('resize',spy);
+spy();
 </script>
 </body>
 </html>
