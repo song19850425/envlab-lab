@@ -1,0 +1,22 @@
+[
+  {
+    "id": "water-wastewater",
+    "name": "水和废水采样",
+    "category": "水与废水"
+  },
+  {
+    "id": "soil",
+    "name": "土壤采样",
+    "category": "土壤与沉积物"
+  },
+  {
+    "id": "air",
+    "name": "大气采样及现场检测",
+    "category": "环境空气与废气"
+  },
+  {
+    "id": "noise",
+    "name": "环境噪声监测",
+    "category": "环境噪声"
+  }
+]
