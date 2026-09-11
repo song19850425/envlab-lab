@@ -160,8 +160,9 @@ function drBG(){
   c.fillStyle='rgba(56,189,248,.2)';c.font='8px sans-serif';c.fillText('初始水位',6,wt-3);
 
   // drawdown cone
+  let drawdown=0;  // 须声明在 if 之外：下方井筒绘制会用到（days=0 时为 0）
   if(days>0){
-    const rx=w*0.35,drawdown=Math.min(h*0.2,days*2);
+    const rx=w*0.35;drawdown=Math.min(h*0.2,days*2);
     c.beginPath();c.moveTo(0,wt);
     c.quadraticCurveTo(rx,wt+drawdown,w*0.7,wt);
     c.lineTo(w,wt);c.strokeStyle='rgba(251,191,36,.3)';c.lineWidth=1.5;c.stroke();

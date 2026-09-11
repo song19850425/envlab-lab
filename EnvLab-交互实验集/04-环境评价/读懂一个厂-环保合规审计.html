@@ -237,7 +237,7 @@ function setIndustry(type){
     
     // Highlight buttons
     document.querySelectorAll('.zb1').forEach(b=>b.style.opacity='.6');
-    event.target.style.opacity='1';
+    if(event&&event.target&&event.target.style) event.target.style.opacity='1';
 }
 
 function showReport(){

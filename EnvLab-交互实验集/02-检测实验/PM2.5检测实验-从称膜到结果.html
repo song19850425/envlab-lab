@@ -311,16 +311,16 @@
                     <strong>计算结果</strong><br>
                     PM₂.₅ = (76.892 - 75.646) / 128.3 × 1000 = <strong>97 μg/m³</strong><br>
                     依据 HJ 618-2011，保留整数位<br><br>
-                    <strong>对比GB 3095-2012</strong><br>
-                    一级限值：35 μg/m³（年平均）<br>
-                    二级限值：75 μg/m³（24小时平均）<br>
+                    <strong>对比 GB 3095-2026</strong><br>
+                    日均二级限值：<b>60 μg/m³</b>（过渡阶段，2026-03-01 至 2030-12-31）<br>
+                    2031-01-01 起日均二级限值：50 μg/m³<br>
                     本次结果：<strong style="color:#dc2626;">97 μg/m³ → 超标</strong>
                 </div>
             </div>
 
             <div style="display:flex;gap:8px;margin-top:12px;">
                 <button class="step-btn" onclick="resetAll()" style="background:linear-gradient(135deg,#6366f1,#8b5cf6);">🔄 重做实验</button>
-                <button class="step-btn" onclick="alert(`PM2.5 检测报告\n─────────────\n样品编号：PM-2026-0622-001\n采样地点：某市 监测站\n滤膜前重：75.646 mg\n滤膜后重：76.892 mg\n采样体积：128.3 m³\n检测结果：97 μg/m³\n\n结论：超出GB 3095-2012二级限值(75μg/m³)`)" style="background:linear-gradient(135deg,#f59e0b,#d97706);">📄 生成报告</button>
+                <button class="step-btn" onclick="alert(`PM2.5 检测报告\n─────────────\n样品编号：PM-2026-0622-001\n采样地点：某市 监测站\n滤膜前重：75.646 mg\n滤膜后重：76.892 mg\n采样体积：128.3 m³\n检测结果：97 μg/m³\n\n结论：超出GB 3095-2026二级限值(日均60μg/m³)`)" style="background:linear-gradient(135deg,#f59e0b,#d97706);">📄 生成报告</button>
             </div>
         </div>
     </div>
@@ -538,5 +538,6 @@
 
         updateUI();
     </script>
+<details class="stdbasis" id="stdBasis"><style>.stdbasis{max-width:1100px;margin:34px auto 0;padding:0 20px;font-family:inherit}.stdbasis>summary{list-style:none;cursor:pointer;user-select:none}.stdbasis>summary::-webkit-details-marker{display:none}.stdbasis .sb-hd{font-size:13px;color:#0f172a;letter-spacing:.02em;font-weight:600;display:flex;align-items:center;gap:8px}.stdbasis .sb-hd .sb-ar{margin-left:auto;transition:transform .2s;font-size:11px;color:#64748b}.stdbasis[open] .sb-hd .sb-ar{transform:rotate(90deg)}.stdbasis .sb-cd{background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:14px 18px;margin-top:10px}.stdbasis .sb-bd{display:block}.stdbasis table.sb-tb{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}.stdbasis table.sb-tb th{background:#eef2f7;color:#64748b;font-weight:600;text-align:left;padding:7px 9px;border-bottom:1px solid #e2e8f0;font-size:12px}.stdbasis table.sb-tb td{padding:7px 9px;border-bottom:1px solid #e2e8f0;color:#334155;vertical-align:top;line-height:1.55;word-break:break-word}.stdbasis table.sb-tb tr:last-child td{border-bottom:none}.stdbasis .sb-c{width:19%;font-weight:600;color:#0f172a}.stdbasis .sb-s{width:11%;white-space:nowrap;font-weight:600}.stdbasis .sb-u{width:26%;color:#64748b}.stdbasis .sb-ft{margin-top:10px;font-size:11.5px;line-height:1.7;color:#64748b}.stdbasis .sb-fx{margin-top:10px;padding:10px 12px;border-left:3px solid #b45309;background:#f8fafc;border-radius:0 8px 8px 0;font-size:11.5px;line-height:1.7;color:#334155}.stdbasis .sb-fx ul{margin:6px 0 0;padding-left:18px}.stdbasis .sb-fx li{margin:4px 0}@media(max-width:720px){.stdbasis table.sb-tb{font-size:11px}.stdbasis table.sb-tb tr:first-child{display:none}.stdbasis table.sb-tb td{display:block;width:auto!important;border-bottom:none;padding:2px 0}.stdbasis table.sb-tb tr{display:block;padding:8px 0;border-bottom:1px solid #e2e8f0}}</style><summary class="sb-hd"><span>本页依据标准与现行状态</span><span class="sb-ar">&#9654;</span></summary><div class="sb-cd"><div class="sb-bd"><table class="sb-tb"><tr><th>标准号</th><th>标准名称</th><th>状态</th><th>本页用途</th></tr><tr><td class="sb-c">GB 3095-2026</td><td>环境空气质量标准</td><td class="sb-s" style="color:#15803d">现行</td><td class="sb-u">PM2.5 浓度限值判定依据（现行版）</td></tr><tr><td class="sb-c">HJ 618-2011</td><td>环境空气 PM10 和 PM2.5 的测定 重量法</td><td class="sb-s" style="color:#15803d">现行</td><td class="sb-u">手工重量法测定 PM10 和 PM2.5</td></tr></table><div class="sb-ft">本页共依据 <b>2</b> 项标准：<b>2</b> 项已回官方源核验（截至 2026-09-11），0 项待核。　核验来源与全部条目见《标准依据溯源总表》。本页数值与曲线用于教学演示，不作为工程设计或检测报告的依据。</div></div></div></details>
 </body>
 </html>

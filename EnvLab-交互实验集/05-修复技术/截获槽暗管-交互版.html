@@ -153,6 +153,7 @@ function draw(){
   const factor=speed[k]*vel;
   const rem=trenched?Math.min(1,days/30*0.8):0;
 
+  const rendered=particles.filter(p=>p.alive).length;  // 本帧存活颗粒数；须在 forEach 前算好（块内会读它）
   particles.forEach(p=>{
     if(!p.alive) return;
     p.x+=p.vx*factor;
@@ -190,7 +191,6 @@ function draw(){
   });
 
   // Concentration display
-  const rendered=particles.filter(p=>p.alive).length;
   if(trenched){
     conc=100*(1-rem);
   } else {
