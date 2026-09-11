@@ -608,5 +608,49 @@
 <style>#rp{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(15,23,42,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px)}#rp.on{display:flex}#rp .rp-box{background:#fff;border-radius:14px;max-width:680px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(15,23,42,.3);overflow:hidden}#rp .rp-hd{display:flex;align-items:center;gap:10px;padding:15px 20px;border-bottom:1px solid #e5e7eb;background:#f8fafc}#rp .rp-ti{font-size:15px;font-weight:800;color:#0f172a}#rp .rp-x{margin-left:auto;border:none;background:transparent;font-size:20px;line-height:1;color:#64748b;cursor:pointer;padding:2px 6px;border-radius:6px}#rp .rp-x:hover{background:#e2e8f0;color:#0f172a}#rp .rp-bd{padding:18px 22px;overflow:auto;font-size:13px;line-height:1.75;color:#334155;white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,Menlo,Consolas,monospace}#rp .rp-ft{display:flex;gap:10px;justify-content:flex-end;padding:13px 20px;border-top:1px solid #e5e7eb;background:#f8fafc}#rp .rp-b{padding:9px 18px;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid transparent;transition:filter .15s}#rp .rp-b:hover{filter:brightness(.95)}#rp .rp-b1{background:linear-gradient(135deg,#0284c7,#38bdf8);color:#fff}#rp .rp-b2{background:#fff;border-color:#cbd5e1;color:#334155}#rp .rp-b:focus-visible,#rp .rp-x:focus-visible{outline:2px solid #f59e0b;outline-offset:2px}@media(max-width:600px){#rp .rp-bd{padding:14px 16px;font-size:12px}#rp .rp-hd,#rp .rp-ft{padding:12px 14px}}@media print{#rp{display:none!important}}</style>
 <div id="rp" role="dialog" aria-modal="true" aria-labelledby="rpTi"><div class="rp-box"><div class="rp-hd"><span class="rp-ti" id="rpTi">检测报告</span><button class="rp-x" type="button" aria-label="关闭" onclick="rpClose()">&#215;</button></div><div class="rp-bd" id="rpBody"></div><div class="rp-ft"><button class="rp-b rp-b2" type="button" onclick="rpClose()">关闭</button><button class="rp-b rp-b1" type="button" id="rpCopy" onclick="rpCopy()">复制报告</button></div></div></div>
 <script>(function(){window.rpOpen=function(text,title){var p=document.getElementById("rp");if(!p)return;document.getElementById("rpBody").textContent=text;if(title)document.getElementById("rpTi").textContent=title;p.classList.add("on");document.body.style.overflow="hidden";document.getElementById("rpCopy").focus()};window.rpClose=function(){var p=document.getElementById("rp");if(!p)return;p.classList.remove("on");document.body.style.overflow=""};window.rpCopy=function(){var t=document.getElementById("rpBody").textContent,b=document.getElementById("rpCopy");var ok=function(){var o=b.textContent;b.textContent="已复制 ✓";setTimeout(function(){b.textContent=o},1600)};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(ok).catch(function(){rpFallback(t,ok)})}else{rpFallback(t,ok)}};function rpFallback(t,ok){var a=document.createElement("textarea");a.value=t;a.style.cssText="position:fixed;top:-1000px;opacity:0";document.body.appendChild(a);a.select();try{document.execCommand("copy");ok()}catch(e){}document.body.removeChild(a)}document.addEventListener("keydown",function(e){if(e.key==="Escape")rpClose()});document.addEventListener("click",function(e){if(e.target&&e.target.id==="rp")rpClose()});})();</script>
+
+<!-- 延伸学习：跨页互链（自动生成） -->
+<style>
+/* --- 延伸学习（跨页互链） --- */
+.xl{max-width:1000px;margin:34px auto 26px;padding:0 16px;font-family:inherit}
+.xl-hd{display:flex;align-items:center;gap:9px;margin-bottom:13px;padding-bottom:9px;border-bottom:1px solid #e2e8f0}
+.xl-ic{font-size:15px;line-height:1}
+.xl-t{font-size:14px;font-weight:700;letter-spacing:.01em;color:#0f172a}
+.xl-sub{font-size:11px;color:#64748b;margin-left:auto}
+.xl-list{display:grid;gap:8px}
+.xl-a{display:flex;align-items:flex-start;gap:10px;padding:11px 13px;border-radius:8px;
+  background:#f8fafc;border:1px solid #e2e8f0;text-decoration:none;transition:border-color .18s,transform .18s,background .18s}
+.xl-a:hover,.xl-a:focus-visible{border-color:#0284c7;background:#f1f5f9;transform:translateX(3px)}
+.xl-a:focus-visible{outline:2px solid #0284c7;outline-offset:2px}
+.xl-ar{flex:0 0 auto;color:#0284c7;font-size:12px;margin-top:2px;font-weight:700}
+.xl-b{min-width:0}
+.xl-n{display:block;font-size:12.5px;font-weight:600;color:#0f172a;margin-bottom:2px}
+.xl-w{display:block;font-size:11px;color:#64748b;line-height:1.5}
+.xl-a:hover .xl-n{color:#0284c7}
+@media (max-width:640px){.xl{padding:0 10px;margin:26px auto 20px}.xl-sub{display:none}}
+@media print{.xl{display:none}}
+</style>
+<section class="xl" data-xl aria-label="延伸学习">
+  <div class="xl-hd">
+    <span class="xl-ic" aria-hidden="true">&#128279;</span>
+    <span class="xl-t">延伸学习</span>
+    <span class="xl-sub">顺着这条线继续往下做</span>
+  </div>
+  <nav class="xl-list">
+  <a class="xl-a" href="水质四项-COD氨氮总磷总氮实验.html">
+    <span class="xl-ar" aria-hidden="true">&#8594;</span>
+    <span class="xl-b"><span class="xl-n">水质四项-COD氨氮总磷总氮实验</span><span class="xl-w">COD 与氨氮总磷总氮一起测</span></span>
+  </a>
+  <a class="xl-a" href="EnvLab-COD-多邻国壳.html">
+    <span class="xl-ar" aria-hidden="true">&#8594;</span>
+    <span class="xl-b"><span class="xl-n">EnvLab-COD-多邻国壳</span><span class="xl-w">COD 的闯关式学习版本</span></span>
+  </a>
+  <a class="xl-a" href="../04-环境评价/读懂一个厂-环保合规审计.html">
+    <span class="xl-ar" aria-hidden="true">&#8594;</span>
+    <span class="xl-b"><span class="xl-n">读懂一个厂-环保合规审计</span><span class="xl-w">COD 是排污许可的核心控制指标</span></span>
+  </a>
+  </nav>
+</section>
+
 </body>
 </html>
