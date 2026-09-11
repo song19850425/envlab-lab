@@ -4,10 +4,10 @@
   "model": "AAS-900T（示例机型）",
   "category": "光谱分析",
   "accent": "#f59e0b",
-  "sopPage": "sop-pages/AAS-900T原子吸收分光光度计-PhET级升级.html",
-  "remark": "依据受控 SOP 构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
+  "opPage": "operation-pages/AAS-900T原子吸收分光光度计-交互版.html",
+  "remark": "依据受控操作规程构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
   "passThreshold": 80,
-  "sop": [
+  "op": [
     {
       "title": "一、开机供气",
       "points": [

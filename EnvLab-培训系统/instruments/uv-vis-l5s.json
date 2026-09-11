@@ -4,10 +4,10 @@
   "model": "L5S（示例机型）",
   "category": "紫外-可见分光（比色）",
   "accent": "#0ea5e9",
-  "sopPage": "sop-pages/L5S紫外可见分光光度计-PhET级升级.html",
-  "remark": "依据受控 SOP 构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
+  "opPage": "operation-pages/L5S紫外可见分光光度计-交互版.html",
+  "remark": "依据受控操作规程构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
   "passThreshold": 80,
-  "sop": [
+  "op": [
     {
       "title": "一、开机与波长选择",
       "points": [

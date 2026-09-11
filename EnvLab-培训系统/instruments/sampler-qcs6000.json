@@ -4,10 +4,10 @@
   "model": "QCS6000（示例机型）",
   "category": "现场采样",
   "accent": "#10b981",
-  "sopPage": "sop-pages/QCS6000四气路大气采样器-PhET级升级.html",
-  "remark": "依据受控 SOP 构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
+  "opPage": "operation-pages/QCS6000四气路大气采样器-交互版.html",
+  "remark": "依据受控操作规程构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
   "passThreshold": 80,
-  "sop": [
+  "op": [
     {
       "title": "一、含尘预处理",
       "points": [

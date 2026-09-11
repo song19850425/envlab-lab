@@ -11,7 +11,7 @@ EnvLab-培训系统/
 ├── admin.html            培训记录台（管理员登录后可见）
 ├── api.js / config.js    前端云端接入层（云端优先，失败回退本机）
 ├── instruments/          各仪器配置 JSON（加一台仪器 = 丢一个 JSON）
-├── sop-pages/            已做好的 SOP 交互培训页（学习阶段 iframe 调用）
+├── operation-pages/            已做好的操作规程交互培训页（学习阶段 iframe 调用）
 └── server/               后端服务（Node 内置模块，零依赖）
     ├── index.js
     ├── package.json

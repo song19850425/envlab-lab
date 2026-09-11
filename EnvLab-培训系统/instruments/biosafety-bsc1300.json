@@ -4,10 +4,10 @@
   "model": "BSC-1300IIA2（示例机型）",
   "category": "生物安全",
   "accent": "#e11d48",
-  "sopPage": "sop-pages/BSC-1300IIA2生物安全柜-PhET级升级.html",
-  "remark": "依据受控 SOP 构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
+  "opPage": "operation-pages/BSC-1300IIA2生物安全柜-交互版.html",
+  "remark": "依据受控操作规程构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
   "passThreshold": 80,
-  "sop": [
+  "op": [
     {
       "title": "一、操作前消毒",
       "points": [

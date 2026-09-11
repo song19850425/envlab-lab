@@ -4,10 +4,10 @@
   "model": "SPX-250B-Z（示例机型）",
   "category": "微生物培养",
   "accent": "#06b6d4",
-  "sopPage": "sop-pages/SPX-250B-Z生化培养箱-PhET级升级.html",
-  "remark": "依据受控 SOP 构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
+  "opPage": "operation-pages/SPX-250B-Z生化培养箱-交互版.html",
+  "remark": "依据受控操作规程构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
   "passThreshold": 80,
-  "sop": [
+  "op": [
     {
       "title": "一、放置与接地",
       "points": [

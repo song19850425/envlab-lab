@@ -44,18 +44,18 @@
   .picker small{color:var(--mut)}
   footer{color:var(--mut);font-size:12px;text-align:center;margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
   .note{font-size:12px;color:var(--mut);background:rgba(138,160,198,.08);border-radius:8px;padding:8px 12px;margin:10px 0}
-  /* SOP 学习区 */
-  .sop .sop-sec{background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:12px}
-  .sop .sop-sec h3{margin:0 0 8px;font-size:15px;color:var(--accent)}
-  .sop ul{margin:0;padding-left:20px}
-  .sop li{margin:3px 0;font-size:14px}
+  /* 操作规程学习区 */
+  .op .op-sec{background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:12px}
+  .op .op-sec h3{margin:0 0 8px;font-size:15px;color:var(--accent)}
+  .op ul{margin:0;padding-left:20px}
+  .op li{margin:3px 0;font-size:14px}
   .redline{margin-top:8px;background:rgba(239,68,68,.12);border-left:3px solid #ef4444;border-radius:6px;padding:8px 12px;font-size:13px;color:#ffd9d9}
   .redline b{color:#ff8a8a}
-  /* SOP 完整交互页嵌入 */
-  .sop-embed{margin:14px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-  .sop-embed-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;background:#0c1428;border-bottom:1px solid var(--line);font-size:13px;color:var(--mut)}
-  .sop-frame{width:100%;height:68vh;border:0;display:block}
-  .sop-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  /* 操作规程完整交互页嵌入 */
+  .op-embed{margin:14px 0;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .op-embed-bar{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;background:#0c1428;border-bottom:1px solid var(--line);font-size:13px;color:var(--mut)}
+  .op-frame{width:100%;height:68vh;border:0;display:block}
+  .op-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
 </style>
 </head>
 <body>
@@ -63,12 +63,12 @@
   <header>
     <span class="badge">EnvLab 仪器操作培训</span>
     <h1 id="title">仪器操作培训</h1>
-    <div class="hero-sub" id="heroSub">依据受控 SOP 构建（已脱敏）</div>
+    <div class="hero-sub" id="heroSub">依据受控操作规程构建（已脱敏）</div>
   </header>
 
   <div id="app"></div>
 
-  <footer>和小宋一起玩科学 · EnvLab 仪器操作培训 · 依据受控 SOP 构建（已脱敏）<br>本培训系统为配置驱动，记录留存于本机浏览器，若已接入后端则同步至云端数据库，数据不出实验室。</footer>
+  <footer>和小宋一起玩科学 · EnvLab 仪器操作培训 · 依据受控操作规程构建（已脱敏）<br>本培训系统为配置驱动，记录留存于本机浏览器，若已接入后端则同步至云端数据库，数据不出实验室。</footer>
 </div>
 
 <script src="config.js"></script>
@@ -92,10 +92,10 @@ let logLines = [];
 let startTime = 0;
 let stepState = [];
 
-function buildSop(){
-  if(!INST.sop || !INST.sop.length) return "";
-  return INST.sop.map(s=>`
-    <div class="sop-sec">
+function buildOp(){
+  if(!INST.op || !INST.op.length) return "";
+  return INST.op.map(s=>`
+    <div class="op-sec">
       <h3>${s.title}</h3>
       <ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>
       ${(s.redLines&&s.redLines.length)?`<div class="redline"><b>⚠ 红线：</b>${s.redLines.map(r=>`<div>• ${r}</div>`).join("")}</div>`:""}
@@ -115,26 +115,25 @@ function loadInst(id){
 function boot(){
   $("#title").textContent = INST.name;
   $("#heroSub").textContent = "示例机型：" + INST.model + " · " + (INST.remark||"");
-  renderSop();   // 先学 SOP
-}
+  renderOp();   // 先学操作规程}
 
-function renderSop(){
-  const embed = INST.sopPage ? `
-    <div class="sop-embed">
-      <div class="sop-embed-bar">
-        <span>📟 完整交互培训（已做好的对应 SOP 仿真，可点开实操演练）</span>
-        <a class="btn ghost" href="${INST.sopPage}" target="_blank" rel="noopener" style="margin:0">↗ 新标签打开</a>
+function renderOp(){
+  const embed = INST.opPage ? `
+    <div class="op-embed">
+      <div class="op-embed-bar">
+        <span>📟 完整交互培训（已做好的对应操作规程仿真，可点开实操演练）</span>
+        <a class="btn ghost" href="${INST.opPage}" target="_blank" rel="noopener" style="margin:0">↗ 新标签打开</a>
       </div>
-      <iframe class="sop-frame" src="${INST.sopPage}" title="SOP 完整交互培训"></iframe>
+      <iframe class="op-frame" src="${INST.opPage}" title="操作规程完整交互培训"></iframe>
     </div>` : "";
   $("#app").innerHTML = `
     <div class="card">
-      <div class="step-no">培训前 · 第一步：学习 SOP</div>
+      <div class="step-no">培训前 · 第一步：学习操作规程</div>
       <h2 style="margin:6px 0 4px;font-size:20px">${INST.name} 标准操作规程（要点）</h2>
-      <div class="note">请先在上方「完整交互培训」中通读并演练标准操作；下方为要点速记，供快速对照。确认理解后再进入作答；作答途中也可随时「查看 SOP」。</div>
+      <div class="note">请先在上方「完整交互培训」中通读并演练标准操作；下方为要点速记，供快速对照。确认理解后再进入作答；作答途中也可随时「查看操作规程」。</div>
       ${embed}
       <h3 style="margin:18px 0 6px;font-size:15px;color:var(--accent)">要点速记</h3>
-      <div class="sop">${buildSop()}</div>
+      <div class="op">${buildOp()}</div>
       <button class="btn" id="toForm">我已学习，开始作答 →</button>
     </div>`;
   $("#toForm").addEventListener("click", renderForm);
@@ -156,11 +155,11 @@ function renderForm(){
       <input id="tEmp" value="${curEmp}" placeholder="如：CJ-0213">
       <label>所属实验室 / 部门（选填）</label>
       <input id="tLab" value="${curLab}" placeholder="如：某省环境检测一室">
-      <div style="margin-top:14px"><button class="btn ghost" id="backSop">← 重看 SOP</button></div>
+      <div style="margin-top:14px"><button class="btn ghost" id="backOp">← 重看操作规程</button></div>
       <button class="btn" id="startBtn" ${cur?'':'disabled'}>开始作答</button>
       <div class="note">记录仅保存在本机浏览器（localStorage），用于生成培训佐证。管理员可在 admin.html 查看汇总。</div>
     </div>`;
-  $("#backSop").addEventListener("click", renderSop);
+  $("#backOp").addEventListener("click", renderOp);
   $("#tName").addEventListener("input", e=>{ $("#startBtn").disabled = !e.target.value.trim(); });
   $("#startBtn").addEventListener("click", ()=>{
     trainee = { name:$("#tName").value.trim(), emp:$("#tEmp").value.trim(), lab:$("#tLab").value.trim()||"演示实验室" };
@@ -176,11 +175,11 @@ function renderStep(){
   const pct = Math.round(stepIndex/total*100);
   $("#app").innerHTML = `
     <div class="card">
-      <div class="sop-actions">
-        <button class="btn ghost" id="sopToggle">📖 查看要点</button>
-        ${INST.sopPage?`<a class="btn ghost" href="${INST.sopPage}" target="_blank" rel="noopener" style="margin:0">↗ 打开完整交互培训</a>`:""}
+      <div class="op-actions">
+        <button class="btn ghost" id="opToggle">📖 查看要点</button>
+        ${INST.opPage?`<a class="btn ghost" href="${INST.opPage}" target="_blank" rel="noopener" style="margin:0">↗ 打开完整交互培训</a>`:""}
       </div>
-      <div id="sopPanel" style="display:none;margin-bottom:14px">${buildSop()}</div>
+      <div id="opPanel" style="display:none;margin-bottom:14px">${buildOp()}</div>
       <div class="step-no">第 ${stepIndex+1} / ${total} 步</div>
       <div class="q">${s.q}</div>
       <div class="progress"><i style="width:${pct}%"></i></div>
@@ -188,10 +187,10 @@ function renderStep(){
       <div class="feedback" id="fb"></div>
       <div class="log" id="log">${logLines.join("")}</div>
     </div>`;
-  $("#sopToggle").addEventListener("click", ()=>{
-    const p = $("#sopPanel");
+  $("#opToggle").addEventListener("click", ()=>{
+    const p = $("#opPanel");
     p.style.display = p.style.display==="none" ? "block" : "none";
-    $("#sopToggle").textContent = p.style.display==="none" ? "📖 查看要点" : "📖 收起要点";
+    $("#opToggle").textContent = p.style.display==="none" ? "📖 查看要点" : "📖 收起要点";
   });
   const box = $("#opts");
   s.options.forEach((o,i)=>{
@@ -316,7 +315,7 @@ function exportCert(rec){
   <div class="big">综合得分 ${rec.score} · ${rec.passed?'通过':'未通过'}</div>
   <p style="font-size:13px;color:#475569">致命红线触发：${rec.fatalHits} 次。本证明由交互培训系统自动生成，作为人员操作能力确认的过程记录，不替代现场监督与授权考核。</p>
   <table><tr><th>步</th><th>操作环节</th><th>结果</th></tr>${rows}</table>
-  <div class="stamp">EnvLab 仪器操作培训系统 · 依据受控 SOP 构建（已脱敏）· 记录编号 ${rec.id}</div>
+  <div class="stamp">EnvLab 仪器操作培训系统 · 依据受控操作规程构建（已脱敏）· 记录编号 ${rec.id}</div>
   <script>window.onload=function(){setTimeout(()=>window.print(),300)}<\/script>
   </body></html>`);
   w.document.close();

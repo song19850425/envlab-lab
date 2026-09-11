@@ -4,10 +4,10 @@
   "model": "MS105DU（示例机型）",
   "category": "精密称量",
   "accent": "#14b8a6",
-  "sopPage": "sop-pages/MS105DU十万分之一天平-PhET级升级.html",
-  "remark": "依据受控 SOP 构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
+  "opPage": "operation-pages/MS105DU十万分之一天平-交互版.html",
+  "remark": "依据受控操作规程构建（已脱敏），仅作上岗前交互培训，不替代现场监督与能力确认。",
   "passThreshold": 80,
-  "sop": [
+  "op": [
     {
       "title": "一、水平调节",
       "points": [

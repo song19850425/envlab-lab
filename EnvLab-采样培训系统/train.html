@@ -45,13 +45,13 @@
   footer{color:var(--mut);font-size:12px;text-align:center;margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
   .note{font-size:12px;color:var(--mut);background:rgba(138,160,198,.08);border-radius:8px;padding:8px 12px;margin:10px 0}
   /* 采样规范学习区 */
-  .sop .sop-sec{background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:12px}
-  .sop .sop-sec h3{margin:0 0 8px;font-size:15px;color:var(--accent)}
-  .sop ul{margin:0;padding-left:20px}
-  .sop li{margin:3px 0;font-size:14px}
+  .op .op-sec{background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:12px}
+  .op .op-sec h3{margin:0 0 8px;font-size:15px;color:var(--accent)}
+  .op ul{margin:0;padding-left:20px}
+  .op li{margin:3px 0;font-size:14px}
   .redline{margin-top:8px;background:rgba(239,68,68,.12);border-left:3px solid #ef4444;border-radius:6px;padding:8px 12px;font-size:13px;color:#ffd9d9}
   .redline b{color:#ff8a8a}
-  .sop-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .op-actions{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
   /* ===== 采样表格 + 试剂器材清单 ===== */
   .form-card,.prep-card{background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-top:6px}
   .form-name{font-size:15px;color:var(--accent);font-weight:700;margin-bottom:2px}
@@ -88,7 +88,7 @@
   .stage-block.red{background:rgba(239,68,68,.1);border-radius:8px;padding:8px 12px;margin-top:10px}
   .stage-block.red .sb-label{color:#ff8a8a}
   .rl{font-size:13px;color:#ffd9d9;margin:2px 0}
-  .sop-toggle-wrap{margin:14px 0 4px}
+  .op-toggle-wrap{margin:14px 0 4px}
   /* ===== 移动端适配 ===== */
   @media (max-width:680px){
     .wrap{padding:18px 12px 40px}
@@ -99,8 +99,8 @@
     .btn.ghost{width:100%;text-align:center;margin-top:8px}
     .opt{font-size:16px;padding:15px}
     .q{font-size:16px}
-    .sop-actions{flex-direction:column;align-items:stretch}
-    .sop-actions .btn{width:100%}
+    .op-actions{flex-direction:column;align-items:stretch}
+    .op-actions .btn{width:100%}
     .chk{font-size:16px;padding:11px}
     .chk input{width:18px;height:18px}
     .flow-bar{justify-content:flex-start}
@@ -147,10 +147,10 @@ let logLines = [];
 let startTime = 0;
 let stepState = [];
 
-function buildSop(){
-  if(!MOD.sop || !MOD.sop.length) return "";
-  return MOD.sop.map(s=>`
-    <div class="sop-sec">
+function buildOp(){
+  if(!MOD.op || !MOD.op.length) return "";
+  return MOD.op.map(s=>`
+    <div class="op-sec">
       <h3>${s.title}</h3>
       <ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>
       ${(s.redLines&&s.redLines.length)?`<div class="redline"><b>⚠ 红线：</b>${s.redLines.map(r=>`<div>• ${r}</div>`).join("")}</div>`:""}
@@ -204,7 +204,7 @@ function buildPrep(){
 }
 
 function buildRefFull(){
-  return `<div style="margin-bottom:16px"><div class="step-no" style="margin-bottom:8px">规范要点</div>${buildSop()}</div>`+
+  return `<div style="margin-bottom:16px"><div class="step-no" style="margin-bottom:8px">规范要点</div>${buildOp()}</div>`+
     (MOD.form?`<div style="margin-bottom:16px"><div class="step-no" style="margin-bottom:8px">采样表格</div>${buildForm()}</div>`:"")+
     (buildPrep()?`<div style="margin-bottom:8px"><div class="step-no" style="margin-bottom:8px">试剂器材清单</div>${buildPrep()}</div>`:"");
 }
@@ -245,7 +245,7 @@ function loadMod(id){
 function boot(){
   $("#title").textContent = MOD.name;
   $("#heroSub").textContent = MOD.remark || "依据受控采样规范构建（已脱敏）";
-  renderSop();
+  renderOp();
 }
 
 function buildFlow(){
@@ -265,7 +265,7 @@ function buildFlow(){
     </div>`).join("") + `</div>`;
 }
 
-function renderSop(){
+function renderOp(){
   $("#app").innerHTML = `
     <div class="card">
       <div class="step-no">培训前 · 第一步：按真实作业流程走查</div>
@@ -273,15 +273,15 @@ function renderSop(){
       <div class="note">上岗培训按真实工作序列展开：<b>接到任务 → 准备器材试剂 → 到现场按点位采样并同步记录 → 按规定流转至实验室</b>。逐阶段通读并打勾确认，再进入红线考核。红线（⚠）答错记 0 分。</div>
       <div class="flow-bar">${MOD.flow.map(s=>`<span class="fb-dot" title="${s.name}">${s.icon}</span>`).join('<span class="fb-arrow">→</span>')}</div>
       ${buildFlow()}
-      <div class="sop-toggle-wrap"><button class="btn ghost" id="sopBase">📖 规范要点底稿</button></div>
-      <div id="sopBasePanel" style="display:none;margin:8px 0">${buildSop()}</div>
+      <div class="op-toggle-wrap"><button class="btn ghost" id="opBase">📖 规范要点底稿</button></div>
+      <div id="opBasePanel" style="display:none;margin:8px 0">${buildOp()}</div>
       <button class="btn" id="toForm">我已走通作业流程，开始作答 →</button>
     </div>`;
   initChecks();
-  $("#sopBase").addEventListener("click", ()=>{
-    const p = $("#sopBasePanel");
+  $("#opBase").addEventListener("click", ()=>{
+    const p = $("#opBasePanel");
     p.style.display = p.style.display==="none" ? "block" : "none";
-    $("#sopBase").textContent = p.style.display==="none" ? "📖 规范要点底稿" : "📖 收起底稿";
+    $("#opBase").textContent = p.style.display==="none" ? "📖 规范要点底稿" : "📖 收起底稿";
     if(p.style.display==="block") initChecks();
   });
   $("#toForm").addEventListener("click", renderForm);
@@ -303,11 +303,11 @@ function renderForm(){
       <input id="tEmp" value="${curEmp}" placeholder="如：CJ-0213">
       <label>所属实验室 / 部门（选填）</label>
       <input id="tLab" value="${curLab}" placeholder="如：某省环境检测采样一组">
-      <div style="margin-top:14px"><button class="btn ghost" id="backSop">← 重看规范</button></div>
+      <div style="margin-top:14px"><button class="btn ghost" id="backOp">← 重看规范</button></div>
       <button class="btn" id="startBtn" ${cur?'':'disabled'}>开始作答</button>
       <div class="note">记录仅保存在本机浏览器（localStorage），用于生成培训佐证。管理员可在 admin.html 查看汇总。</div>
     </div>`;
-  $("#backSop").addEventListener("click", renderSop);
+  $("#backOp").addEventListener("click", renderOp);
   $("#tName").addEventListener("input", e=>{ $("#startBtn").disabled = !e.target.value.trim(); });
   $("#startBtn").addEventListener("click", ()=>{
     trainee = { name:$("#tName").value.trim(), emp:$("#tEmp").value.trim(), lab:$("#tLab").value.trim()||"演示实验室" };
@@ -323,10 +323,10 @@ function renderStep(){
   const pct = Math.round(stepIndex/total*100);
   $("#app").innerHTML = `
     <div class="card">
-      <div class="sop-actions">
-        <button class="btn ghost" id="sopToggle">📖 查看要点</button>
+      <div class="op-actions">
+        <button class="btn ghost" id="opToggle">📖 查看要点</button>
       </div>
-      <div id="sopPanel" style="display:none;margin-bottom:14px">${buildRefFull()}</div>
+      <div id="opPanel" style="display:none;margin-bottom:14px">${buildRefFull()}</div>
       <div class="step-no">第 ${stepIndex+1} / ${total} 步</div>
       <div class="q">${s.q}</div>
       <div class="progress"><i style="width:${pct}%"></i></div>
@@ -334,10 +334,10 @@ function renderStep(){
       <div class="feedback" id="fb"></div>
       <div class="log" id="log">${logLines.join("")}</div>
     </div>`;
-  $("#sopToggle").addEventListener("click", ()=>{
-    const p = $("#sopPanel");
+  $("#opToggle").addEventListener("click", ()=>{
+    const p = $("#opPanel");
     p.style.display = p.style.display==="none" ? "block" : "none";
-    $("#sopToggle").textContent = p.style.display==="none" ? "📖 查看要点" : "📖 收起要点";
+    $("#opToggle").textContent = p.style.display==="none" ? "📖 查看要点" : "📖 收起要点";
     if(p.style.display==="block") initChecks();
   });
   const box = $("#opts");
