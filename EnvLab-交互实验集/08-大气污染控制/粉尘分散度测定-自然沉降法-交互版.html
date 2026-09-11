@@ -481,7 +481,7 @@ function step2(){
   log('引入含尘空气：上下移动活塞数次，含尘空气已进入沉降器并混匀',true);
   if(no.ok){ log('方法适配：<b>'+no.tag+'</b>——'+no.note,true); }
   else if(no.inert){ log('方法适配：一般矿物性粉尘用两种方法都可以；沉降法耗时 ≥3 h，滤膜溶解涂片法更快（数十分钟）。',true); }
-  const full=(Math.max(...PARTS.map(x=>x.tReqSec(x.d)))/60);
+  const full=(Math.max(...PARTS.map(x=>tReqSec(x.d)))/60);
   log('按当前粉尘密度（'+rho()+' kg/m³）估算：最细的 0.55 μm 颗粒<b>完全沉降约需 '+full.toFixed(0)+' min</b>。',false);
   setSts('🟡 已进气','sa');
   warn('');
