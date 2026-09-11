@@ -3,7 +3,7 @@ window.ENVLAB_DEMO_DATA = {
  "training": [
   {
    "id": "DEMO-IN-aas-900t",
-   "ts": "2026-09-10T00:05:13.000Z",
+   "ts": "2026-09-10T05:48:42.000Z",
    "emp": "CJ-0213",
    "trainee": "张工",
    "lab": "某市环境检测中心 · 理化室",
@@ -55,7 +55,7 @@ window.ENVLAB_DEMO_DATA = {
   },
   {
    "id": "DEMO-IN-uv-vis-l5s",
-   "ts": "2026-09-10T01:05:13.000Z",
+   "ts": "2026-09-10T06:48:42.000Z",
    "emp": "CJ-0214",
    "trainee": "李工",
    "lab": "某市环境检测中心 · 理化室",
@@ -101,7 +101,7 @@ window.ENVLAB_DEMO_DATA = {
   },
   {
    "id": "DEMO-IN-balance-ms105du",
-   "ts": "2026-09-10T18:05:13.000Z",
+   "ts": "2026-09-10T23:48:42.000Z",
    "emp": "CJ-0221",
    "trainee": "王工",
    "lab": "某市环境检测中心 · 理化室",
@@ -147,7 +147,7 @@ window.ENVLAB_DEMO_DATA = {
   },
   {
    "id": "DEMO-IN-sampler-qcs6000",
-   "ts": "2026-09-10T23:05:13.000Z",
+   "ts": "2026-09-11T04:48:42.000Z",
    "emp": "CJ-0226",
    "trainee": "赵工",
    "lab": "某市环境检测中心 · 理化室",
@@ -193,7 +193,7 @@ window.ENVLAB_DEMO_DATA = {
   },
   {
    "id": "DEMO-IN-incubator-spx250",
-   "ts": "2026-09-11T00:05:13.000Z",
+   "ts": "2026-09-11T05:48:42.000Z",
    "emp": "CJ-0213",
    "trainee": "张工",
    "lab": "某市环境检测中心 · 理化室",
@@ -241,7 +241,7 @@ window.ENVLAB_DEMO_DATA = {
  "sampling": [
   {
    "id": "DEMO-SA-water-wastewater",
-   "ts": "2026-09-09T20:05:13.000Z",
+   "ts": "2026-09-10T01:48:42.000Z",
    "emp": "CJ-0213",
    "trainee": "张工",
    "lab": "某市环境检测中心 · 理化室",
@@ -287,7 +287,7 @@ window.ENVLAB_DEMO_DATA = {
   },
   {
    "id": "DEMO-SA-soil",
-   "ts": "2026-09-09T22:05:13.000Z",
+   "ts": "2026-09-10T03:48:42.000Z",
    "emp": "CJ-0214",
    "trainee": "李工",
    "lab": "某市环境检测中心 · 理化室",
@@ -333,7 +333,7 @@ window.ENVLAB_DEMO_DATA = {
   },
   {
    "id": "DEMO-SA-air",
-   "ts": "2026-09-10T06:05:13.000Z",
+   "ts": "2026-09-10T11:48:42.000Z",
    "emp": "CJ-0226",
    "trainee": "赵工",
    "lab": "某市环境检测中心 · 理化室",
@@ -379,7 +379,7 @@ window.ENVLAB_DEMO_DATA = {
   },
   {
    "id": "DEMO-SA-noise",
-   "ts": "2026-09-10T20:05:13.000Z",
+   "ts": "2026-09-11T01:48:42.000Z",
    "emp": "CJ-0221",
    "trainee": "王工",
    "lab": "某市环境检测中心 · 理化室",
