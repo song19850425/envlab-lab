@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://song19850425.github.io/envlab-lab/sitemap.xml

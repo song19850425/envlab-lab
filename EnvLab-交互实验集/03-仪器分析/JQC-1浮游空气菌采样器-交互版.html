@@ -51,7 +51,7 @@ main{max-width:880px;margin:0 auto;padding:10px 18px 60px}
 .btn.alt{background:rgba(248,113,113,.12);border-color:rgba(248,113,113,.4);color:#fecaca}
 .lights{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:6px 0 16px}
 .lt{display:flex;align-items:center;gap:8px;background:var(--card2);border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:12.5px;color:var(--sub)}
-.dot{width:10px;height:10px;border-radius:50%;background:#334155;flex:0 0 10px;transition:.2s}
+.dot{width:10px;height:10px;border-radius:50%;background:#6b7d94;flex:0 0 10px;transition:.2s}
 .dot.on{background:var(--ok);box-shadow:0 0 9px var(--ok)}
 .dot.bad{background:var(--danger);box-shadow:0 0 9px var(--danger)}
 .field{display:flex;align-items:center;gap:10px;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px;font-size:13.5px}
@@ -76,6 +76,10 @@ main{max-width:880px;margin:0 auto;padding:10px 18px 60px}
 footer{text-align:center;padding:34px 18px 50px;color:var(--sub);font-size:12.5px;border-top:1px solid var(--line);margin-top:30px}
 footer b{color:var(--accent)}
 @media(max-width:680px){.cards,.lights,.maint{grid-template-columns:1fr}.hero h1{font-size:26px}}
+
+/* a11y: 键盘焦点可见 + 减动效偏好 */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid #fbbf24;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>

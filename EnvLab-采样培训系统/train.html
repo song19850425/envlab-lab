@@ -446,8 +446,12 @@ function exportCert(rec){
   .big{font-size:40px;font-weight:800;color:${rec.passed?'#16a34a':'#dc2626'}}
   table{width:100%;border-collapse:collapse;margin-top:14px;font-size:13px}
   td,th{border:1px solid #cbd5e1;padding:8px;text-align:left;vertical-align:top}
-  th{background:#f1f5f9}.stamp{margin-top:24px;font-size:12px;color:#64748b}
-  @media print{body{padding:0}}</style></head><body>
+  th{background:#f1f5f9}.stamp{margin-top:24px;font-size:12px;color:#7c8ba1}
+  @media print{body{padding:0}}
+/* a11y: 键盘焦点可见 + 减动效偏好 */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid #fbbf24;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style></head><body>
   <h1>EnvLab 采样上岗培训 · 完成证明</h1>
   <div class="meta">
     <div><b>学员：</b>${rec.trainee}</div>
@@ -460,7 +464,7 @@ function exportCert(rec){
     <div><b>用时：</b>${rec.durationSec}s</div>
   </div>
   <div class="big">综合得分 ${rec.score} · ${rec.passed?'通过':'未通过'}</div>
-  <p style="font-size:13px;color:#475569">致命红线触发：${rec.fatalHits} 次。本证明由交互培训系统自动生成，作为人员采样能力确认的过程记录，不替代现场监督与授权考核。</p>
+  <p style="font-size:13px;color:#7f90a8">致命红线触发：${rec.fatalHits} 次。本证明由交互培训系统自动生成，作为人员采样能力确认的过程记录，不替代现场监督与授权考核。</p>
   <table><tr><th>步</th><th>操作环节</th><th>结果</th></tr>${rows}</table>
   <div class="stamp">EnvLab 采样上岗培训系统 · 依据受控采样规范与空白表构建（已脱敏）· 记录编号 ${rec.id}</div>
   <script>window.onload=function(){setTimeout(()=>window.print(),300)}<\/script>

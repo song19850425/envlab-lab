@@ -2,7 +2,7 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&family=Noto+Serif+SC:wght@400;700;900&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--ink:#0f172a;--ink-light:#475569;--paper:#f8fafc;--sky:#0284c7;--sky-light:#e0f2fe;--teal:#0d9488;--teal-light:#ccfbf1;--amber:#b45309;--amber-light:#fef3c7;--violet:#7c3aed;--violet-light:#ede9fe;--rose:#e11d48;--rose-light:#ffe4e6;--lime:#65a30d;--lime-light:#ecfccb;--border:#e2e8f0;--serif:'Noto Serif SC',serif;--sans:'Inter','PingFang SC','Microsoft YaHei',sans-serif}
+:root{--ink:#0f172a;--ink-light:#7f90a8;--paper:#f8fafc;--sky:#0284c7;--sky-light:#e0f2fe;--teal:#0d9488;--teal-light:#ccfbf1;--amber:#b45309;--amber-light:#fef3c7;--violet:#7c3aed;--violet-light:#ede9fe;--rose:#e11d48;--rose-light:#ffe4e6;--lime:#65a30d;--lime-light:#ecfccb;--border:#e2e8f0;--serif:'Noto Serif SC',serif;--sans:'Inter','PingFang SC','Microsoft YaHei',sans-serif}
 body{font-family:var(--sans);background:var(--paper);color:var(--ink);overflow-x:hidden}
 #sp{position:fixed;top:0;left:0;height:3px;width:0%;background:linear-gradient(90deg,var(--sky),var(--teal),var(--violet));z-index:1000;transition:width .1s}
 
@@ -15,7 +15,7 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);overflow-x
 .he-stats{display:flex;gap:24px;margin-top:40px;flex-wrap:wrap;justify-content:center}
 .he-stats div{text-align:center;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:16px 24px;min-width:100px}
 .he-stats .n{font-size:28px;font-weight:900;color:#38bdf8;display:block}
-.he-stats .l{font-size:11px;color:#64748b;margin-top:4px}
+.he-stats .l{font-size:11px;color:#7c8ba1;margin-top:4px}
 
 /* MAP SECTION */
 .map-wrap{max-width:1100px;margin:-60px auto 0;padding:0 20px;position:relative;z-index:10}
@@ -91,6 +91,10 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);overflow-x
   .rs-grid{grid-template-columns:1fr 1fr}
   .map-header{flex-direction:column;align-items:flex-start}
 }
+
+/* a11y: 键盘焦点可见 + 减动效偏好 */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid #fbbf24;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style></head><body>
 <div id="sp"></div>
 
@@ -104,7 +108,7 @@ body{font-family:var(--sans);background:var(--paper);color:var(--ink);overflow-x
 <div><span class="n">5</span><span class="l">环境介质</span></div>
 <div><span class="n">3</span><span class="l">关联分析维度</span></div>
 </div>
-<div style="margin-top:32px;font-size:12px;color:#64748b">↓ 滚动查看地图</div>
+<div style="margin-top:32px;font-size:12px;color:#7c8ba1">↓ 滚动查看地图</div>
 </div>
 
 <!-- MAP -->

@@ -4,8 +4,25 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EnvLab 交互实验集 · 总目录</title>
+<meta name="description" content="EnvLab 交互实验集总目录：83 个单文件交互实验页面，覆盖采样布点、检测实验、仪器分析、环境评价、修复技术、大气污染控制与工具速查。支持关键词搜索、标签筛选与本地进度记录。">
+<link rel="canonical" href="https://song19850425.github.io/envlab-lab/EnvLab-%E4%BA%A4%E4%BA%92%E5%AE%9E%E9%AA%8C%E9%9B%86/index.html">
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EnvLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="EnvLab 交互实验集 · 总目录">
+<meta property="og:description" content="EnvLab 交互实验集总目录：83 个单文件交互实验页面，覆盖采样布点、检测实验、仪器分析、环境评价、修复技术、大气污染控制与工具速查。支持关键词搜索、标签筛选与本地进度记录。">
+<meta property="og:url" content="https://song19850425.github.io/envlab-lab/EnvLab-%E4%BA%A4%E4%BA%92%E5%AE%9E%E9%AA%8C%E9%9B%86/index.html">
+<meta property="og:image" content="https://song19850425.github.io/envlab-lab/og-cover.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="EnvLab 交互实验集 · 总目录">
+<meta name="twitter:description" content="EnvLab 交互实验集总目录：83 个单文件交互实验页面，覆盖采样布点、检测实验、仪器分析、环境评价、修复技术、大气污染控制与工具速查。支持关键词搜索、标签筛选与本地进度记录。">
+<meta name="twitter:image" content="https://song19850425.github.io/envlab-lab/og-cover.png">
 <style>
-:root{--bg:#0a0e17;--card:#131a2e;--card2:#1e293b;--border:rgba(255,255,255,.06);--text:#e2e8f0;--muted:#64748b;--blue:#0ea5e9;--pink:#f472b6;--green:#22c55e;--amber:#f59e0b;--purple:#a78bfa}
+:root{--bg:#0a0e17;--card:#131a2e;--card2:#1e293b;--border:rgba(255,255,255,.06);--text:#e2e8f0;--muted:#7c8ba1;--blue:#0ea5e9;--pink:#f472b6;--green:#22c55e;--amber:#f59e0b;--purple:#a78bfa}
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:var(--bg);color:var(--text);font-family:-apple-system,'PingFang SC','Microsoft YaHei','Segoe UI',sans-serif;font-size:13px;min-height:100vh}
 .hero{text-align:center;padding:36px 20px 28px;background:linear-gradient(135deg,#0f172a,#1e1b4b);position:relative;overflow:hidden}
@@ -39,6 +56,33 @@ h2 .tag{font-size:10px;color:var(--muted);font-weight:400;margin-left:4px}
 .bread{font-size:10px;color:var(--muted);text-align:center;margin-top:6px;position:relative}
 .bread a{color:var(--blue);text-decoration:none}
 .bread a:hover{text-decoration:underline}
+.tools{position:sticky;top:0;z-index:50;background:rgba(10,14,23,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--border);padding:9px 16px}
+.tools .tin{max-width:960px;margin:0 auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.sbox{position:relative;flex:1;min-width:190px}
+.sbox input{width:100%;padding:8px 30px 8px 30px;border-radius:8px;border:1px solid var(--border);background:#0f1526;color:var(--text);font-size:12px;font-family:inherit;outline:none;transition:.2s}
+.sbox input:focus{border-color:var(--blue);box-shadow:0 0 0 2px rgba(14,165,233,.16)}
+.sbox input::placeholder{color:var(--muted)}
+.sbox .si{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);pointer-events:none}
+.sbox .sclr{position:absolute;right:5px;top:50%;transform:translateY(-50%);width:20px;height:20px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:14px;line-height:1;border-radius:4px;display:none;padding:0;font-family:inherit}
+.sbox .sclr:hover{color:var(--text);background:rgba(255,255,255,.06)}
+.sbox.has .sclr{display:block}
+.fbtn{padding:7px 11px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap}
+.fbtn:hover{color:var(--text);border-color:var(--blue)}
+.fbtn.on{background:rgba(14,165,233,.14);color:#7dd3fc;border-color:rgba(14,165,233,.45)}
+.fbtn:focus-visible,.card:focus-visible,.sbox input:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+.pbtn{padding:7px 11px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.2s;white-space:nowrap}
+.pbtn:hover{color:var(--text);border-color:var(--green)}
+.pbtn.on{background:rgba(34,197,94,.14);color:#86efac;border-color:rgba(34,197,94,.45)}
+.pcnt{font-size:11px;color:var(--muted);margin-left:auto;white-space:nowrap}
+.pcnt b{color:var(--blue)}
+.empty{text-align:center;padding:44px 20px;color:var(--muted);font-size:12px;line-height:1.9;display:none}
+.empty b{color:var(--text);display:block;font-size:13px;margin-bottom:6px}
+.empty .rst{margin-top:12px;padding:7px 16px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--blue);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit}
+.empty .rst:hover{border-color:var(--blue)}
+.card.done{border-color:rgba(34,197,94,.3)}
+.card.done .nm::after{content:' ✓ 已看过';font-size:9px;font-weight:400;color:var(--green);margin-left:5px}
+h2.hide,.cat.hide{display:none}
+@media(max-width:700px){.pcnt{width:100%;margin-left:0;text-align:right}.sbox{min-width:100%}}
 </style>
 </head>
 <body>
@@ -47,9 +91,9 @@ h2 .tag{font-size:10px;color:var(--muted);font-weight:400;margin-left:4px}
   <h1>🧪 <em>EnvLab</em> · 交互实验集</h1>
   <div class="sub">全部实验归类整理 · 一人一电脑 · <em>专注做交互</em></div>
   <div class="count">
-    <span>🧪 检测实验 <b>11</b></span>
+    <span>🧪 检测实验 <b>12</b></span>
     <span>🔬 仪器分析 <b>35</b></span>
-    <span>🌍 采样布点 <b>5</b></span>
+    <span>🌍 采样布点 <b>6</b></span>
     <span>🧱 修复技术 <b>5</b></span>
     <span>📊 环境评价 <b>8</b></span>
     <span>🏭 大气污染控制 <b>10</b></span>
@@ -58,20 +102,38 @@ h2 .tag{font-size:10px;color:var(--muted);font-weight:400;margin-left:4px}
   <div class="bread">全部文件在 <em>EnvLab-交互实验集/</em> 目录下 · 共 <b>83</b> 个交互页面</div>
 </div>
 
+<div class="tools">
+  <div class="tin">
+    <div class="sbox" id="sbox">
+      <span class="si">⌕</span>
+      <input id="q" type="search" placeholder="搜索实验名 / 方法 / 仪器型号，如 浊度、ICP-MS、GC-MS、天平" autocomplete="off" aria-label="搜索交互实验">
+      <button class="sclr" id="clr" type="button" aria-label="清空搜索">×</button>
+    </div>
+    <button class="fbtn" data-tag="交互版" type="button">交互版</button>
+    <button class="fbtn" data-tag="操作培训" type="button">操作培训</button>
+    <button class="fbtn" data-tag="全流程" type="button">全流程</button>
+    <button class="fbtn" data-tag="工具|速查" type="button">工具速查</button>
+    <button class="fbtn" data-tag="评价|审计|分析|综合" type="button">评价分析</button>
+    <button class="pbtn" id="ponly" type="button" aria-pressed="false">只看未看过</button>
+    <span class="pcnt" id="pcnt" aria-live="polite"></span>
+  </div>
+</div>
+
 <div class="wrap">
 
   <!-- 01 采样布点 -->
-  <h2><span class="dot" style="background:#0ea5e9"></span>采样布点 <span class="tag">5 个实验 · 现场采样全流程</span></h2>
+  <h2><span class="dot" style="background:#0ea5e9"></span>采样布点 <span class="tag">6 个实验 · 现场采样全流程</span></h2>
   <div class="cat">
     <a class="card" href="01-采样布点/地表水采样布点-交互版.html"><span class="ico">🌊</span><div class="info"><div class="nm">地表水采样布点</div><div class="sg">断面设置 · 垂线布设 · 分层采样</div></div><span class="tag tag-b">交互版</span></a>
     <a class="card" href="01-采样布点/土壤采样布点-交互版.html"><span class="ico">🟫</span><div class="info"><div class="nm">土壤采样布点</div><div class="sg">网格布点 · 分层采样 · 混合样采集</div></div><span class="tag tag-b">交互版</span></a>
     <a class="card" href="01-采样布点/地下水洗井采样-交互版.html"><span class="ico">💧</span><div class="info"><div class="nm">地下水洗井采样</div><div class="sg">洗井流程 · 低流量采样 · 参数稳定判断</div></div><span class="tag tag-b">交互版</span></a>
     <a class="card" href="01-采样布点/固定源废气采样-交互版.html"><span class="ico">🏭</span><div class="info"><div class="nm">固定源废气采样</div><div class="sg">烟道布点 · 等速采样 · 颗粒物/气态</div></div><span class="tag tag-b">交互版</span></a>
     <a class="card" href="01-采样布点/环境空气PM25采样-交互版.html"><span class="ico">🌫️</span><div class="info"><div class="nm">环境空气 PM2.5 采样</div><div class="sg">滤膜称重 · 流量校准 · 24h连续采样</div></div><span class="tag tag-b">交互版</span></a>
+    <a class="card" href="04-案例/黑灯采样-自动化无人采样仿真演示.html"><span class="ico">🌙</span><div class="info"><div class="nm">黑灯采样 · 无人化全流程</div><div class="sg">自动化采样案例 · 无人值守全流程演示</div></div><span class="tag tag-a">案例</span></a>
   </div>
 
   <!-- 02 检测实验 -->
-  <h2><span class="dot" style="background:#22c55e"></span>检测实验 <span class="tag">11 个实验 · 水质/大气/土壤常规检测</span></h2>
+  <h2><span class="dot" style="background:#22c55e"></span>检测实验 <span class="tag">12 个实验 · 水质/大气/土壤常规检测</span></h2>
   <div class="cat">
     <a class="card" href="02-检测实验/COD检测实验-从水样到报告.html"><span class="ico">🧪</span><div class="info"><div class="nm">COD 检测实验</div><div class="sg">水样→消解→滴定→报告全流程</div></div><span class="tag tag-g">全流程</span></a>
     <a class="card" href="02-检测实验/PM2.5检测实验-从称膜到结果.html"><span class="ico">⚖️</span><div class="info"><div class="nm">PM2.5 检测实验</div><div class="sg">称膜→采样→恒重→计算全流程</div></div><span class="tag tag-g">全流程</span></a>
@@ -84,6 +146,7 @@ h2 .tag{font-size:10px;color:var(--muted);font-weight:400;margin-left:4px}
     <a class="card" href="02-检测实验/井水重金属-砷镉汞铅-ICP-MS.html"><span class="ico">⛰️</span><div class="info"><div class="nm">井水重金属分析</div><div class="sg">砷·镉·汞·铅 · ICP-MS</div></div><span class="tag tag-g">重金属</span></a>
     <a class="card" href="02-检测实验/土壤ICP-MS-锰铁铜砷汞.html"><span class="ico">🪨</span><div class="info"><div class="nm">土壤重金属分析</div><div class="sg">锰·铁·铜·砷·汞 · ICP-MS</div></div><span class="tag tag-g">重金属</span></a>
     <a class="card" href="02-检测实验/工业废气甲烷-吸附管GC-FID.html"><span class="ico">🏗️</span><div class="info"><div class="nm">工业废气甲烷</div><div class="sg">吸附管采样 · GC-FID分析</div></div><span class="tag tag-g">废气</span></a>
+    <a class="card" href="02-检测实验/EnvLab-COD-多邻国壳.html"><span class="ico">🧭</span><div class="info"><div class="nm">学习路径 Demo · COD 关卡式</div><div class="sg">关卡式学习路径 · 进度推进 · 闯关解锁</div></div><span class="tag tag-a">路径 Demo</span></a>
   </div>
 
   <!-- 03 仪器分析 -->
@@ -145,13 +208,13 @@ h2 .tag{font-size:10px;color:var(--muted);font-weight:400;margin-left:4px}
   <div class="cat">
     <a class="card" href="05-修复技术/SVE土壤气提-交互版.html"><span class="ico">💨</span><div class="info"><div class="nm">SVE 土壤气提</div><div class="sg">土壤气相抽提 · 挥发污染物去除</div></div><span class="tag tag-u">交互版</span></a>
     <a class="card" href="05-修复技术/土壤淋洗洗脱-交互版.html"><span class="ico">🚿</span><div class="info"><div class="nm">土壤淋洗洗脱</div><div class="sg">化学淋洗 · 异位土壤修复</div></div><span class="tag tag-u">交互版</span></a>
-    <a class="card" href="05-修复技术/P&T抽水处理-交互版.html"><span class="ico">🔄</span><div class="info"><div class="nm">P&T 抽水处理</div><div class="sg">抽出处理 · 地下水污染治理</div></div><span class="tag tag-u">交互版</span></a>
+    <a class="card" href="05-修复技术/P&amp;T抽水处理-交互版.html"><span class="ico">🔄</span><div class="info"><div class="nm">P&amp;T 抽水处理</div><div class="sg">抽出处理 · 地下水污染治理</div></div><span class="tag tag-u">交互版</span></a>
     <a class="card" href="05-修复技术/截获槽暗管-交互版.html"><span class="ico">🛑</span><div class="info"><div class="nm">截获槽暗管</div><div class="sg">地下水污染阻截 · 帷幕/截获槽设计</div></div><span class="tag tag-u">交互版</span></a>
     <a class="card" href="05-修复技术/微生物修复-交互版.html"><span class="ico">🦠</span><div class="info"><div class="nm">微生物修复</div><div class="sg">生物刺激 · 生物强化 · 原位修复</div></div><span class="tag tag-u">交互版</span></a>
   </div>
 
-<!-- 07 工具速查 -->
-  <h2><span class="dot" style="background:#e11d48"></span>大气污染控制 <span class="tag">10 个实验 · 污染控制技术性能测定</span></h2>
+<!-- 06 大气污染控制（目录 08-大气污染控制） -->
+  <h2><span class="dot" style="background:#e11d48"></span>大气污染控制 <span class="tag">10 个实验 · 污染控制技术性能测定 · 目录 08-</span></h2>
   <div class="cat">
     <a class="card" href="08-大气污染控制/00-大气污染控制工程实验-课程对照总览.html"><span class="ico">🎓</span><div class="info"><div class="nm">课程对照总览</div><div class="sg">教材五模块 × 现有资源 · 四种设课形态</div></div><span class="tag">总览</span></a>
     <a class="card" href="08-大气污染控制/旋风除尘器性能测定-交互版.html"><span class="ico">🌪️</span><div class="info"><div class="nm">旋风除尘器性能测定</div><div class="sg">分级效率 · 漏风影响 · 顺序红线</div></div><span class="tag">样板</span></a>
@@ -165,7 +228,8 @@ h2 .tag{font-size:10px;color:var(--muted);font-weight:400;margin-left:4px}
     <a class="card" href="08-大气污染控制/粉尘分散度测定-自然沉降法-交互版.html"><span class="ico">⬇️</span><div class="info"><div class="nm">粉尘分散度 · 自然沉降法</div><div class="sg">Stokes 沉降 · 时间不足导致分布偏粗</div></div><span class="tag">必选</span></a>
   </div>
 
-  <h2><span class="dot" style="background:#64748b"></span>工具速查 <span class="tag">7 个工具 · 监测方案·标准速查·任务单</span></h2>
+  <!-- 07 工具速查（目录 07-工具速查） -->
+  <h2><span class="dot" style="background:#7c8ba1"></span>工具速查 <span class="tag">7 个工具 · 监测方案·标准速查·任务单</span></h2>
   <div class="cat">
     <a class="card" href="07-工具速查/监测方案智能生成器.html"><span class="ico">📝</span><div class="info"><div class="nm">监测方案智能生成器</div><div class="sg">输入需求·自动生成监测方案</div></div><span class="tag">工具</span></a>
     <a class="card" href="07-工具速查/监测方案智能生成器-v2.html"><span class="ico">📝</span><div class="info"><div class="nm">监测方案生成器 v2</div><div class="sg">优化版 · 更多维度</div></div><span class="tag">工具</span></a>
@@ -176,6 +240,12 @@ h2 .tag{font-size:10px;color:var(--muted);font-weight:400;margin-left:4px}
     <a class="card" href="07-工具速查/实验分组任务单（可下发各实验组）.html"><span class="ico">📌</span><div class="info"><div class="nm">实验分组任务单</div><div class="sg">各实验组任务分配·可打印下发</div></div><span class="tag">工具</span></a>
   </div>
 
+  <div class="empty" id="empty">
+    <b>没有匹配的页面</b>
+    换个关键词试试，比如「浊度」「ICP-MS」「天平」；或点下面的按钮清空条件。
+    <br><button class="rst" id="erst" type="button">清空全部条件</button>
+  </div>
+
 </div>
 
 <div class="ft">
@@ -183,6 +253,106 @@ h2 .tag{font-size:10px;color:var(--muted);font-weight:400;margin-left:4px}
   2026 / 07
 </div>
 
-<details class="stdbasis" id="stdBasis"><style>.stdbasis{max-width:1100px;margin:34px auto 0;padding:0 20px;font-family:inherit}.stdbasis>summary{list-style:none;cursor:pointer;user-select:none}.stdbasis>summary::-webkit-details-marker{display:none}.stdbasis .sb-hd{font-size:13px;color:#e2e8f0;letter-spacing:.02em;font-weight:600;display:flex;align-items:center;gap:8px}.stdbasis .sb-hd .sb-ar{margin-left:auto;transition:transform .2s;font-size:11px;color:#94a3b8}.stdbasis[open] .sb-hd .sb-ar{transform:rotate(90deg)}.stdbasis .sb-cd{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px 18px;margin-top:10px}.stdbasis .sb-bd{display:block}.stdbasis table.sb-tb{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}.stdbasis table.sb-tb th{background:rgba(255,255,255,.06);color:#94a3b8;font-weight:600;text-align:left;padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.10);font-size:12px}.stdbasis table.sb-tb td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.10);color:#cbd5e1;vertical-align:top;line-height:1.55;word-break:break-word}.stdbasis table.sb-tb tr:last-child td{border-bottom:none}.stdbasis .sb-c{width:19%;font-weight:600;color:#e2e8f0}.stdbasis .sb-s{width:11%;white-space:nowrap;font-weight:600}.stdbasis .sb-u{width:26%;color:#94a3b8}.stdbasis .sb-ft{margin-top:10px;font-size:11.5px;line-height:1.7;color:#94a3b8}.stdbasis .sb-fx{margin-top:10px;padding:10px 12px;border-left:3px solid #fbbf24;background:rgba(255,255,255,.035);border-radius:0 8px 8px 0;font-size:11.5px;line-height:1.7;color:#cbd5e1}.stdbasis .sb-fx ul{margin:6px 0 0;padding-left:18px}.stdbasis .sb-fx li{margin:4px 0}@media(max-width:720px){.stdbasis table.sb-tb{font-size:11px}.stdbasis table.sb-tb tr:first-child{display:none}.stdbasis table.sb-tb td{display:block;width:auto!important;border-bottom:none;padding:2px 0}.stdbasis table.sb-tb tr{display:block;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.10)}}</style><summary class="sb-hd"><span>本页依据标准与现行状态</span><span class="sb-ar">&#9654;</span></summary><div class="sb-cd"><div class="sb-bd"><table class="sb-tb"><tr><th>标准号</th><th>标准名称</th><th>状态</th><th>本页用途</th></tr><tr><td class="sb-c">GB 3838-2002</td><td>地表水环境质量标准</td><td class="sb-s" style="color:#34d399">现行</td><td class="sb-u">—</td></tr></table><div class="sb-ft">本页共依据 <b>1</b> 项标准：<b>1</b> 项已回官方源核验（截至 2026-09-11），0 项待核。　核验来源与全部条目见《标准依据溯源总表》。本页数值与曲线用于教学演示，不作为工程设计或检测报告的依据。</div></div></div></details>
+<details class="stdbasis" id="stdBasis"><style>.stdbasis{max-width:1100px;margin:34px auto 0;padding:0 20px;font-family:inherit}.stdbasis>summary{list-style:none;cursor:pointer;user-select:none}.stdbasis>summary::-webkit-details-marker{display:none}.stdbasis .sb-hd{font-size:13px;color:#e2e8f0;letter-spacing:.02em;font-weight:600;display:flex;align-items:center;gap:8px}.stdbasis .sb-hd .sb-ar{margin-left:auto;transition:transform .2s;font-size:11px;color:#94a3b8}.stdbasis[open] .sb-hd .sb-ar{transform:rotate(90deg)}.stdbasis .sb-cd{background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:14px 18px;margin-top:10px}.stdbasis .sb-bd{display:block}.stdbasis table.sb-tb{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}.stdbasis table.sb-tb th{background:rgba(255,255,255,.06);color:#94a3b8;font-weight:600;text-align:left;padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.10);font-size:12px}.stdbasis table.sb-tb td{padding:7px 9px;border-bottom:1px solid rgba(255,255,255,.10);color:#cbd5e1;vertical-align:top;line-height:1.55;word-break:break-word}.stdbasis table.sb-tb tr:last-child td{border-bottom:none}.stdbasis .sb-c{width:19%;font-weight:600;color:#e2e8f0}.stdbasis .sb-s{width:11%;white-space:nowrap;font-weight:600}.stdbasis .sb-u{width:26%;color:#94a3b8}.stdbasis .sb-ft{margin-top:10px;font-size:11.5px;line-height:1.7;color:#94a3b8}.stdbasis .sb-fx{margin-top:10px;padding:10px 12px;border-left:3px solid #fbbf24;background:rgba(255,255,255,.035);border-radius:0 8px 8px 0;font-size:11.5px;line-height:1.7;color:#cbd5e1}.stdbasis .sb-fx ul{margin:6px 0 0;padding-left:18px}.stdbasis .sb-fx li{margin:4px 0}@media(max-width:720px){.stdbasis table.sb-tb{font-size:11px}.stdbasis table.sb-tb tr:first-child{display:none}.stdbasis table.sb-tb td{display:block;width:auto!important;border-bottom:none;padding:2px 0}.stdbasis table.sb-tb tr{display:block;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.10)}}
+/* a11y: 键盘焦点可见 + 减动效偏好 */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid #fbbf24;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+</style><summary class="sb-hd"><span>本页依据标准与现行状态</span><span class="sb-ar">&#9654;</span></summary><div class="sb-cd"><div class="sb-bd"><table class="sb-tb"><tr><th>标准号</th><th>标准名称</th><th>状态</th><th>本页用途</th></tr><tr><td class="sb-c">GB 3838-2002</td><td>地表水环境质量标准</td><td class="sb-s" style="color:#34d399">现行</td><td class="sb-u">—</td></tr></table><div class="sb-ft">本页共依据 <b>1</b> 项标准：<b>1</b> 项已回官方源核验（截至 2026-09-11），0 项待核。　核验来源与全部条目见《标准依据溯源总表》。本页数值与曲线用于教学演示，不作为工程设计或检测报告的依据。</div></div></div></details>
+<script>
+(function(){
+  var KEY='envlab.seen.v1';
+  var seen={};
+  try{ seen=JSON.parse(localStorage.getItem(KEY)||'{}')||{}; }catch(e){ seen={}; }
+
+  var q=document.getElementById('q'), sbox=document.getElementById('sbox'), clr=document.getElementById('clr');
+  var pcnt=document.getElementById('pcnt'), empty=document.getElementById('empty'), erst=document.getElementById('erst');
+  var ponly=document.getElementById('ponly');
+  var cards=[].slice.call(document.querySelectorAll('a.card'));
+  var heads=[].slice.call(document.querySelectorAll('.wrap > h2'));
+  var cats=[].slice.call(document.querySelectorAll('.wrap > .cat'));
+  var onlyUnseen=false, activeTags={};
+
+  cards.forEach(function(c){
+    var path=c.getAttribute('href');
+    c.dataset.path=path;
+    var nm=c.querySelector('.nm'), sg=c.querySelector('.sg'), tg=c.querySelector('.tag');
+    c.dataset.hay=((nm?nm.textContent:'')+' '+(sg?sg.textContent:'')+' '+(tg?tg.textContent:'')+' '+path).toLowerCase();
+    c.dataset.tag=tg?tg.textContent.trim():'';
+    if(seen[path]) c.classList.add('done');
+    c.addEventListener('click',function(){
+      if(!seen[path]){ seen[path]=1; try{ localStorage.setItem(KEY,JSON.stringify(seen)); }catch(e){} }
+    });
+  });
+
+  function countSeen(){ var n=0; cards.forEach(function(c){ if(seen[c.dataset.path]) n++; }); return n; }
+
+  function apply(){
+    var term=q.value.trim().toLowerCase();
+    sbox.classList.toggle('has', !!q.value);
+    var tagsOn=Object.keys(activeTags).filter(function(k){return activeTags[k];});
+
+    var vis=0;
+    cards.forEach(function(c){
+      var okT = !term || c.dataset.hay.indexOf(term)>-1;
+      var okG = tagsOn.length===0 || tagsOn.some(function(t){
+        return t.split('|').some(function(x){ return (c.dataset.tag||'').indexOf(x)>-1; });
+      });
+      var okU = !onlyUnseen || !seen[c.dataset.path];
+      var show = okT && okG && okU;
+      c.style.display = show ? '' : 'none';
+      if(show) vis++;
+    });
+
+    cats.forEach(function(cat){
+      var any=[].slice.call(cat.querySelectorAll('a.card')).some(function(c){ return c.style.display!=='none'; });
+      cat.classList.toggle('hide', !any);
+    });
+    heads.forEach(function(h,i){
+      var cat=cats[i];
+      h.classList.toggle('hide', cat ? cat.classList.contains('hide') : false);
+    });
+
+    empty.style.display = vis===0 ? 'block' : 'none';
+
+    var total=cards.length, sn=countSeen();
+    if(term||tagsOn.length||onlyUnseen){
+      pcnt.innerHTML='显示 <b>'+vis+'</b> / '+total+' 个页面';
+    }else{
+      pcnt.innerHTML='共 <b>'+total+'</b> 个页面 · 已看过 <b>'+sn+'</b>';
+    }
+  }
+
+  q.addEventListener('input',apply);
+  clr.addEventListener('click',function(){ q.value=''; q.focus(); apply(); });
+  q.addEventListener('keydown',function(e){ if(e.key==='Escape'){ q.value=''; apply(); } });
+
+  [].slice.call(document.querySelectorAll('.fbtn')).forEach(function(b){
+    b.addEventListener('click',function(){
+      var t=b.dataset.tag;
+      activeTags[t]=!activeTags[t];
+      b.classList.toggle('on',!!activeTags[t]);
+      apply();
+    });
+  });
+
+  ponly.addEventListener('click',function(){
+    onlyUnseen=!onlyUnseen;
+    ponly.classList.toggle('on',onlyUnseen);
+    ponly.setAttribute('aria-pressed',onlyUnseen?'true':'false');
+    ponly.textContent = onlyUnseen ? '显示全部' : '只看未看过';
+    apply();
+  });
+
+  erst.addEventListener('click',function(){
+    q.value=''; activeTags={}; onlyUnseen=false;
+    [].slice.call(document.querySelectorAll('.fbtn')).forEach(function(b){ b.classList.remove('on'); });
+    ponly.classList.remove('on'); ponly.textContent='只看未看过';
+    apply();
+  });
+
+  apply();
+})();
+</script>
 </body>
+
 </html>

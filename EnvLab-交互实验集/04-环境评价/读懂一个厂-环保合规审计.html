@@ -81,6 +81,10 @@ html{scroll-behavior:smooth}body{font-family:var(--sans);color:var(--ink);backgr
 .zb3{background:linear-gradient(135deg,var(--gold),#78350f);color:#fff}
 .ft{text-align:center;padding:60px 24px;color:var(--ink-light);font-size:13px;border-top:1px solid var(--border);background:var(--paper-warm)}
 @media(max-width:600px){.hd-stats{gap:24px}#nv{right:12px}.rd-grid{grid-template-columns:1fr}.dim-grid{grid-template-columns:1fr}}
+
+/* a11y: 键盘焦点可见 + 减动效偏好 */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid #fbbf24;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style></head><body>
 <div id="sp"></div>
 <div id="nv"><div class="nd ac" onclick="gs(0)"><span class="nl">开篇</span></div><div class="nd" onclick="gs(1)"><span class="nl">维度</span></div><div class="nd" onclick="gs(2)"><span class="nl">流程</span></div><div class="nd" onclick="gs(3)"><span class="nl">交互审计</span></div><div class="nd" onclick="gs(4)"><span class="nl">报告</span></div></div>

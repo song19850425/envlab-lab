@@ -20,16 +20,16 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
 .hb{display:inline-block;padding:5px 16px;border-radius:20px;background:var(--accent-bg);color:var(--accent-glow);font-size:11px;font-weight:600;letter-spacing:1px;margin-bottom:20px;border:1px solid rgba(217,119,6,.2);z-index:1}
 .hero h1{font-size:clamp(32px,5vw,56px);font-weight:900;line-height:1.15;max-width:720px;z-index:1}
 .hero h1 em{color:var(--accent-glow);font-style:normal}
-.hs{margin-top:14px;font-size:15px;color:#64748b;max-width:520px;z-index:1;line-height:1.7}
+.hs{margin-top:14px;font-size:15px;color:#7c8ba1;max-width:520px;z-index:1;line-height:1.7}
 .hst{display:flex;gap:36px;margin-top:36px;flex-wrap:wrap;justify-content:center;z-index:1}
 .hst .n{font-size:34px;font-weight:800;color:var(--accent-glow);display:block;line-height:1}
-.hst .l{font-size:11px;color:#64748b;margin-top:4px}
-.sh{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;color:#64748b;font-size:11px;animation:fl 2s ease-in-out infinite;z-index:1}
+.hst .l{font-size:11px;color:#7c8ba1;margin-top:4px}
+.sh{position:absolute;bottom:28px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;color:#7c8ba1;font-size:11px;animation:fl 2s ease-in-out infinite;z-index:1}
 @keyframes fl{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
 .sec{max-width:920px;margin:0 auto;padding:80px 24px;opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s}.sec.visible{opacity:1;transform:translateY(0)}
 .sn{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--accent);text-transform:uppercase;margin-bottom:6px}
 .st{font-size:clamp(22px,3.5vw,36px);font-weight:800;line-height:1.2;margin-bottom:10px}
-.sd{font-size:14px;color:#64748b;line-height:1.7;max-width:560px;margin-bottom:32px}
+.sd{font-size:14px;color:#7c8ba1;line-height:1.7;max-width:560px;margin-bottom:32px}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:24px}
 @media(max-width:640px){.g2{grid-template-columns:1fr}}
 .ic{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px;transition:.3s}
@@ -47,7 +47,7 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
 .ti.visible::before{background:var(--accent);border-color:var(--accent);box-shadow:0 0 10px rgba(217,119,6,.4)}
 .tt{font-size:10px;color:var(--accent-glow);font-weight:700;letter-spacing:1px;margin-bottom:2px}
 .ttl{font-size:14px;font-weight:600}
-.td{font-size:12px;color:#64748b;line-height:1.5;margin-top:2px}
+.td{font-size:12px;color:#7c8ba1;line-height:1.5;margin-top:2px}
 .tn{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin-top:4px}
 
 /* Lab */
@@ -60,24 +60,24 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
 .ltb button:hover{border-color:var(--accent);color:var(--accent-glow)}
 .lbb{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden}
 .sts{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:12px;font-size:11px;font-weight:600}
-.si{background:rgba(255,255,255,.04);color:#64748b}
+.si{background:rgba(255,255,255,.04);color:#7c8ba1}
 .sa{background:var(--accent-bg);color:var(--accent-glow)}
 .sok{background:rgba(34,197,94,.1);color:var(--green)}
 
 /* Canvas area */
 .cv-wrap{position:relative;width:100%;height:280px;background:#0a0e17;border-radius:10px;border:1px solid var(--border);overflow:hidden;margin:12px 0}
 .cv-wrap canvas{position:absolute;top:0;left:0;width:100%;height:100%}
-.cv-label{position:absolute;top:8px;left:12px;font-size:8px;color:#475569;letter-spacing:1px;z-index:5}
-.cv-legend{position:absolute;bottom:8px;right:12px;display:flex;gap:8px;font-size:8px;color:#64748b;z-index:5}
+.cv-label{position:absolute;top:8px;left:12px;font-size:8px;color:#7f90a8;letter-spacing:1px;z-index:5}
+.cv-legend{position:absolute;bottom:8px;right:12px;display:flex;gap:8px;font-size:8px;color:#7c8ba1;z-index:5}
 .cv-legend span{display:flex;align-items:center;gap:4px}
 
 /* Controls */
 .ct{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
 @media(max-width:640px){.ct{grid-template-columns:1fr}}
 .cb{padding:12px 14px;background:rgba(255,255,255,.02);border-radius:8px;border:1px solid var(--border)}
-.cb .cl{font-size:9px;color:#64748b;font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
+.cb .cl{font-size:9px;color:#7c8ba1;font-weight:600;margin-bottom:4px;text-transform:uppercase;letter-spacing:1px}
 .cb .cr{display:flex;align-items:center;gap:8px}
-.cb input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#334155;border-radius:2px;outline:none}
+.cb input[type=range]{flex:1;height:4px;-webkit-appearance:none;background:#6b7d94;border-radius:2px;outline:none}
 .cb input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:var(--accent);cursor:pointer;box-shadow:0 0 8px rgba(217,119,6,.3)}
 .cb .cv{font-size:12px;font-weight:700;color:var(--accent-glow);min-width:32px;text-align:right}
 .cb select{width:100%;padding:6px 10px;border-radius:6px;border:1px solid var(--border);background:var(--card);color:#e2e8f0;font-size:12px;font-family:inherit;cursor:pointer}
@@ -86,13 +86,13 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
 .dp{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
 @media(max-width:480px){.dp{grid-template-columns:1fr 1fr}}
 .dv{padding:10px;background:rgba(255,255,255,.02);border-radius:8px;text-align:center;border:1px solid var(--border)}
-.dv .dl{font-size:9px;color:#64748b}
+.dv .dl{font-size:9px;color:#7c8ba1}
 .dv .dd{font-size:18px;font-weight:800;margin-top:2px}
 
 /* Chart */
 .ch{height:160px;background:#0a0e17;border-radius:8px;border:1px solid var(--border);margin:12px 0;position:relative;overflow:hidden}
 .ch canvas{position:absolute;top:0;left:0;width:100%;height:100%}
-.ch-label{position:absolute;top:6px;left:10px;font-size:8px;color:#475569;letter-spacing:1px}
+.ch-label{position:absolute;top:6px;left:10px;font-size:8px;color:#7f90a8;letter-spacing:1px}
 
 .acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:14px 0}
 .btn{padding:9px 22px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:.25s;font-family:inherit}
@@ -108,7 +108,7 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
 .dlog .dh{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .dlog .dt{font-size:10px;font-weight:700;color:#94a3b8}
 .dlog table{width:100%;border-collapse:collapse;font-size:10px}
-.dlog th{padding:4px 6px;text-align:left;color:#64748b;font-weight:600;border-bottom:1px solid var(--border);font-size:9px;text-transform:uppercase}
+.dlog th{padding:4px 6px;text-align:left;color:#7c8ba1;font-weight:600;border-bottom:1px solid var(--border);font-size:9px;text-transform:uppercase}
 .dlog td{padding:3px 6px;border-bottom:1px solid rgba(255,255,255,.03);color:#94a3b8}
 
 /* Summary */
@@ -116,9 +116,13 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
 .sc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center}
 .sc .sci{font-size:20px;margin-bottom:4px}
 .sc .sct{font-size:12px;font-weight:700;margin-bottom:2px}
-.sc .scd{font-size:11px;color:#64748b;line-height:1.5}
+.sc .scd{font-size:11px;color:#7c8ba1;line-height:1.5}
 
-.ft{text-align:center;padding:40px 24px;color:#475569;font-size:12px;border-top:1px solid var(--border);margin-top:0}
+.ft{text-align:center;padding:40px 24px;color:#7f90a8;font-size:12px;border-top:1px solid var(--border);margin-top:0}
+
+/* a11y: 键盘焦点可见 + 减动效偏好 */
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,[tabindex]:focus-visible{outline:2px solid #fbbf24;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
@@ -198,7 +202,7 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
   <div class="lbb">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-wrap:wrap;gap:6px">
       <span class="sts si" id="sts">⏳ 调节参数后启动</span>
-      <span style="font-size:10px;color:#475569">自由探索 · 粒子实时模拟</span>
+      <span style="font-size:10px;color:#7f90a8">自由探索 · 粒子实时模拟</span>
     </div>
 
     <!-- Canvas: soil cross-section + particles -->
@@ -208,7 +212,7 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
       <div class="cv-legend">
         <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#fbbf24"></span> VOCs</span>
         <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#34d399"></span> 已去除</span>
-        <span><span style="display:inline-block;width:10px;height:2px;background:#475569"></span> 气流</span>
+        <span><span style="display:inline-block;width:10px;height:2px;background:#7f90a8"></span> 气流</span>
       </div>
     </div>
 
@@ -267,7 +271,7 @@ body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#
     </div>
 
     <!-- Info -->
-    <div style="font-size:11px;color:#64748b;line-height:1.5;margin:8px 0 0;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:6px" id="sveInfo">
+    <div style="font-size:11px;color:#7c8ba1;line-height:1.5;margin:8px 0 0;padding:8px 12px;background:rgba(255,255,255,.02);border-radius:6px" id="sveInfo">
       <strong>提示：</strong>调节参数后点击启动，观察粒子运动和浓度变化。
     </div>
 
@@ -371,7 +375,7 @@ function drawSoilBG(){
   c.fillStyle='rgba(8,145,178,.15)';c.fillRect(0,wt,wSoil,hSoil-wt);
 
   // ground line
-  c.strokeStyle='#475569';c.lineWidth=2;
+  c.strokeStyle='#7f90a8';c.lineWidth=2;
   c.beginPath();c.moveTo(0,groundY);c.lineTo(wSoil,groundY);c.stroke();
 
   // water table line (dashed)
@@ -380,11 +384,11 @@ function drawSoilBG(){
   c.setLineDash([]);
 
   // Labels
-  c.fillStyle='#475569';c.font='9px sans-serif';
+  c.fillStyle='#7f90a8';c.font='9px sans-serif';
   c.fillText('地表',6,groundY-4);
   c.fillStyle='rgba(8,145,178,.4)';
   c.fillText('地下水位',6,wt-4);
-  c.fillStyle='#475569';
+  c.fillStyle='#7f90a8';
   c.fillText('包气带 (不饱和)',6,groundY+16);
   c.fillStyle='rgba(8,145,178,.3)';
   c.fillText('饱和带',6,wt+14);
@@ -393,16 +397,16 @@ function drawSoilBG(){
   const wx=[wSoil*0.3,wSoil*0.7];
   wx.forEach(x=>{
     // Well casing
-    c.fillStyle='#475569';
+    c.fillStyle='#7f90a8';
     c.fillRect(x-4,groundY,8,hSoil-groundY);
     // Well screen
-    c.fillStyle='#64748b';
+    c.fillStyle='#7c8ba1';
     const scrTop=groundY+30,scrHt=80;
     for(let i=0;i<scrHt;i+=6){
       c.fillRect(x-3,scrTop+i,6,3);
     }
     // Well cap
-    c.fillStyle='#334155';c.fillRect(x-7,groundY-8,14,10);
+    c.fillStyle='#6b7d94';c.fillRect(x-7,groundY-8,14,10);
     // Arrow up (extraction)
     c.fillStyle='rgba(217,119,6,.3)';
     c.beginPath();c.moveTo(x,groundY-20);c.lineTo(x-6,groundY-14);c.lineTo(x+6,groundY-14);c.closePath();c.fill();
@@ -529,7 +533,7 @@ function drawChart(){
   c.shadowColor='rgba(251,191,36,.5)';c.shadowBlur=12;c.fill();c.shadowBlur=0;
 
   // Labels
-  c.fillStyle='#475569';c.font='8px sans-serif';
+  c.fillStyle='#7f90a8';c.font='8px sans-serif';
   c.fillText('0',padL-8,hChart-padB+2);
   c.fillText(maxVal.toFixed(0),padL-20,padT+4);
   c.fillText('天数',wChart-20,hChart-2);
