@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一份水样的完整任务挑战 | EnvLab</title>
+<meta name="description" content="EnvLab 水与废水完整任务挑战：从任务受理、地表水采样、样品交接到实验室质控、异常诊断和结论表达，逐步练习完整监测链路。">
+<link rel="canonical" href="https://song19850425.github.io/envlab-lab/EnvLab-%E4%BA%A4%E4%BA%92%E5%AE%9E%E9%AA%8C%E9%9B%86/04-%E6%A1%88%E4%BE%8B/%E4%B8%80%E4%BB%BD%E6%B0%B4%E6%A0%B7%E7%9A%84%E5%AE%8C%E6%95%B4%E4%BB%BB%E5%8A%A1%E6%8C%91%E6%88%98.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EnvLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="一份水样的完整任务挑战 | EnvLab">
+<meta property="og:description" content="从任务受理到结论表达，完成一份水样的完整监测链路训练。教学数据，不替代正式监测、监督或授权考核。">
+<meta property="og:url" content="https://song19850425.github.io/envlab-lab/EnvLab-%E4%BA%A4%E4%BA%92%E5%AE%9E%E9%AA%8C%E9%9B%86/04-%E6%A1%88%E4%BE%8B/%E4%B8%80%E4%BB%BD%E6%B0%B4%E6%A0%B7%E7%9A%84%E5%AE%8C%E6%95%B4%E4%BB%BB%E5%8A%A1%E6%8C%91%E6%88%98.html">
+<meta property="og:image" content="https://song19850425.github.io/envlab-lab/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="一份水样的完整任务挑战 | EnvLab">
+<meta name="twitter:description" content="从任务受理到结论表达，完成一份水样的完整监测链路训练。">
+<meta name="twitter:image" content="https://song19850425.github.io/envlab-lab/og-cover.png">
+<style>
+:root{--bg:#07111f;--bg2:#0b1729;--panel:#101f34;--panel2:#142943;--line:rgba(148,184,218,.20);--text:#e6f0fb;--muted:#9bb1c8;--blue:#38bdf8;--blue2:#0ea5e9;--green:#34d399;--amber:#fbbf24;--red:#fb7185;--purple:#a78bfa;--shadow:0 16px 44px rgba(0,0,0,.24)}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:radial-gradient(circle at 10% -10%,rgba(14,165,233,.16),transparent 32%),radial-gradient(circle at 100% 10%,rgba(167,139,250,.12),transparent 28%),var(--bg);color:var(--text);font-family:-apple-system,"PingFang SC","Microsoft YaHei","Segoe UI",sans-serif;line-height:1.65;min-height:100vh}
+a{color:var(--blue);text-decoration:none}
+a:hover{text-decoration:underline}
+button{font:inherit}
+.topnav{max-width:1120px;margin:0 auto;padding:18px 22px 0;display:flex;justify-content:space-between;align-items:center;gap:12px}
+.back{display:inline-flex;align-items:center;gap:7px;padding:7px 12px;border:1px solid rgba(56,189,248,.35);border-radius:999px;background:rgba(56,189,248,.09);color:#b9e8ff;font-size:12px;font-weight:700}
+.back:hover{background:rgba(56,189,248,.18);text-decoration:none}
+.mode{font-size:11px;color:var(--muted);letter-spacing:.05em}
+.hero{max-width:1120px;margin:0 auto;padding:42px 22px 28px}
+.kicker{display:inline-flex;align-items:center;gap:8px;color:#9ddfff;font-size:12px;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+.kicker:before{content:"";width:8px;height:8px;border-radius:50%;background:var(--green);box-shadow:0 0 0 5px rgba(52,211,153,.13)}
+h1{font-size:clamp(28px,5vw,48px);line-height:1.15;letter-spacing:-.04em;margin:15px 0 12px;max-width:760px}
+.hero p{max-width:720px;color:var(--muted);font-size:15px;margin:0}
+.hero-badges{display:flex;flex-wrap:wrap;gap:8px;margin-top:20px}
+.hero-badges span{padding:5px 11px;border-radius:999px;color:#d9edfb;font-size:11px;background:rgba(148,184,218,.10);border:1px solid rgba(148,184,218,.22)}
+.wrap{max-width:1120px;margin:0 auto;padding:0 22px 70px}
+.notice{display:grid;grid-template-columns:auto 1fr;gap:13px;padding:15px 17px;border:1px solid rgba(251,191,36,.32);border-left:4px solid var(--amber);border-radius:12px;background:rgba(251,191,36,.08);color:#f5e4b1;font-size:12px;margin-bottom:20px}
+.notice strong{color:#ffe18a}
+.notice .notice-title{font-weight:800;color:#ffe18a}
+.workspace{display:grid;grid-template-columns:250px minmax(0,1fr);gap:18px;align-items:start}
+.rail{position:sticky;top:14px;padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(16,31,52,.82);box-shadow:var(--shadow)}
+.rail-head{font-size:12px;font-weight:800;color:#d8ebfa;margin-bottom:13px}
+.rail ol{list-style:none;padding:0;margin:0;display:grid;gap:6px}
+.rail li{display:grid;grid-template-columns:25px 1fr;gap:8px;align-items:center;padding:8px 7px;border-radius:9px;color:var(--muted);font-size:11px;transition:.2s}
+.rail li .num{width:23px;height:23px;border-radius:50%;display:grid;place-items:center;border:1px solid rgba(148,184,218,.25);font-size:10px}
+.rail li.active{background:rgba(56,189,248,.12);color:#dff4ff}
+.rail li.active .num{border-color:var(--blue);background:rgba(56,189,248,.18);color:#b9e8ff}
+.rail li.done{color:#9eeacb}
+.rail li.done .num{border-color:rgba(52,211,153,.6);color:#8cf0c5}
+.rail-foot{border-top:1px solid var(--line);margin-top:13px;padding-top:12px;color:var(--muted);font-size:10px;line-height:1.6}
+.card{border:1px solid var(--line);border-radius:16px;background:rgba(16,31,52,.92);box-shadow:var(--shadow)}
+.task-card{padding:22px}
+.task-meta{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:13px}
+.pill{display:inline-flex;align-items:center;padding:4px 9px;border-radius:999px;background:rgba(56,189,248,.11);border:1px solid rgba(56,189,248,.24);color:#b9e8ff;font-size:10px;font-weight:800}
+.pill.green{background:rgba(52,211,153,.10);border-color:rgba(52,211,153,.26);color:#9eeacb}
+.pill.amber{background:rgba(251,191,36,.10);border-color:rgba(251,191,36,.28);color:#ffe18a}
+.step-title{font-size:24px;line-height:1.25;margin:0 0 7px;letter-spacing:-.02em}
+.step-intro{color:var(--muted);font-size:13px;margin:0 0 17px}
+.progress-wrap{margin:0 0 18px}
+.progress-line{height:7px;border-radius:99px;background:#1c3048;overflow:hidden}
+.progress-line i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,var(--blue2),var(--green));transition:width .35s ease}
+.progress-text{display:flex;justify-content:space-between;color:var(--muted);font-size:10px;margin-top:5px}
+.evidence{padding:14px;border:1px solid rgba(148,184,218,.17);border-radius:12px;background:rgba(7,17,31,.46);margin-bottom:18px}
+.evidence-title{font-size:11px;font-weight:800;color:#cfe6f7;margin-bottom:9px}
+.evidence-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.evidence-item{padding:9px 10px;border-radius:9px;background:rgba(148,184,218,.07);min-width:0}
+.evidence-item b{display:block;color:#8fc9e8;font-size:10px;margin-bottom:2px}
+.evidence-item span{display:block;color:#d2deea;font-size:11px;line-height:1.5}
+.question{font-size:16px;font-weight:800;color:#f0f7fd;margin:0 0 11px}
+.choices{display:grid;gap:9px}
+.choice{width:100%;text-align:left;display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:start;padding:13px 14px;border-radius:12px;border:1px solid rgba(148,184,218,.20);background:rgba(20,41,67,.78);color:var(--text);cursor:pointer;transition:.18s}
+.choice:hover:not(:disabled){border-color:var(--blue);background:rgba(56,189,248,.11);transform:translateY(-1px)}
+.choice:focus-visible,.btn:focus-visible,a:focus-visible{outline:2px solid var(--amber);outline-offset:3px}
+.choice:disabled{cursor:default}
+.choice .letter{width:24px;height:24px;border-radius:7px;display:grid;place-items:center;background:rgba(148,184,218,.12);color:#b7d3e8;font-size:11px;font-weight:800}
+.choice .choice-text{font-size:13px;line-height:1.5;padding-top:1px}
+.choice.correct{border-color:rgba(52,211,153,.72);background:rgba(52,211,153,.13)}
+.choice.correct .letter{background:rgba(52,211,153,.25);color:#a8f3d3}
+.choice.wrong{border-color:rgba(251,113,133,.7);background:rgba(251,113,133,.11)}
+.choice.wrong .letter{background:rgba(251,113,133,.24);color:#ffd0d8}
+.choice.dim{opacity:.52}
+.feedback{margin-top:16px;padding:14px 15px;border-radius:12px;border:1px solid rgba(148,184,218,.20);background:rgba(148,184,218,.07);font-size:12px;color:#dce9f3}
+.feedback.good{border-color:rgba(52,211,153,.45);background:rgba(52,211,153,.10)}
+.feedback.bad{border-color:rgba(251,113,133,.48);background:rgba(251,113,133,.10)}
+.feedback .fb-title{font-weight:800;margin-bottom:4px;color:#f4fbff}
+.feedback.good .fb-title{color:#9eeacb}
+.feedback.bad .fb-title{color:#ffc1cb}
+.feedback .impact{margin-top:7px;color:#b3c5d5}
+.btn-row{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.btn{border:1px solid rgba(56,189,248,.42);border-radius:9px;padding:9px 14px;background:rgba(56,189,248,.14);color:#dff6ff;font-size:12px;font-weight:800;cursor:pointer}
+.btn:hover{background:rgba(56,189,248,.24)}
+.btn.secondary{border-color:rgba(148,184,218,.28);background:transparent;color:#c3d5e5}
+.btn.green{border-color:rgba(52,211,153,.40);background:rgba(52,211,153,.14);color:#b6f3d8}
+.section-title{font-size:16px;margin:0 0 8px}
+.result-card{padding:24px}
+.result-top{display:flex;flex-wrap:wrap;gap:18px;align-items:end;border-bottom:1px solid var(--line);padding-bottom:19px;margin-bottom:19px}
+.score{font-size:52px;font-weight:900;line-height:1;color:#9eeacb;letter-spacing:-.06em}
+.score small{font-size:13px;color:var(--muted);letter-spacing:0;font-weight:700;margin-left:4px}
+.result-state{font-size:18px;font-weight:800;color:#dff7ec}
+.result-sub{color:var(--muted);font-size:12px;margin-top:3px}
+.result-notice{padding:12px 14px;border-radius:11px;background:rgba(56,189,248,.09);border:1px solid rgba(56,189,248,.25);font-size:12px;color:#d5edf9;margin-bottom:18px}
+.review-grid{display:grid;gap:9px}
+.review-item{display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center;padding:12px 13px;border:1px solid rgba(251,113,133,.28);border-radius:11px;background:rgba(251,113,133,.07)}
+.review-item b{display:block;font-size:12px;color:#ffe0e4}
+.review-item span{display:block;color:#bfcbd7;font-size:11px;margin-top:2px}
+.mini-btn{border:1px solid rgba(251,191,36,.42);border-radius:8px;padding:7px 9px;background:rgba(251,191,36,.12);color:#ffe6a3;font-size:11px;font-weight:800;cursor:pointer;white-space:nowrap}
+.mini-btn:hover{background:rgba(251,191,36,.22)}
+.related{margin-top:18px;padding:18px 20px}
+.related p{color:var(--muted);font-size:12px;margin:0 0 12px}
+.related-links{display:flex;flex-wrap:wrap;gap:8px}
+.related-links a{padding:7px 10px;border-radius:8px;border:1px solid rgba(56,189,248,.25);background:rgba(56,189,248,.07);font-size:11px;color:#b9e8ff}
+.related-links a:hover{text-decoration:none;background:rgba(56,189,248,.15)}
+.footer{text-align:center;color:#7189a2;font-size:10px;line-height:1.8;padding:24px 20px 36px}
+.footer strong{color:#a9c9df}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:800px){.workspace{grid-template-columns:1fr}.rail{position:static}.rail ol{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.rail li{grid-template-columns:1fr;text-align:center;justify-items:center;padding:7px 3px;font-size:10px}.rail-foot{display:none}.task-card{padding:18px}.evidence-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:520px){.topnav,.hero,.wrap{padding-left:15px;padding-right:15px}.hero{padding-top:30px}.mode{display:none}.rail ol{grid-template-columns:repeat(2,minmax(0,1fr))}.evidence-grid{grid-template-columns:1fr}.step-title{font-size:21px}.choice{padding:12px}.review-item{grid-template-columns:1fr}.review-item .mini-btn{justify-self:start}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+</style>
+</head>
+<body>
+<nav class="topnav" aria-label="页面导航">
+  <a class="back" href="../index.html">← 返回实验集总目录</a>
+  <span class="mode">离线教学任务 · 虚构案例</span>
+</nav>
+<header class="hero">
+  <div class="kicker">任务挑战 · 水与废水</div>
+  <h1>一份水样的完整任务挑战</h1>
+  <p>把采样、交接、检测、质控和结论放在同一条链路里。每一步都先看证据，再做判断；出错后可以按能力点复训，而不是只看一个总分。</p>
+  <div class="hero-badges"><span>8 个判断点</span><span>含异常诊断</span><span>自动生成错题复训</span><span>不依赖外部服务</span></div>
+</header>
+<main class="wrap">
+  <section class="notice" role="note">
+    <div class="notice-title">教学边界</div>
+    <div>本页使用虚构任务与教学数据，目的是练习“证据链思维”，不替代现行监测方法、项目 SOP、监督复核、授权考核或正式合规结论。涉及保存条件、质控判据和标准限值时，应以任务适用的现行文件为准。</div>
+  </section>
+  <section class="workspace" aria-label="水样完整任务挑战">
+    <aside class="rail card" aria-label="任务进度">
+      <div class="rail-head">任务链路</div>
+      <ol id="railList"></ol>
+      <div class="rail-foot">判断原则：先确认样品和证据是否可靠，再讨论结果高低。遇到异常时，先暂停报告。</div>
+    </aside>
+    <div id="app"></div>
+  </section>
+  <section class="related card" aria-labelledby="relatedTitle">
+    <h2 class="section-title" id="relatedTitle">需要回看哪一段？</h2>
+    <p>任务挑战负责串联判断；下面的单项页面负责把某一环节讲深。建议先完成挑战，再按错题回看。</p>
+    <div class="related-links">
+      <a href="../01-采样布点/地表水采样布点-交互版.html">地表水采样布点</a>
+      <a href="../02-检测实验/COD检测实验-从水样到报告.html">COD 从水样到报告</a>
+      <a href="../02-检测实验/水质四项-COD氨氮总磷总氮实验.html">水质四项检测</a>
+      <a href="../04-环境评价/读懂一条河Demo.html">河流水质综合评价</a>
+      <a href="../07-工具速查/水质评价标准速查表.html">水质评价标准速查</a>
+    </div>
+  </section>
+</main>
+<footer class="footer"><strong>EnvLab · 水样完整任务挑战</strong><br>教学演示页面 · 结果仅用于本机练习记录</footer>
+<script>
+(function(){
+  "use strict";
+  var HISTORY_KEY = "envlab.task.water.v1";
+  var letters = ["A","B","C","D"];
+  var steps = [
+    {
+      id:"intake", short:"任务受理", title:"先把任务拆清楚", skill:"任务拆解",
+      intro:"委托信息刚到手，还没有出发。你需要先让后续采样和检测有明确目标。",
+      evidence:[["任务单","某园区水样综合检查（教学案例）"],["已知信息","点位、目标因子、完成时限尚未核对"],["当前风险","直接出发可能拿到无法解释或无法保存的样品"]],
+      question:"第一步应该做什么？",
+      options:[
+        {text:"核对采样点、目标因子、样品类型、保存要求和时限，再形成可执行方案。",correct:true,feedback:"先把问题定义清楚，后面的点位、容器、保存和检测安排才有依据。",impact:"这一步建立了任务的追溯起点。"},
+        {text:"先到现场随便取一瓶综合样，回实验室后再决定测什么。",correct:false,feedback:"样品类型、容器和保存条件可能随目标因子变化，事后补决定会让样品失去代表性或可用性。",impact:"错误能力点：任务拆解。"},
+        {text:"只确认客户最关心的一个指标，其他信息可以不记录。",correct:false,feedback:"单一指标不能替代完整任务要求，缺少点位和保存信息也无法回查样品来源。",impact:"错误能力点：任务拆解。"}
+      ]
+    },
+    {
+      id:"sampling", short:"现场采样", title:"让样品代表它要代表的对象", skill:"代表性采样",
+      intro:"到达现场后，不能把“最方便取到的位置”自动当成代表性点位。",
+      evidence:[["现场","上游来水、排口汇入处和下游断面均可到达"],["方案要求","比较来水背景、影响点和下游变化"],["现场记录","天气、流量、异常排放和点位条件需要同步记录"]],
+      question:"哪种做法更符合本任务的采样逻辑？",
+      options:[
+        {text:"按方案在有代表性的断面设置点位，结合现场条件采样，并同步记录位置和工况。",correct:true,feedback:"代表性来自方案与现场证据的结合，不是来自“取到样品”本身。",impact:"这让后续差异有机会对应到空间位置和现场条件。"},
+        {text:"只在离停车处最近的位置取样，保证操作最省时间。",correct:false,feedback:"便利性不能代替代表性；点位改变后，样品可能已经不再回答原来的问题。",impact:"错误能力点：代表性采样。"},
+        {text:"看到水面颜色异常就只采异常处，其他点位不必再做。",correct:false,feedback:"异常点可以重点关注，但不能因此取消背景点和对照点，否则无法判断变化来自哪里。",impact:"错误能力点：代表性采样。"}
+      ]
+    },
+    {
+      id:"preserve", short:"标识保存", title:"让样品离开现场后仍然可识别", skill:"样品完整性",
+      intro:"样品已经装瓶。现在最容易被低估的不是“有没有装满”，而是编号、时间、点位和保存信息能否一一对应。",
+      evidence:[["样品编号","SW-03-教学批次"],["必须对应","点位、采样时间、样品类型、检测项目"],["现场状态","一瓶样品可能需要分装并按项目要求保存"]],
+      question:"哪项现场动作最稳妥？",
+      options:[
+        {text:"按项目要求分装和保存，现场完成标签、时间、点位与记录核对，再封存。",correct:true,feedback:"标识、保存和记录必须在现场形成闭环，不能把关键身份信息留到记忆里。",impact:"这一步保护的是样品的可追溯性和完整性。"},
+        {text:"先把所有样品带回实验室，等大家空下来再集中补标签。",correct:false,feedback:"延后标识会增加混样、错位和时间信息丢失的风险，尤其是多个点位同时采样时。",impact:"错误能力点：样品完整性。"},
+        {text:"只写采样人姓名，点位和时间可以通过照片回忆。",correct:false,feedback:"照片不能替代结构化样品标识和原始记录；回忆也不能保证一一对应。",impact:"错误能力点：样品完整性。"}
+      ]
+    },
+    {
+      id:"handover", short:"样品交接", title:"把样品交接变成可回查的证据", skill:"交接追溯",
+      intro:"样品从现场转到实验室。交接不是一句“我拿来了”，而是一次状态确认。",
+      evidence:[["交接对象","现场采样员 → 实验室接收人"],["需要核对","编号、封存状态、样品数量、交接时间和双方身份"],["异常示例","封条松动或记录与瓶身编号不一致"]],
+      question:"如果交接时发现瓶身编号和记录不一致，应该先做什么？",
+      options:[
+        {text:"暂缓进入检测，标记异常并回查原始记录、交接链和样品状态。",correct:true,feedback:"先保护证据，再判断是否能纠正；未经核实直接检测会把身份不确定带入结果。",impact:"异常样品应有明确处置记录，不能靠口头解释消失。"},
+        {text:"按浓度看起来更合理的那个编号录入系统。",correct:false,feedback:"用结果反推样品身份会破坏追溯链，且可能把别的样品结果挂错对象。",impact:"错误能力点：交接追溯。"},
+        {text:"先检测，等出结果后再决定用哪个编号。",correct:false,feedback:"检测不能修复样品身份问题，反而可能产生一份无法可靠归属的结果。",impact:"错误能力点：交接追溯。"}
+      ]
+    },
+    {
+      id:"qc-plan", short:"检测质控", title:"先安排质控，再谈样品结果", skill:"质控设计",
+      intro:"进入实验室后，先看本批次如何证明测量过程可信，而不是急着把样品数字填进报告。",
+      evidence:[["本批任务","包含样品、全程序空白和平行样"],["工作要求","质控安排应与方法和项目 SOP 对应"],["当前状态","尚未完成空白、平行等质控安排"]],
+      question:"哪种检测安排更合理？",
+      options:[
+        {text:"核对方法与项目 SOP，安排相应空白、平行或加标等质控，再开始样品测定。",correct:true,feedback:"质控不是结果出来后的装饰，而是测量过程的一部分。具体项目的判据要回到适用文件。",impact:"这一步把“测到一个数字”提升为“有证据支持的数字”。"},
+        {text:"先把样品全部测完，发现异常后再临时补做空白。",correct:false,feedback:"事后补做不能完整代表原测量过程，尤其无法解释已完成批次中哪些结果受影响。",impact:"错误能力点：质控设计。"},
+        {text:"只做样品，不做空白和平行，节省耗材和时间。",correct:false,feedback:"没有过程质控，就缺少识别污染、重复性和操作异常的证据。",impact:"错误能力点：质控设计。"}
+      ]
+    },
+    {
+      id:"qc-judge", short:"质控判定", title:"看到漂亮数字，也要先看质控状态", skill:"质控判定",
+      intro:"教学批次已经产生数据。样品结果看起来很整齐，但质控信息给出了不同信号。",
+      evidence:[["全程序空白","出现明显背景信号"],["平行样","差异超过本任务预设的教学判据"],["样品结果","数字完整，但尚未完成质控影响判断"]],
+      question:"此时最合适的处理是什么？",
+      options:[
+        {text:"暂停直接报告，核查空白、过程、样品和仪器状态，再决定复测或重采。",correct:true,feedback:"先判断质控异常是否影响本批结果；必要时复测、重做或重新采样，并保留处置依据。",impact:"质控异常不能被一个“看起来合理”的样品数字覆盖。"},
+        {text:"样品结果看起来合理，直接取平均值并出报告。",correct:false,feedback:"平均值不会自动消除空白污染或重复性问题，先要确认数据是否具备使用条件。",impact:"错误能力点：质控判定。"},
+        {text:"只删除空白记录，避免它影响最终表格。",correct:false,feedback:"删除异常记录会破坏原始数据完整性；异常应被保留、调查并形成处置记录。",impact:"错误能力点：质控判定。"}
+      ]
+    },
+    {
+      id:"diagnose", short:"异常诊断", title:"从现象回到最小验证动作", skill:"异常诊断",
+      intro:"质控异常的原因可能来自试剂、器皿、操作、仪器或样品本身。不要凭直觉直接选一个“看起来像”的原因。",
+      evidence:[["现象","空白偏高，平行样差异也偏大"],["可查线索","试剂批号、器皿清洗、移液记录、仪器校准和样品保存"],["限制","当前没有足够证据锁定单一原因"]],
+      question:"哪种排查顺序最有信息价值？",
+      options:[
+        {text:"先保留原始数据，按空白、平行、试剂器皿、操作记录和仪器状态逐层核查，再设计复测。",correct:true,feedback:"从低成本、可验证的线索开始，并让每一步排查都能缩小原因范围。",impact:"异常诊断的目标不是猜中，而是建立可复核的证据链。"},
+        {text:"先把原因定为仪器故障，直接更换仪器并删除本批数据。",correct:false,feedback:"仪器只是可能原因之一；没有排查证据就定性，会错过试剂、器皿或操作因素。",impact:"错误能力点：异常诊断。"},
+        {text:"优先挑选符合预期的平行结果，其他结果不再分析。",correct:false,feedback:"挑结果会造成选择性报告，不能替代对异常来源的调查。",impact:"错误能力点：异常诊断。"}
+      ]
+    },
+    {
+      id:"conclusion", short:"结论表达", title:"把结果、质量状态和限制分开写", skill:"结论表达",
+      intro:"任务即将收尾。现在要表达的是“这批数据能支持什么、不能支持什么”，而不是只给一个越界或合格标签。",
+      evidence:[["已有信息","样品结果、质控状态和异常处置记录"],["仍需确认","适用标准、评价对象、统计口径和数据限制"],["教学提醒","本页判据不等于任何具体法规限值"]],
+      question:"哪种结论表达最稳妥？",
+      options:[
+        {text:"分别说明结果、质控状态、适用标准比对和未解决限制；质控未闭环时明确不直接作正式结论。",correct:true,feedback:"好的结论既要回答问题，也要诚实呈现证据边界；标准比对必须引用适用的现行文件。",impact:"任务完成：你把样品身份、测量质量和结论边界串在了一起。"},
+        {text:"只要某个数字高于印象中的限值，就直接判定违法并给出处置建议。",correct:false,feedback:"标准适用范围、评价对象、单位和数据质量都还需要核对，教学数据不能直接变成执法结论。",impact:"错误能力点：结论表达。"},
+        {text:"为了让报告简洁，只保留最终数字，不写空白、平行和异常处置。",correct:false,feedback:"删掉质量状态会让读者无法判断结果能否使用，也削弱了报告的可追溯性。",impact:"错误能力点：结论表达。"}
+      ]
+    }
+  ];
+
+  var state = {current:0, attempts:{}, mistakes:[], mode:"run", reviewQueue:[], locked:false, record:null, reviewDone:false};
+  var app = document.getElementById("app");
+  var rail = document.getElementById("railList");
+
+  function esc(v){
+    var map={"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"};
+    return String(v==null?"":v).replace(/[&<>"']/g,function(c){return map[c];});
+  }
+  function readHistory(){
+    try{return JSON.parse(localStorage.getItem(HISTORY_KEY)||"[]")||[];}catch(e){return [];}
+  }
+  function saveHistory(record){
+    try{
+      var items=readHistory();
+      items.push(record);
+      localStorage.setItem(HISTORY_KEY,JSON.stringify(items.slice(-20)));
+      return items.length;
+    }catch(e){return 0;}
+  }
+  function renderRail(){
+    rail.innerHTML=steps.map(function(s,i){
+      var cls="";
+      if(state.mode==="run" && i===state.current) cls="active";
+      if(state.mode==="review" && state.reviewQueue.length && i===state.reviewQueue[0]) cls="active";
+      if(state.mode==="run" && i<state.current) cls="done";
+      if(state.mode==="review" && state.reviewDone) cls="done";
+      return '<li class="'+cls+'"><span class="num">'+(i+1)+'</span><span>'+esc(s.short)+'</span></li>';
+    }).join("");
+  }
+  function announce(text){
+    var node=document.getElementById("announce");
+    if(node) node.textContent=text;
+  }
+  function stepIndex(){return state.mode==="review" ? state.reviewQueue[0] : state.current;}
+  function evidenceHtml(step){
+    return '<div class="evidence"><div class="evidence-title">现场证据与当前状态</div><div class="evidence-grid">'+step.evidence.map(function(row){return '<div class="evidence-item"><b>'+esc(row[0])+'</b><span>'+esc(row[1])+'</span></div>';}).join("")+'</div></div>';
+  }
+  function feedbackHtml(kind,title,body,impact){
+    return '<div class="feedback '+kind+'" role="'+(kind==="bad"?"alert":"status")+'"><div class="fb-title">'+esc(title)+'</div><div>'+esc(body)+'</div><div class="impact">'+esc(impact)+'</div></div>';
+  }
+  function renderStep(){
+    var idx=stepIndex(), step=steps[idx];
+    if(!step){renderResult(false);return;}
+    state.locked=false;
+    renderRail();
+    var done=state.mode==="review" ? (steps.length-state.reviewQueue.length) : state.current;
+    var pct=state.mode==="review" ? Math.round((done/steps.length)*100) : Math.round((state.current/steps.length)*100);
+    var reviewLabel=state.mode==="review" ? '<span class="pill amber">针对性复训</span>' : '<span class="pill green">主任务</span>';
+    app.innerHTML='<article class="card task-card">'+
+      '<div id="announce" class="sr-only" aria-live="polite"></div>'+
+      '<div class="task-meta"><span class="pill">第 '+(idx+1)+' / '+steps.length+' 步</span>'+reviewLabel+'<span class="pill">能力点：'+esc(step.skill)+'</span></div>'+
+      '<div class="progress-wrap"><div class="progress-line" role="progressbar" aria-valuemin="0" aria-valuemax="'+steps.length+'" aria-valuenow="'+(idx+1)+'" aria-label="任务进度"><i style="width:'+Math.max(8,pct)+'%"></i></div><div class="progress-text"><span>'+esc(state.mode==="review"?"按错题重新判断":"完整任务链")+'</span><span>'+pct+'% 已完成</span></div></div>'+
+      '<h2 class="step-title" tabindex="-1" id="stepHeading">'+esc(step.title)+'</h2>'+
+      '<p class="step-intro">'+esc(step.intro)+'</p>'+evidenceHtml(step)+
+      '<h3 class="question">'+esc(step.question)+'</h3>'+
+      '<div class="choices" role="group" aria-label="选择你的处理方式">'+step.options.map(function(o,i){return '<button class="choice" type="button" data-option="'+i+'"><span class="letter">'+letters[i]+'</span><span class="choice-text">'+esc(o.text)+'</span></button>';}).join("")+'</div>'+
+      '<div id="feedback" hidden></div>'+
+      '<div class="btn-row"><button class="btn secondary" id="quitBtn" type="button">返回任务说明</button></div>'+
+      '</article>';
+    document.getElementById("stepHeading").focus();
+    document.querySelectorAll(".choice").forEach(function(button){button.addEventListener("click",function(){choose(idx,Number(button.dataset.option),button);});});
+    document.getElementById("quitBtn").addEventListener("click",function(){renderIntro();});
+    announce("现在是第 "+(idx+1)+" 步："+step.title);
+  }
+  function choose(idx,optIndex,button){
+    if(state.locked)return;
+    var step=steps[idx], option=step.options[optIndex];
+    state.attempts[idx]=(state.attempts[idx]||0)+1;
+    state.locked=true;
+    document.querySelectorAll(".choice").forEach(function(b){b.disabled=true;});
+    button.classList.add(option.correct?"correct":"wrong");
+    var feedback=document.getElementById("feedback");
+    feedback.hidden=false;
+    feedback.innerHTML=feedbackHtml(option.correct?"good":"bad",option.correct?"判断成立":"先停一下",option.feedback,option.impact);
+    if(!option.correct){
+      if(state.mistakes.indexOf(idx)<0)state.mistakes.push(idx);
+      document.querySelectorAll(".choice").forEach(function(b){if(b!==button)b.disabled=false;});
+      state.locked=false;
+      announce("这一步需要修正："+step.skill);
+      return;
+    }
+    document.querySelectorAll(".choice").forEach(function(b){if(b!==button)b.classList.add("dim");});
+    announce("判断正确，进入下一步");
+    window.setTimeout(function(){
+      if(state.mode==="review"){
+        state.reviewQueue.shift();
+        if(!state.reviewQueue.length){state.reviewDone=true;renderResult(true);}else{renderStep();}
+      }else{
+        state.current++;
+        if(state.current>=steps.length){finish();}else{renderStep();}
+      }
+    },650);
+  }
+  function renderIntro(){
+    renderRail();
+    app.innerHTML='<article class="card task-card">'+
+      '<div class="task-meta"><span class="pill green">建议先做主任务</span><span class="pill">约 8 分钟</span><span class="pill">无需登录</span></div>'+
+      '<h2 class="step-title">你将处理一份虚构的水样任务</h2>'+
+      '<p class="step-intro">任务从受理开始，经过现场采样、样品交接、实验室质控和异常诊断，最后要求你写出有边界的结论。每次选择都会得到证据解释；答错不扣到无法继续，但会进入针对性复训。</p>'+
+      '<div class="evidence"><div class="evidence-title">本次训练看什么</div><div class="evidence-grid">'+
+      '<div class="evidence-item"><b>不是背流程</b><span>看你能否根据证据决定下一步，而不是机械点击。</span></div>'+
+      '<div class="evidence-item"><b>不是比数字</b><span>先判断样品和质控是否可靠，再讨论结果表达。</span></div>'+ 
+      '<div class="evidence-item"><b>允许犯错</b><span>答错会说明后果，并记录对应能力点。</span></div>'+ 
+      '<div class="evidence-item"><b>可以复训</b><span>完成后按错题重新走一遍，不只给一个总分。</span></div>'+
+      '</div></div>'+ 
+      '<div class="notice" style="margin:0"><div class="notice-title">开始前提示</div><div>本案例不提供任何具体法规限值。需要标准比对时，请打开关联的标准速查页面，并以适用的现行文件为准。</div></div>'+
+      '<div class="btn-row"><button class="btn green" id="startBtn" type="button">开始完整任务</button><button class="btn secondary" id="lastBtn" type="button">查看练习记录</button></div>'+ 
+      '<div id="historyBox" hidden></div>'+ 
+      '</article>';
+    document.getElementById("startBtn").addEventListener("click",function(){startRun();});
+    document.getElementById("lastBtn").addEventListener("click",function(){toggleHistory();});
+  }
+  function resetRun(){state={current:0,attempts:{},mistakes:[],mode:"run",reviewQueue:[],locked:false,record:null,reviewDone:false};}
+  function startRun(){resetRun();renderStep();}
+  function finish(){
+    var firstTry=steps.filter(function(_,i){return state.attempts[i]===1;}).length;
+    var score=Math.round(firstTry/steps.length*100);
+    var record={ts:new Date().toISOString(),score:score,firstTry:firstTry,total:steps.length,mistakes:state.mistakes.slice(),skills:state.mistakes.map(function(i){return steps[i].skill;})};
+    state.record=record;
+    var count=saveHistory(record);
+    record.historyCount=count;
+    renderResult(false);
+  }
+  function renderResult(reviewFinished){
+    renderRail();
+    var r=state.record;
+    var wrong=state.mistakes.slice().sort(function(a,b){return a-b;});
+    var pass=r.score>=80;
+    var reviewHtml=wrong.length ? wrong.map(function(idx){var s=steps[idx];return '<div class="review-item"><div><b>第 '+(idx+1)+' 步 · '+esc(s.title)+'</b><span>能力点：'+esc(s.skill)+' · '+(state.attempts[idx]||0)+' 次尝试</span></div><button class="mini-btn" type="button" data-review="'+idx+'">复训这一项</button></div>';}).join("") : '<div class="result-notice">本次没有错题，说明你已经把 8 个判断点完整走通。可以打开关联实验，把其中一个环节做深。</div>';
+    app.innerHTML='<article class="card result-card">'+
+      '<div id="announce" class="sr-only" aria-live="polite"></div>'+ 
+      '<div class="result-top"><div class="score">'+r.score+'<small>/100</small></div><div><div class="result-state">'+(pass?"任务链路已走通":"任务完成，但建议继续复训")+'</div><div class="result-sub">首选正确 '+r.firstTry+' / '+r.total+' · 错题 '+wrong.length+' 项 · 只作本机练习记录</div></div></div>'+ 
+      (reviewFinished?'<div class="result-notice">针对性复训已完成。现在回到结果页，你可以再做一遍主任务或打开对应实验。</div>':'')+
+      '<h2 class="section-title">错题复训</h2>'+ 
+      '<div class="review-grid">'+reviewHtml+'</div>'+ 
+      '<div class="btn-row">'+(wrong.length?'<button class="btn green" id="reviewAll" type="button">按错题顺序复训</button>':'')+'<button class="btn" id="retryAll" type="button">再做一遍完整任务</button><button class="btn secondary" id="resultIntro" type="button">返回任务说明</button></div>'+ 
+      '<div class="result-notice" style="margin-top:18px;margin-bottom:0">记录仅保存在当前浏览器。它用于观察自己的练习轨迹，不构成正式培训证明或能力授权。</div>'+ 
+      '</article>';
+    document.querySelectorAll("[data-review]").forEach(function(b){b.addEventListener("click",function(){startReview([Number(b.dataset.review)]);});});
+    var reviewAll=document.getElementById("reviewAll");
+    if(reviewAll)reviewAll.addEventListener("click",function(){startReview(wrong);});
+    document.getElementById("retryAll").addEventListener("click",function(){startRun();});
+    document.getElementById("resultIntro").addEventListener("click",function(){renderIntro();});
+    announce(reviewFinished?"针对性复训完成":"任务完成，结果已生成");
+  }
+  function startReview(indices){state.mode="review";state.reviewQueue=indices.slice();state.locked=false;renderStep();}
+  function toggleHistory(){
+    var box=document.getElementById("historyBox");
+    if(!box)return;
+    if(!box.hidden){box.hidden=true;return;}
+    var items=readHistory();
+    box.hidden=false;
+    box.innerHTML=items.length ? '<div class="evidence" style="margin-top:16px;margin-bottom:0"><div class="evidence-title">本机练习记录（最近 '+items.length+' 次）</div><div class="evidence-grid">'+items.slice().reverse().slice(0,6).map(function(x){return '<div class="evidence-item"><b>'+new Date(x.ts).toLocaleString("zh-CN")+'</b><span>首选正确 '+esc(x.firstTry)+" / "+esc(x.total)+" · 得分 "+esc(x.score)+" · 错题 "+esc(x.mistakes.length)+" 项</span></div>";}).join("")+'</div></div>' : '<div class="evidence" style="margin-top:16px;margin-bottom:0"><div class="evidence-title">还没有练习记录</div><div class="evidence-item"><span>完成一次任务后，这里会显示最近的本机练习轨迹。</span></div></div>';
+  }
+  renderIntro();
+})();
+</script>
+</body>
+</html>
