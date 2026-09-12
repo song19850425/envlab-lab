@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>固定源废气监测完整任务挑战 | EnvLab</title>
+<meta name="description" content="EnvLab 固定源废气监测任务挑战：从任务受理、工况确认、采样点判断、烟气参数到异常诊断和结论表达，练习完整监测链路。">
+<link rel="canonical" href="https://song19850425.github.io/envlab-lab/EnvLab-%E4%BA%A4%E4%BA%92%E5%AE%9E%E9%AA%8C%E9%9B%86/04-%E6%A1%88%E4%BE%8B/%E4%BB%BB%E5%8A%A1%E6%8C%91%E6%88%98-%E5%9B%BA%E5%AE%9A%E6%BA%90%E5%BA%9F%E6%B0%94.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EnvLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="固定源废气监测完整任务挑战 | EnvLab">
+<meta property="og:description" content="从工况确认到结论表达，完成一条固定源废气监测任务链。教学案例，不替代正式监测或授权考核。">
+<meta property="og:image" content="https://song19850425.github.io/envlab-lab/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="固定源废气监测完整任务挑战 | EnvLab">
+<meta name="twitter:description" content="从工况确认到结论表达，完成一条固定源废气监测任务链。">
+<meta name="twitter:image" content="https://song19850425.github.io/envlab-lab/og-cover.png">
+<link rel="stylesheet" href="task-challenge.css">
+</head>
+<body>
+<nav class="topnav" aria-label="页面导航"><a class="back" href="../index.html">← 返回实验集总目录</a><span class="mode">离线教学任务 · 虚构案例</span></nav>
+<header class="hero"><div class="kicker" id="challengeKicker"></div><h1 id="challengeTitle"></h1><p id="challengeIntro"></p><div class="hero-badges" id="challengeBadges"></div></header>
+<main class="wrap">
+  <section class="notice" role="note"><div class="notice-title">教学边界</div><div id="noticeText"></div></section>
+  <section class="workspace" aria-label="固定源废气监测完整任务挑战">
+    <aside class="rail card" aria-label="任务进度"><div class="rail-head">任务链路</div><ol id="railList"></ol><div class="rail-foot">判断原则：先确认工况、采样条件和数据质量，再讨论排放结果或控制效果。</div></aside>
+    <div id="app"><div class="loading">正在加载任务挑战…</div></div>
+  </section>
+  <section class="related card" aria-labelledby="relatedTitle"><h2 class="section-title" id="relatedTitle">相关学习页面</h2><p>任务挑战负责串联判断；单项页面负责把采样、烟气参数和污染控制机理讲深。</p><div class="related-links" id="relatedLinks"></div></section>
+</main>
+<footer class="footer"><strong>EnvLab · 固定源废气监测完整任务挑战</strong><br>教学演示页面 · 结果仅用于本机练习记录</footer>
+<script>
+window.EnvLabChallenge={
+  key:"stationary-air",
+  kicker:"任务挑战 · 固定源废气",
+  title:"固定源废气监测完整任务挑战",
+  caseTitle:"一座排气筒的监测任务",
+  intro:"从任务受理、工况确认到烟气参数、采样质量和结论表达，练习把一组排放数据放回它产生的条件中理解。",
+  caseIntro:"某园区废气治理设施正在进行教学演示。你需要完成一次固定源废气监测任务，判断什么时候可以测、数据是否可用、异常时该先查什么。",
+  disclaimer:"本页使用虚构排气筒、工况和教学数据。固定源废气的采样位置、测量项目、换算方式、质量控制和评价标准必须以适用的现行方法标准、排污许可要求和项目 SOP 为准。",
+  startNote:"这里不直接给出任何排放限值。先把工况、采样条件和数据质量链路走通，再讨论结果应如何表达。",
+  duration:"8 分钟",
+  accent:"#fb923c",
+  accentSoft:"rgba(251,146,60,.13)",
+  badges:["7 个判断点","含工况确认","含烟气参数","含异常诊断"],
+  focus:[
+    ["工况先行","测量结果必须对应清楚的生产负荷、治理设施状态和采样时段。"],
+    ["参数支撑","温度、压力、流量、湿度等现场参数不能用默认值替代。"],
+    ["异常暂停","流量或治理工况变化时，先判断测量是否仍然有效。"],
+    ["结论有边界","浓度、流量、排放速率和控制效果不是同一个指标。"]
+  ],
+  steps:[
+    {id:"air-intake",short:"任务受理",title:"先确认要回答的问题",skill:"任务边界",intro:"委托信息只写了“检查废气治理效果”，但没有把对象、污染物和工况要求拆开。",evidence:[["任务对象","某生产线排气筒与末端治理设施（教学案例）"],["已有信息","监测时段、污染物项目和生产负荷尚未核对"],["当前风险","测到了数字，却无法说明数字对应哪种工况"]],question:"出发前最应该先完成什么？",options:[{text:"核对排气筒、生产线、治理设施状态、目标污染物、采样时段和适用方法，再形成任务方案。",correct:true,feedback:"先定义对象和问题，才能确定测什么、何时测、怎样记录以及结果如何解释。",impact:"这一步建立了排放数据的上下文。"},{text:"先到现场找一根最方便接近的烟道，到了再决定测什么。",correct:false,feedback:"便利的烟道不一定对应委托对象，临时决定项目也可能导致采样器材和方法不匹配。",impact:"错误能力点：任务边界。"},{text:"只确认治理设施出口浓度，生产负荷和设施运行状态可以不记。",correct:false,feedback:"没有工况和治理状态，出口数字缺少解释条件，也无法判断是否具有代表性。",impact:"错误能力点：任务边界。"}]},
+    {id:"air-condition",short:"工况确认",title:"把“正在生产”确认成可解释的工况",skill:"工况确认",intro:"到达现场后，生产线可以运行，但负荷和治理设施状态正在变化。",evidence:[["现场变化","风机频率刚调整，治理设施压差仍在波动"],["需要记录","生产负荷、原料或燃料状态、治理设施运行参数"],["教学目标","测量时段应与任务方案中的工况相匹配"]],question:"哪种处理更稳妥？",options:[{text:"先等待并确认工况稳定，记录生产和治理设施状态，再进入正式测量。",correct:true,feedback:"工况稳定不是一句口头描述，而是需要结合生产和治理设施记录来确认。",impact:"结果只有在清楚的工况下才具备比较价值。"},{text:"只要烟囱有烟，就立刻开始采样，波动可以用平均值处理。",correct:false,feedback:"烟气存在不等于工况满足要求；波动可能使采样时段无法代表任务对象。",impact:"错误能力点：工况确认。"},{text:"先把采样时间凑够，生产负荷变化留到报告里再解释。",correct:false,feedback:"事后解释不能自动修复工况变化对样品代表性的影响，应先判断是否需要调整或重测。",impact:"错误能力点：工况确认。"}]},
+    {id:"air-point",short:"测点判断",title:"让采样点真正代表这股烟气",skill:"测点代表性",intro:"烟道上有多个可用接口，附近还有弯头、变径和汇流段。",evidence:[["现场条件","不同接口到扰动部件的距离不同"],["方案要求","选择符合适用方法和现场条件的代表性截面"],["记录内容","测点位置、烟道状态和无法满足条件的限制都要留痕"]],question:"选择采样截面时应优先遵循什么？",options:[{text:"按适用方法和任务方案选择代表性截面；若现场受限，记录限制并评估是否需要替代方案。",correct:true,feedback:"测点选择需要同时满足方法要求和现场可解释性，不能只看接口是否方便。",impact:"测点限制应成为报告中的证据，而不是被隐藏。"},{text:"选择离治理设施最近的接口，越近越能代表治理效果。",correct:false,feedback:"离设备近不等于截面条件合适，扰动和流场状态仍需要按方法判断。",impact:"错误能力点：测点代表性。"},{text:"选择烟气温度最低的位置，安全和操作都更容易。",correct:false,feedback:"安全要求要满足，但不能以牺牲测点代表性为代价；必要时应调整方案并记录。",impact:"错误能力点：测点代表性。"}]},
+    {id:"air-parameter",short:"烟气参数",title:"先把换算所需的现场参数测清楚",skill:"参数测量",intro:"污染物浓度读数正在产生，但烟气温度、压力、流量和湿度记录还不完整。",evidence:[["待补信息","现场温度、压力、流量、湿度和采样体积"],["影响范围","标态换算、排放速率或控制效果计算"],["教学提醒","不同参数的测量时段和计算口径需要与方法一致"]],question:"哪种做法符合数据链路要求？",options:[{text:"按方法同步或分时测量必要烟气参数，记录原始读数、单位、时段和计算口径。",correct:true,feedback:"参数是结果的组成部分，不是报告最后才补的背景信息。",impact:"没有原始参数，后续换算和排放量表达就缺少依据。"},{text:"用上一次巡检的温度和流量，避免现场测量影响采样。",correct:false,feedback:"工况变化会直接影响参数；历史数据不能替代本次测量的原始证据。",impact:"错误能力点：参数测量。"},{text:"只要浓度单位正确，流量和湿度可以不记录。",correct:false,feedback:"浓度、流量和状态参数共同决定结果的表达，不能只保留一个数字。",impact:"错误能力点：参数测量。"}]},
+    {id:"air-train",short:"采样质量",title:"先检查采样系统，再相信采样结果",skill:"采样质量",intro:"采样系统已经连接完成，但在开始前发现接口、流量和记录状态还没有逐项核对。",evidence:[["待核对","气密性、采样流量、吸收或收集部件、开始时间和结束时间"],["样品状态","采样体积与流量记录尚未闭合"],["异常后果","系统漏气或流量失控会让结果失去可比性"]],question:"开始正式采样前，哪项动作最有价值？",options:[{text:"按方案完成采样系统检查和必要的空白、校准或质量控制记录，再开始并持续记录流量和时间。",correct:true,feedback:"采样系统本身就是测量链路的一部分，开始前和过程中都要有可回查记录。",impact:"这一步把采样器材状态和样品结果连接起来。"},{text:"先开始采样，结束后如果体积不对再检查气密性。",correct:false,feedback:"事后检查不能证明整个采样时段没有漏气或流量异常，应在开始前排除已知风险。",impact:"错误能力点：采样质量。"},{text:"只记录最终体积，不记录开始和结束时间，减少现场工作量。",correct:false,feedback:"缺少时间和过程读数，无法核查采样时段、流量变化和工况对应关系。",impact:"错误能力点：采样质量。"}]},
+    {id:"air-anomaly",short:"异常诊断",title:"工况变化时先暂停，不要硬凑一组数据",skill:"异常诊断",intro:"正式测量中，治理设施压差突然变化，烟气流量也出现明显波动。",evidence:[["异常现象","流量曲线波动，治理设施运行参数发生变化"],["已有记录","变化发生在样品采集时段内"],["当前问题","样品是否仍代表任务设定工况尚未确认"]],question:"下一步最合理的处理是什么？",options:[{text:"暂停或标记受影响时段，记录异常并回查工况、采样系统和参数；必要时重新确认方案后复测。",correct:true,feedback:"先保护异常证据，再判断哪些数据受影响，不能让一组不稳定数据自动进入结论。",impact:"异常处理应留下时间、现象、判断和处置记录。"},{text:"把波动最大的几个读数删掉，让曲线看起来平滑。",correct:false,feedback:"删数据会破坏原始记录，也不能证明剩余读数代表了稳定工况。",impact:"错误能力点：异常诊断。"},{text:"继续采样直到时长满足要求，工况变化在备注里一句带过。",correct:false,feedback:"满足时长不等于满足代表性；异常可能已经改变样品和结果的解释范围。",impact:"错误能力点：异常诊断。"}]},
+    {id:"air-conclusion",short:"结论表达",title:"把浓度、流量和治理效果分开表达",skill:"结论表达",intro:"监测数据和现场记录已经整理。现在要形成一个不夸大、可复核的任务结论。",evidence:[["已有数据","污染物浓度、烟气参数、工况记录和异常处置"],["仍需核对","适用标准、排放许可要求、统计口径和数据限制"],["教学边界","本任务不直接给出任何正式限值结论"]],question:"哪种报告表达最稳妥？",options:[{text:"分别说明测量工况、浓度与排放量口径、治理设施状态、质量控制和限制，再引用适用文件作比对。",correct:true,feedback:"结果的含义取决于对象、工况、计算口径和质量状态；这些信息应一起呈现。",impact:"任务完成：你没有把一个数字过度解释成所有结论。"},{text:"只看出口浓度是否变低，就直接判定治理设施达标。",correct:false,feedback:"治理效果、排放限值和工况代表性是不同问题，不能用一个数字替代全部判断。",impact:"错误能力点：结论表达。"},{text:"只报告最好的一个采样时段，其他时段作为现场噪声不写。",correct:false,feedback:"选择性报告会掩盖工况和异常信息，不能作为完整监测结论。",impact:"错误能力点：结论表达。"}]}
+  ],
+  related:[
+    {href:"../01-采样布点/固定源废气采样-交互版.html",name:"固定源废气采样",note:"把采样布点、采样过程和现场记录做深"},
+    {href:"../08-大气污染控制/烟气参数测定-交互版.html",name:"烟气参数测定",note:"理解温度、流量和换算参数如何进入结果"},
+    {href:"../08-大气污染控制/袋式除尘器性能测定-交互版.html",name:"袋式除尘器性能测定",note:"从监测数据进一步理解治理设施性能"},
+    {href:"../08-大气污染控制/催化净化NOx性能测定-交互版.html",name:"催化净化 NOx",note:"把工况、温度窗口和控制效果放在一起判断"}
+  ]
+};
+</script>
+<script src="task-challenge-engine.js"></script>
+</body>
+</html>

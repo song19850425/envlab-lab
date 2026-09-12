@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>土壤地下水调查完整任务挑战 | EnvLab</title>
+<meta name="description" content="EnvLab 土壤地下水调查任务挑战：从污染源与迁移路径、布点、地下水采样、样品完整性到空间解释和下一步调查，练习完整调查链路。">
+<link rel="canonical" href="https://song19850425.github.io/envlab-lab/EnvLab-%E4%BA%A4%E4%BA%92%E5%AE%9E%E9%AA%8C%E9%9B%86/04-%E6%A1%88%E4%BE%8B/%E4%BB%BB%E5%8A%A1%E6%8C%91%E6%88%98-%E5%9C%9F%E5%A3%A4%E5%9C%B0%E4%B8%8B%E6%B0%B4.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="EnvLab">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:title" content="土壤地下水调查完整任务挑战 | EnvLab">
+<meta property="og:description" content="从概念模型到下一步调查，完成一条土壤地下水污染调查任务链。教学案例，不替代正式调查或修复决策。">
+<meta property="og:image" content="https://song19850425.github.io/envlab-lab/og-cover.png">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="土壤地下水调查完整任务挑战 | EnvLab">
+<meta name="twitter:description" content="从概念模型到下一步调查，完成一条土壤地下水污染调查任务链。">
+<meta name="twitter:image" content="https://song19850425.github.io/envlab-lab/og-cover.png">
+<link rel="stylesheet" href="task-challenge.css">
+</head>
+<body>
+<nav class="topnav" aria-label="页面导航"><a class="back" href="../index.html">← 返回实验集总目录</a><span class="mode">离线教学任务 · 虚构案例</span></nav>
+<header class="hero"><div class="kicker" id="challengeKicker"></div><h1 id="challengeTitle"></h1><p id="challengeIntro"></p><div class="hero-badges" id="challengeBadges"></div></header>
+<main class="wrap">
+  <section class="notice" role="note"><div class="notice-title">教学边界</div><div id="noticeText"></div></section>
+  <section class="workspace" aria-label="土壤地下水调查完整任务挑战">
+    <aside class="rail card" aria-label="任务进度"><div class="rail-head">任务链路</div><ol id="railList"></ol><div class="rail-foot">判断原则：先建立污染源与迁移路径假设，再用布点、样品和数据逐步验证，不凭单点结果下最终结论。</div></aside>
+    <div id="app"><div class="loading">正在加载任务挑战…</div></div>
+  </section>
+  <section class="related card" aria-labelledby="relatedTitle"><h2 class="section-title" id="relatedTitle">相关学习页面</h2><p>任务挑战负责串联调查判断；单项页面负责把土壤布点、地下水采样、检测和修复机理讲深。</p><div class="related-links" id="relatedLinks"></div></section>
+</main>
+<footer class="footer"><strong>EnvLab · 土壤地下水调查完整任务挑战</strong><br>教学演示页面 · 结果仅用于本机练习记录</footer>
+<script>
+window.EnvLabChallenge={
+  key:"soil-groundwater",
+  kicker:"任务挑战 · 土壤地下水",
+  title:"土壤地下水调查完整任务挑战",
+  caseTitle:"一块疑似污染地块的调查任务",
+  intro:"从历史信息和概念模型出发，经过布点、地下水采样、样品防交叉污染和空间解释，练习如何把“怀疑”变成可验证的调查证据。",
+  caseIntro:"某旧生产区准备进行教学调查。现场存在历史原料堆放区、地下水流向线索和一口监测井，你需要决定先查什么、如何布点、怎样保护样品证据。",
+  disclaimer:"本页使用虚构地块、点位和教学数据。实际调查应依据适用的现行调查技术文件、项目设计、质量控制要求和安全方案；本页不直接给出污染认定、修复范围或监管结论。",
+  startNote:"单个点位或单个指标都不能独立代表整个地块。每一步都要问：这个证据能支持什么，不能支持什么？",
+  duration:"9 分钟",
+  accent:"#a78bfa",
+  accentSoft:"rgba(167,139,250,.14)",
+  badges:["7 个判断点","含概念模型","含地下水采样","含空间解释"],
+  focus:[
+    ["先建模型","把污染源、迁移路径、受体和不确定性写出来，再安排验证。"],
+    ["布点有目的","背景点、源区点、下游点和深度安排应服务于问题。"],
+    ["避免交叉污染","工具、容器、采样顺序和现场记录都可能影响样品。"],
+    ["不凭单点下结论","空间变化和下一步调查比一个孤立数字更重要。"]
+  ],
+  steps:[
+    {id:"soil-model",short:"概念模型",title:"先说清楚污染可能怎么走",skill:"概念模型",intro:"已有历史资料，但污染源、迁移路径和受体之间还没有被组织成一个可验证的假设。",evidence:[["历史线索","旧生产区曾有原料暂存和污水收集设施"],["现场线索","地势和地下水流向存在初步判断"],["不确定性","污染物类型、范围和迁移深度尚未验证"]],question:"调查设计首先应该做什么？",options:[{text:"整理潜在源区、迁移路径、受体和不确定性，形成可被采样验证的概念模型。",correct:true,feedback:"概念模型不是最终结论，而是把已有信息变成可检验的调查假设。",impact:"这一步决定后续点位和样品能否回答问题。"},{text:"先在地块中心取一个混合样，按结果再猜污染来源。",correct:false,feedback:"单点混合样容易掩盖空间差异，也无法替代对源区和迁移路径的假设。",impact:"错误能力点：概念模型。"},{text:"只参考地块名称和周边印象，不必查历史生产和排水信息。",correct:false,feedback:"历史用途和排水路径往往决定调查重点，不能用印象替代资料核查。",impact:"错误能力点：概念模型。"}]},
+    {id:"soil-points",short:"调查布点",title:"让每个点位都回答一个问题",skill:"调查布点",intro:"地块上有源区、边界、下游方向和背景区域。预算有限时更需要解释每个点为什么放在那里。",evidence:[["候选区域","历史源区、地块边界、地下水下游和背景区"],["任务要求","判断源区影响范围及是否存在向下游迁移的迹象"],["现场限制","部分区域无法直接进入，需要记录替代点位理由"]],question:"哪种布点逻辑更可靠？",options:[{text:"按概念模型设置背景、源区、边界和下游验证点，并记录每个点位要验证的假设。",correct:true,feedback:"点位不是平均撒开，而是围绕污染源、迁移路径和边界不确定性组织起来。",impact:"有目的的点位才能让结果改变或验证模型。"},{text:"把点位均匀铺满整个地块，不必区分源区和下游。",correct:false,feedback:"均匀并不等于有代表性，可能把有限资源用在无法回答关键问题的位置。",impact:"错误能力点：调查布点。"},{text:"只在历史记录里最严重的地方布点，其他区域不需要对照。",correct:false,feedback:"源区点很重要，但没有背景、边界和下游点就难以解释范围与迁移。",impact:"错误能力点：调查布点。"}]},
+    {id:"soil-groundwater",short:"地下水采样",title:"先让井况和现场参数稳定下来",skill:"地下水采样",intro:"监测井已经到达，但井内水体可能受施工、停留和抽排影响，不能把刚抽出的水直接当成稳定样品。",evidence:[["井况","近期维护过，井内水体状态需要重新确认"],["现场观察","水位、浊度和现场参数仍在变化"],["采样目标","希望样品反映井周地下水，而不是井内扰动水体"]],question:"采样前最重要的判断是什么？",options:[{text:"按项目方案进行洗井或置换，持续观察现场参数和水样状态，达到预设稳定条件后再采样。",correct:true,feedback:"地下水样品的代表性需要和井况、现场参数稳定性一起确认，不能只看抽出水量。",impact:"这一步避免把施工扰动带进分析结果。"},{text:"抽出一瓶水后马上装样，节省现场等待时间。",correct:false,feedback:"刚抽出的水可能仍受井内储水和扰动影响，不能自动代表井周地下水。",impact:"错误能力点：地下水采样。"},{text:"只要水看起来清澈，就可以跳过参数记录直接采样。",correct:false,feedback:"外观清澈不能替代现场参数和稳定性判断，很多变化并不能肉眼识别。",impact:"错误能力点：地下水采样。"}]},
+    {id:"soil-integrity",short:"样品完整性",title:"避免把现场操作变成新的污染源",skill:"样品完整性",intro:"多个点位连续采样，土壤、地下水和不同目标因子的容器与保存要求并不完全相同。",evidence:[["现场风险","工具、手套、容器和采样顺序可能造成交叉污染"],["样品信息","点位、深度、介质、时间和保存条件必须对应"],["操作要求","空白、清洗或去污记录应按方案留痕"]],question:"哪种操作最能保护样品证据？",options:[{text:"按方案执行采样顺序和工具去污，分介质标识与保存，现场核对编号、深度、时间和记录。",correct:true,feedback:"样品完整性既取决于容器和保存，也取决于工具、顺序和原始记录。",impact:"这一步防止调查结果被现场操作本身污染。"},{text:"先采最可疑的源区，再用同一套工具采背景点，回实验室统一清洗。",correct:false,feedback:"采样顺序和去污时机不当会把高浓度区域带到低浓度区域。",impact:"错误能力点：样品完整性。"},{text:"只要样品瓶贴了标签，工具和手套是否更换不重要。",correct:false,feedback:"标签只能说明样品身份，不能消除交叉污染或保存失效造成的影响。",impact:"错误能力点：样品完整性。"}]},
+    {id:"soil-qc",short:"调查质控",title:"用质控识别现场和实验室的假信号",skill:"调查质控",intro:"实验室出现一个偏高结果，但现场空白、运输记录和样品保存状态还没有一起核对。",evidence:[["异常信号","一个样品结果明显高于相邻点位"],["待核对记录","现场空白、运输空白、容器批次和保存时间"],["关键问题","高结果来自地块污染，还是来自过程污染尚未确定"]],question:"面对这个异常结果，首先应该怎么做？",options:[{text:"保留原始结果，联动核查空白、容器、运输、保存和实验室质控，再决定复测或补充采样。",correct:true,feedback:"异常结果需要和全过程质控一起解释，不能只看空间位置或数字大小。",impact:"质控的作用是帮助区分真实信号与过程引入的信号。"},{text:"因为结果高，所以把它当成最严重污染点并扩大修复范围。",correct:false,feedback:"在过程质控和空间邻近证据未闭环前，不能把单个异常直接升级为范围结论。",impact:"错误能力点：调查质控。"},{text:"删除这个结果，避免它影响其他点位的统计。",correct:false,feedback:"删除异常会破坏原始数据完整性，正确做法是保留、调查并记录处置。",impact:"错误能力点：调查质控。"}]},
+    {id:"soil-spatial",short:"空间解释",title:"让空间差异推动下一步调查",skill:"空间解释",intro:"多个点位已经有初步结果，源区较高、下游有下降趋势，但边界和深度仍存在空白。",evidence:[["空间信息","源区、边界、下游和背景点结果不完全一致"],["缺口","地块边界和某一深度层的点位较少"],["教学目标","决定是否需要补充点位或调整概念模型"]],question:"哪种解释更有证据意识？",options:[{text:"结合点位、深度、地下水流向和质控状态判断趋势，并针对边界和深度缺口设计下一步验证。",correct:true,feedback:"空间分析的价值不只是画一张图，而是识别模型仍然不确定的地方。",impact:"好的调查会让下一轮采样更有针对性。"},{text:"源区最高，所以可以推断整个地块都达到同样水平。",correct:false,feedback:"空间异质性和迁移路径会让不同位置差异很大，不能把单点外推到全地块。",impact:"错误能力点：空间解释。"},{text:"下游点较低，说明污染一定没有向下游迁移，不需继续调查。",correct:false,feedback:"低结果可能与深度、流向、采样条件或点位位置有关，不能仅凭一个趋势终止验证。",impact:"错误能力点：空间解释。"}]},
+    {id:"soil-conclusion",short:"调查结论",title:"把调查结论写成证据边界",skill:"结论表达",intro:"调查阶段即将结束。现在需要把已知、未知、数据质量状态和下一步行动分开表达。",evidence:[["已有证据","历史资料、采样点、检测结果、质控和空间趋势"],["未闭环事项","部分边界、深度和迁移路径仍需验证"],["教学边界","本页不直接做污染认定或修复范围决策"]],question:"哪种结论表达最稳妥？",options:[{text:"说明已验证的范围与趋势、数据质量状态和剩余不确定性，并提出与证据对应的下一步调查。",correct:true,feedback:"调查结论要让读者看见证据边界：哪些已经支持，哪些还不能支持。",impact:"任务完成：你把调查设计、样品证据和下一步行动连起来了。"},{text:"只要源区有一个高值，就直接确定全部修复边界。",correct:false,feedback:"修复边界需要与适用标准、空间证据、风险评价和调查质量一起确定，不能由单点决定。",impact:"错误能力点：结论表达。"},{text:"为了避免引起误解，只写“未发现问题”，不呈现边界空白。",correct:false,feedback:"没有发现不等于已经排除；把剩余不确定性写出来比给出过度确定的结论更可靠。",impact:"错误能力点：结论表达。"}]}
+  ],
+  related:[
+    {href:"../01-采样布点/土壤采样布点-交互版.html",name:"土壤采样布点",note:"把源区、边界、深度和混合样布点做深"},
+    {href:"../01-采样布点/地下水洗井采样-交互版.html",name:"地下水洗井采样",note:"深入理解井况、参数稳定和低扰动采样"},
+    {href:"../02-检测实验/井水重金属-砷镉汞铅-ICP-MS.html",name:"井水重金属分析",note:"把样品调查连接到实验室定量结果"},
+    {href:"../04-环境评价/环境质量空间关联分析.html",name:"空间关联分析",note:"从多个点位结果寻找空间趋势和线索"},
+    {href:"../05-修复技术/SVE土壤气提-交互版.html",name:"SVE 土壤气提",note:"调查之后如何理解修复技术的适用边界"}
+  ]
+};
+</script>
+<script src="task-challenge-engine.js"></script>
+</body>
+</html>
