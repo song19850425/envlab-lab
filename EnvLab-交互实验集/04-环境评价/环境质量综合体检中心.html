@@ -1,9 +1,8 @@
 <!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>环境质量 · 综合体检中心</title>
 <meta name="description" content="环境质量 · 综合体检中心">
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap');
 *{margin:0;padding:0;box-sizing:border-box}
-:root{--ink:#1a1a2e;--ink-light:#555;--paper:#faf9f6;--paper-warm:#f5f0e8;--border:#e8e0d4;--serif:'Noto Serif SC','Source Han Serif SC','Songti SC',serif;--sans:'Inter',-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
+:root{--ink:#1a1a2e;--ink-light:#555;--paper:#faf9f6;--paper-warm:#f5f0e8;--border:#e8e0d4;--serif:'Source Han Serif SC','Songti SC','SimSun',serif;--sans:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif}
 /* 5 theme colors */
 .c0{--theme:#0d9488;--theme-light:#ccfbf1;--theme-bg:#f0fdfa}
 .c1{--theme:#0d9488;--theme-light:#ccfbf1;--theme-bg:#f0fdfa}
@@ -433,14 +432,14 @@ select:focus{outline:none;border-color:var(--cm)}
 
 <!-- ====== AIR (4) ====== -->
 <div class="mp c4" id="mp4">
-<div class="sc"><div class="sn">☀️ 大气 · 环境空气质量评价</div><h2 class="st">AQI · 空气质量指数</h2><p class="sd">依据 HJ 633—2026《环境空气质量指数（AQI）技术规定》（2026-03-01 起代替 HJ 633—2012），由 6 项污染物分指数 IAQI 取最大值定级。</p>
+<div class="sc"><div class="sn">☀️ 大气 · 环境空气质量评价</div><h2 class="st">AQI · 空气质量指数</h2><p class="sd">依据 HJ 633—2026《环境空气质量指数（AQI）技术规定》（2026-03-01 起代替 HJ 633—2012），本模块采用表 3 断点：PM₂.₅ / PM₁₀ 日均、SO₂ / NO₂ / CO 1 小时均值、O₃ 日最大 8 小时均值，由 6 项污染物分指数 IAQI 取最大值定级。</p>
 <div class="cg">
-<div class="ic" onclick="rc(this)"><span class="ii">🌫️</span><div class="in">PM₂.₅</div><div class="is">24h 均值 ≤ 35 μg/m³</div><div class="ib">可进入肺泡和血液，中国 AQI 首要超标因子。IAQI 分档：35(优) / 75(良) / 115(轻) / 150(中) / 250(重) / 500(严)</div></div>
-<div class="ic" onclick="rc(this)"><span class="ii">💨</span><div class="in">PM₁₀</div><div class="is">24h 均值 ≤ 50 μg/m³</div><div class="ib">可吸入颗粒物，来自扬尘和工业粉尘。IAQI 分档：50 / 150 / 250 / 350 / 420 / 500</div></div>
-<div class="ic" onclick="rc(this)"><span class="ii">🧪</span><div class="in">SO₂</div><div class="is">1h 均值 ≤ 150 μg/m³</div><div class="ib">煤烟型污染代表。IAQI 分档：150(一级) / 500 / 650 / 800</div></div>
-<div class="ic" onclick="rc(this)"><span class="ii">🚗</span><div class="in">NO₂</div><div class="is">1h 均值 ≤ 200 μg/m³</div><div class="ib">交通源污染代表。IAQI 分档：100 / 200 / 700 / 1200 / 2340 / 3090</div></div>
-<div class="ic" onclick="rc(this)"><span class="ii">🔥</span><div class="in">CO</div><div class="is">1h 均值 ≤ 5 mg/m³</div><div class="ib">不完全燃烧产物。IAQI 分档：5 / 10 / 35 / 60 / 90 / 120 (mg/m³)</div></div>
-<div class="ic" onclick="rc(this)"><span class="ii">☀️</span><div class="in">O₃</div><div class="is">8h 最大均值 ≤ 100 μg/m³</div><div class="ib">光化学烟雾核心组分。IAQI 分档：100 / 160 / 215 / 265 / 800</div></div>
+<div class="ic" onclick="rc(this)"><span class="ii">🌫️</span><div class="in">PM₂.₅</div><div class="is">24h 均值 ≤ 35 μg/m³</div><div class="ib">可进入肺泡和血液，中国 AQI 首要超标因子。HJ 633—2026 日均断点：35 / 60 / 115 / 150 / 250 / 350 / 500 μg/m³。</div></div>
+<div class="ic" onclick="rc(this)"><span class="ii">💨</span><div class="in">PM₁₀</div><div class="is">24h 均值 ≤ 50 μg/m³</div><div class="ib">可吸入颗粒物，来自扬尘和工业粉尘。HJ 633—2026 日均断点：50 / 120 / 250 / 350 / 420 / 500 / 600 μg/m³。</div></div>
+<div class="ic" onclick="rc(this)"><span class="ii">🧪</span><div class="in">SO₂</div><div class="is">1h 均值 ≤ 150 μg/m³</div><div class="ib">煤烟型污染代表。1 小时均值断点：150 / 500 / 650 / 800 μg/m³；超过 800 时 IAQI 按 200 计。</div></div>
+<div class="ic" onclick="rc(this)"><span class="ii">🚗</span><div class="in">NO₂</div><div class="is">1h 均值 ≤ 200 μg/m³</div><div class="ib">交通源污染代表。1 小时均值断点：100 / 200 / 700 / 1200 / 2340 / 3090 / 3840 μg/m³。</div></div>
+<div class="ic" onclick="rc(this)"><span class="ii">🔥</span><div class="in">CO</div><div class="is">1h 均值 ≤ 5 mg/m³</div><div class="ib">不完全燃烧产物。1 小时均值断点：5 / 10 / 35 / 60 / 90 / 120 / 150 mg/m³。</div></div>
+<div class="ic" onclick="rc(this)"><span class="ii">☀️</span><div class="in">O₃</div><div class="is">8h 最大均值 ≤ 100 μg/m³</div><div class="ib">光化学烟雾核心组分。日最大 8 小时均值断点：100 / 160 / 215 / 265 / 800 μg/m³；超过 800 时 IAQI 按 300 计。</div></div>
 </div></div>
 
 <div class="sc"><div class="sn">AQI 分级</div><h2 class="st">六色空气质量</h2><p class="sd">AQI 0~50 优 → 51~100 良 → 101~150 轻度 → 151~200 中度 → 201~300 重度 → >300 严重</p>
@@ -453,7 +452,7 @@ select:focus{outline:none;border-color:var(--cm)}
 <div class="ic" onclick="rc(this)"><div class="in">严重 · 褐红</div><div class="is">AQI > 300</div><div class="ib">健康人群运动耐受力降低，有明显强烈症状。</div><span class="it" style="background:#7c2d12;color:#fecaca">避免外出</span></div>
 </div></div>
 
-<div class="sc"><div class="sn">交互评价</div><h2 class="st">AQI · 实时评价</h2><p class="sd">选择城市或输入自定义浓度数据，系统按 HJ 633—2012 分级限值计算 AQI<span style="color:#b45309;">（该分级限值已于 2026-03-01 被 HJ 633—2026 更新，待同步）</span>。</p>
+<div class="sc"><div class="sn">交互评价</div><h2 class="st">AQI · 教学评价</h2><p class="sd">选择城市或输入自定义浓度数据，系统按 HJ 633—2026 表 3 断点计算 AQI：PM₂.₅ / PM₁₀ 为日均，SO₂ / NO₂ / CO 为 1 小时均值，O₃ 为日最大 8 小时均值。本结果用于教学演示，不替代监测发布或完整的数据有效性审核。</p>
 <div class="ev-box">
 <div class="ev-tabs" id="airTabs">
 <div class="ev-tab ac" onclick="ev('a',0)"><span class="en">①</span>选择城市</div>
@@ -856,7 +855,7 @@ function evalAir(){
   let no2=parseFloat(document.getElementById('aNO2').value)||0;
   let co=parseFloat(document.getElementById('aCO').value)||0;
   let o3=parseFloat(document.getElementById('aO3').value)||0;
-  function calcIAQI(v,bp){
+  function calcIAQI(v,bp,cap){
     if(v<=0||!bp||bp.length<2) return 0;
     for(let i=0;i<bp.length-1;i++){
       if(v>=bp[i][0]&&v<=bp[i+1][0]){
@@ -864,21 +863,22 @@ function evalAir(){
         return Math.round(iaqi);
       }
     }
-    return bp[bp.length-1][1];
+    return cap===undefined ? bp[bp.length-1][1] : cap;
   }
-  let bp_pm25 = [[0,0],[35,50],[75,100],[115,150],[150,200],[250,300],[350,400],[500,500]];
-  let bp_pm10 = [[0,0],[50,50],[150,100],[250,150],[350,200],[420,300],[500,400],[600,500]];
-  let bp_so2 = [[0,0],[150,50],[500,150],[650,200],[800,300],[1600,400],[1600,500]];
-  let bp_no2 = [[0,0],[100,50],[200,100],[700,200],[1200,300],[2340,400],[3090,500]];
+  // HJ 633—2026 表 3：本模块采用 PM₂.₅/PM₁₀ 日均、SO₂/NO₂/CO 1 小时、O₃ 日最大 8 小时断点。
+  let bp_pm25 = [[0,0],[35,50],[60,100],[115,150],[150,200],[250,300],[350,400],[500,500]];
+  let bp_pm10 = [[0,0],[50,50],[120,100],[250,150],[350,200],[420,300],[500,400],[600,500]];
+  let bp_so2 = [[0,0],[150,50],[500,100],[650,150],[800,200]];
+  let bp_no2 = [[0,0],[100,50],[200,100],[700,200],[1200,300],[2340,400],[3090,400],[3840,500]];
   let bp_co = [[0,0],[5,50],[10,100],[35,150],[60,200],[90,300],[120,400],[150,500]];
-  let bp_o3 = [[0,0],[160,100],[200,150],[300,200],[400,300],[800,400],[1000,500]];
+  let bp_o3 = [[0,0],[100,50],[160,100],[215,150],[265,200],[800,300]];
   let iaqis = [
     calcIAQI(pm25,bp_pm25),
     calcIAQI(pm10,bp_pm10),
-    calcIAQI(so2,bp_so2),
+    calcIAQI(so2,bp_so2,200),
     calcIAQI(no2,bp_no2),
     calcIAQI(co,bp_co),
-    calcIAQI(o3,bp_o3)
+    calcIAQI(o3,bp_o3,300)
   ];
   let names = ['PM₂.₅','PM₁₀','SO₂','NO₂','CO','O₃'];
   let aqi = Math.max(...iaqis);

@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>采样培训记录台 | EnvLab</title>
 <meta name="description" content="采样培训记录台 | EnvLab">
+<meta name="robots" content="noindex,nofollow,noarchive">
 <style>
   :root{ --accent:#10b981; --bg:#0b1020; --panel:#121a30; --line:#22304f; --txt:#e8eefc; --mut:#8aa0c6; }
   *{box-sizing:border-box}
@@ -90,8 +91,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
         <label style="font-size:12px;color:var(--mut)">结果</label>
         <select id="fPass"><option value="">全部</option><option value="1">仅通过</option><option value="0">仅未通过</option></select>
         <input id="fName" placeholder="搜姓名/工号">
-        <button class="btn" id="expCsv">导出 CSV</button>
-        <button class="btn ghost" id="clearBtn">清空本机记录</button>
+        <button class="btn" id="expCsv">导出当前筛选 CSV</button>
+        <button class="btn ghost" id="clearBtn" title="只清除本机记录，不删除云端记录">清空本机记录</button>
         <a class="btn ghost" href="train.html" style="text-decoration:none">去培训</a>
       </div>
       <div style="overflow:auto;max-height:60vh">
@@ -102,7 +103,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
       </div>
       <div class="empty" id="empty" style="display:none">暂无记录。请先在 train.html 完成一次采样培训。</div>
     </div>
-    <footer>记录存于本机浏览器（localStorage）· 数据不出实验室 · EnvLab 采样上岗培训系统</footer>
+    <footer>本机模式：记录存于浏览器（localStorage）。云端模式：当前列表来自云端；「清空本机记录」不会删除云端记录。 · EnvLab 采样上岗培训系统</footer>
   </div>
 </div>
 
@@ -114,7 +115,10 @@ const LS_KEY = "envlab_sampling_records";
 const LS_CURRENT = "envlab_current";
 const ADMIN = { name:"ENVLAB", emp:"001", lab:"001", phone:"001" };
 const $ = s => document.querySelector(s);
+const ESC_MAP = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c=>ESC_MAP[c]); }
 let ALL = [];
+let CURRENT_ROWS = [];
 
 function getCurrent(){ try{ return JSON.parse(localStorage.getItem(LS_CURRENT)||"null"); }catch(e){ return null; } }
 function isAdmin(){ const c=getCurrent(); return !!(c && c.role==="admin"); }
@@ -139,14 +143,14 @@ async function load(){
     try{
       ALL = await Cloud.adminRecords();
       const mods = [...new Set(ALL.map(r=>r.moduleName))];
-      $("#fInst").innerHTML = '<option value="">全部</option>' + mods.map(i=>`<option>${i}</option>`).join("");
+      $("#fInst").innerHTML = '<option value="">全部</option>' + mods.map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join("");
       render();
       return;
     }catch(e){ /* 回退本机 */ }
   }
   try{ ALL = JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ ALL=[]; }
   const mods = [...new Set(ALL.map(r=>r.moduleName))];
-  $("#fInst").innerHTML = '<option value="">全部</option>' + mods.map(i=>`<option>${i}</option>`).join("");
+  $("#fInst").innerHTML = '<option value="">全部</option>' + mods.map(i=>`<option value="${esc(i)}">${esc(i)}</option>`).join("");
   render();
 }
 function render(){
@@ -156,6 +160,7 @@ function render(){
     (fp==="" || (fp==="1"?(r.passed?1:0)===1:(r.passed?0:1)===1)) &&
     (!fn || (r.trainee+ (r.emp||"")).toLowerCase().includes(fn))
   );
+  CURRENT_ROWS = rows.slice().reverse();
   const pass = rows.filter(r=>r.passed).length;
   const fatal = rows.reduce((a,r)=>a+r.fatalHits,0);
   $("#stats").innerHTML = `
@@ -166,10 +171,10 @@ function render(){
   const tb = $("#tbody");
   if(rows.length===0){ $("#empty").style.display="block"; tb.innerHTML=""; return; }
   $("#empty").style.display="none";
-  tb.innerHTML = rows.slice().reverse().map(r=>`<tr>
-    <td>${new Date(r.ts).toLocaleString('zh-CN')}</td>
-    <td>${r.trainee}</td><td>${r.emp||'—'}</td><td>${r.lab}</td>
-    <td>${r.moduleName}<br><small style="color:var(--mut)">${r.media}</small></td>
+  tb.innerHTML = CURRENT_ROWS.map(r=>`<tr>
+    <td>${esc(new Date(r.ts).toLocaleString('zh-CN'))}</td>
+    <td>${esc(r.trainee)}</td><td>${esc(r.emp||'—')}</td><td>${esc(r.lab)}</td>
+    <td>${esc(r.moduleName)}<br><small style="color:var(--mut)">${esc(r.media)}</small></td>
     <td><b style="color:${r.passed?'#22c55e':'#ef4444'}">${r.score}</b></td>
     <td class="${r.fatalHits?'bad':''}">${r.fatalHits}</td>
     <td class="${r.passed?'ok':'bad'}">${r.passed?'通过':'未通过'}</td>
@@ -177,7 +182,7 @@ function render(){
 }
 function exportCsv(){
   const head = ["时间","学员","工号","部门","采样模块","介质","得分","致命红线次数","结果"];
-  const lines = ALL.map(r=>[new Date(r.ts).toLocaleString('zh-CN'),r.trainee,r.emp||"",r.lab,r.moduleName,r.media,r.score,r.fatalHits,r.passed?"通过":"未通过"].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(","));
+  const lines = CURRENT_ROWS.map(r=>[new Date(r.ts).toLocaleString('zh-CN'),r.trainee,r.emp||"",r.lab,r.moduleName,r.media,r.score,r.fatalHits,r.passed?"通过":"未通过"].map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(","));
   const csv = "﻿"+head.join(",")+"\n"+lines.join("\n");
   const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
   const a = document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="EnvLab采样培训记录.csv"; a.click();
@@ -210,7 +215,11 @@ $("#fPass").addEventListener("change",render);
 $("#fName").addEventListener("input",render);
 $("#expCsv").addEventListener("click",exportCsv);
 $("#clearBtn").addEventListener("click",()=>{
-  if(confirm("确认清空本机全部采样培训记录？此操作不可恢复。")){ localStorage.removeItem(LS_KEY); load(); }
+  if(confirm("只清空本机采样培训记录？此操作不可恢复，且不会删除云端记录。")){
+    localStorage.removeItem(LS_KEY);
+    if(window.Cloud && Cloud.available()) render();
+    else load();
+  }
 });
 
 // 闸门：仅管理员可见记录

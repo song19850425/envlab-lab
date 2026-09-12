@@ -12,11 +12,28 @@ const crypto = require('crypto');
 
 const ROOT = path.resolve(__dirname, '..');            // EnvLab-培训系统
 const DB_PATH = path.join(__dirname, 'db.json');
-const SECRET = process.env.ENVLAB_SECRET || 'envlab-dev-secret-change-me';
+const IS_PROD = process.env.NODE_ENV === 'production';
+const SECRET = process.env.ENVLAB_SECRET || '';
+const CORS_ORIGIN = process.env.ENVLAB_CORS_ORIGIN || '';
 const PORT = parseInt(process.env.PORT || '8899', 10);
+const HOST = process.env.ENVLAB_HOST || '127.0.0.1';
+const TOKEN_TTL_MS = Math.max(15 * 60 * 1000, parseInt(process.env.ENVLAB_TOKEN_TTL_MS || String(8 * 60 * 60 * 1000), 10));
+const MAX_BODY_BYTES = 64 * 1024;
+const MAX_TEXT = 160;
 
-// 管理员账号（培训记录台专用）：姓名 ENVLAB / 工号 001
-const ADMIN = { name: 'ENVLAB', emp: '001', lab: '001', phone: '001' };
+// 管理员账号：生产环境必须通过环境变量提供，开发环境保留演示值但明确警告
+const ADMIN = {
+  name: (process.env.ENVLAB_ADMIN_NAME || 'ENVLAB').trim(),
+  emp: (process.env.ENVLAB_ADMIN_EMP || '001').trim(),
+  lab: (process.env.ENVLAB_ADMIN_LAB || '001').trim(),
+  phone: (process.env.ENVLAB_ADMIN_PHONE || '001').trim()
+};
+if (IS_PROD && (!SECRET || !process.env.ENVLAB_ADMIN_NAME || !process.env.ENVLAB_ADMIN_EMP)) {
+  throw new Error('生产环境必须设置 ENVLAB_SECRET、ENVLAB_ADMIN_NAME、ENVLAB_ADMIN_EMP');
+}
+if (!IS_PROD && (!SECRET || ADMIN.name === 'ENVLAB' || ADMIN.emp === '001')) {
+  console.warn('警告：当前使用开发环境默认后端凭据；部署到公网前请设置 ENVLAB_SECRET / ENVLAB_ADMIN_*。');
+}
 
 // ---------------- 数据库（JSON 文件，原子写） ----------------
 function loadDB() {
@@ -30,17 +47,29 @@ function saveDB(db) {
 }
 let db = loadDB();
 
+function tokenKey(token) {
+  return crypto.createHmac('sha256', SECRET || 'development-only-secret').update(token).digest('hex');
+}
 function newToken(emp, role) {
   const t = crypto.randomBytes(24).toString('hex');
-  db.tokens[t] = { emp, role, ts: Date.now() };
+  const now = Date.now();
+  db.tokens[tokenKey(t)] = { emp, role, ts: now, expiresAt: now + TOKEN_TTL_MS };
   saveDB(db);
   return t;
 }
 function auth(req) {
   const h = req.headers['authorization'] || '';
-  const m = h.match(/^Bearer\s+(.+)$/);
+  const m = h.match(/^Bearer\s+([A-Fa-f0-9]{32,128})$/);
   if (!m) return null;
-  return db.tokens[m[1]] || null;
+  const key = tokenKey(m[1]);
+  const record = db.tokens[key];
+  if (!record) return null;
+  if (!record.expiresAt || record.expiresAt <= Date.now()) {
+    delete db.tokens[key];
+    saveDB(db);
+    return null;
+  }
+  return record;
 }
 
 // ---------------- 工具 ----------------
@@ -51,23 +80,124 @@ const MIME = {
   '.csv': 'text/csv; charset=utf-8'
 };
 function sendJSON(res, code, obj) {
-  res.writeHead(code, {
+  const headers = {
     'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
-    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
-  });
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Idempotency-Key',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Cache-Control': 'no-store'
+  };
+  // 不再使用 *：跨域部署时必须明确配置允许的前端来源。
+  if (CORS_ORIGIN) {
+    headers['Access-Control-Allow-Origin'] = CORS_ORIGIN;
+    headers.Vary = 'Origin';
+  }
+  res.writeHead(code, headers);
   res.end(JSON.stringify(obj));
 }
+function bodyError(message, statusCode) {
+  const e = new Error(message);
+  e.statusCode = statusCode;
+  return e;
+}
 function readBody(req) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let d = '';
-    req.on('data', c => d += c);
-    req.on('end', () => { try { resolve(d ? JSON.parse(d) : {}); } catch (e) { resolve({}); } });
+    let size = 0;
+    let settled = false;
+    req.on('data', c => {
+      if (settled) return;
+      size += Buffer.byteLength(c);
+      if (size > MAX_BODY_BYTES) {
+        settled = true;
+        reject(bodyError('请求体过大（上限 64 KB）', 413));
+        req.destroy();
+        return;
+      }
+      d += c;
+    });
+    req.on('end', () => {
+      if (settled) return;
+      if (!d.trim()) { resolve({}); return; }
+      try {
+        const value = JSON.parse(d);
+        if (!value || typeof value !== 'object' || Array.isArray(value)) {
+          reject(bodyError('请求体必须是 JSON 对象', 400));
+        } else resolve(value);
+      } catch (e) {
+        reject(bodyError('JSON 格式错误', 400));
+      }
+    });
+    req.on('error', e => { if (!settled) reject(e); });
   });
 }
+function text(v, max = MAX_TEXT) {
+  return typeof v === 'string' ? v.trim().slice(0, max) : '';
+}
+function finiteNumber(v, fallback = 0, min = 0, max = Number.MAX_SAFE_INTEGER) {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? Math.max(min, Math.min(max, n)) : fallback;
+}
 function checkAdmin(p) {
-  return (p && p.name && p.name.toUpperCase() === ADMIN.name && p.emp === ADMIN.emp);
+  return text(p && p.name).toUpperCase() === ADMIN.name.toUpperCase() && text(p && p.emp, 80) === ADMIN.emp;
+}
+function loadInstrumentConfig(id) {
+  const safe = text(id, 80).toLowerCase();
+  if (!safe || !/^[a-z0-9-]+$/.test(safe)) return null;
+  const fp = path.join(ROOT, 'instruments', safe + '.json');
+  if (!fp.startsWith(path.join(ROOT, 'instruments') + path.sep) || !fs.existsSync(fp)) return null;
+  try {
+    const cfg = JSON.parse(fs.readFileSync(fp, 'utf8'));
+    return cfg && Array.isArray(cfg.steps) ? cfg : null;
+  } catch (e) { return null; }
+}
+function assessTraining(payload) {
+  const rawSteps = Array.isArray(payload.steps) ? payload.steps.slice(0, 100) : [];
+  const cfg = loadInstrumentConfig(payload.instrumentId);
+  const hasAttempts = rawSteps.length > 0 && rawSteps.every(s => s && Array.isArray(s.attempts));
+  if (cfg && rawSteps.length !== cfg.steps.length) {
+    throw bodyError('培训步骤数量与当前仪器配置不一致', 400);
+  }
+  const steps = rawSteps.map((s, i) => {
+    const expected = cfg && cfg.steps[i];
+    if (expected && Array.isArray(s.attempts)) {
+      let fatal = false, solved = false, wrong = false;
+      const attempts = s.attempts.slice(0, 50).map(a => {
+        const index = Number(a && a.index);
+        if (!Number.isInteger(index) || index < 0 || index >= expected.options.length) {
+          throw bodyError('培训答案索引无效', 400);
+        }
+        const option = expected.options[index];
+        if (option.fatal) fatal = true;
+        else if (option.correct) solved = true;
+        else wrong = true;
+        return { index };
+      });
+      return {
+        q: text(expected.q),
+        correct: solved && !fatal,
+        partial: solved && wrong && !fatal,
+        fatal,
+        attempts
+      };
+    }
+    // 兼容尚未带 attempts 的旧版客户端，但标记为未完成服务端独立核验。
+    return {
+      q: text(s && s.q),
+      correct: !!(s && s.correct),
+      partial: !!(s && s.partial) && !(s && s.correct),
+      fatal: !!(s && s.fatal),
+      attempts: []
+    };
+  });
+  const fatalHits = steps.filter(s => s.fatal).length;
+  const credits = steps.map(s => s.fatal ? 0 : s.correct ? 1 : s.partial ? 0.5 : 0);
+  const score = steps.length ? Math.round(credits.reduce((a, b) => a + b, 0) / steps.length * 100) : 0;
+  const threshold = cfg ? finiteNumber(cfg.passThreshold, 80, 0, 100) : 80;
+  return {
+    steps, score, fatalHits,
+    passed: fatalHits === 0 && score >= threshold,
+    serverVerified: !!cfg && hasAttempts
+  };
 }
 
 // ---------------- API 路由 ----------------
@@ -81,9 +211,10 @@ async function handleApi(req, res, pathname) {
   // 学员注册（真实账号，云端持久化）
   if (pathname === '/api/trainee/register' && req.method === 'POST') {
     const b = await readBody(req);
-    const name = (b.name || '').trim(), emp = (b.emp || '').trim(),
-          lab = (b.lab || '').trim(), phone = (b.phone || '').trim();
+    const name = text(b.name), emp = text(b.emp, 80),
+          lab = text(b.lab), phone = text(b.phone, 40);
     if (!name || !emp || !lab) { sendJSON(res, 400, { error: '姓名、工号、机构为必填项' }); return; }
+    if (name.length < 2 || emp.length < 1) { sendJSON(res, 400, { error: '姓名或工号格式不正确' }); return; }
     db.trainees[emp] = { name, emp, lab, phone, role: 'trainee', updatedAt: Date.now() };
     saveDB(db);
     const token = newToken(emp, 'trainee');
@@ -94,7 +225,7 @@ async function handleApi(req, res, pathname) {
   // 学员登录（按工号）
   if (pathname === '/api/trainee/login' && req.method === 'POST') {
     const b = await readBody(req);
-    const emp = (b.emp || '').trim();
+    const emp = text(b.emp, 80);
     const t = db.trainees[emp];
     if (!t) { sendJSON(res, 401, { error: '该工号尚未登记，请先注册' }); return; }
     const token = newToken(emp, 'trainee');
@@ -110,29 +241,41 @@ async function handleApi(req, res, pathname) {
     return;
   }
 
-  // 保存培训记录（云端）
+  // 保存培训记录（云端）：服务端重算结果，不信任客户端 score/passed/fatalHits
   if (pathname === '/api/training' && req.method === 'POST') {
     const a = auth(req);
-    if (!a) { sendJSON(res, 401, { error: '未登录' }); return; }
+    if (!a || a.role !== 'trainee') { sendJSON(res, 401, { error: '未登录' }); return; }
     const b = await readBody(req);
+    const profile = db.trainees[a.emp] || {};
+    const clientId = text(req.headers['x-idempotency-key'] || b.id, 100);
+    if (clientId) {
+      const existing = db.trainings.find(r => r.emp === a.emp && r.clientId === clientId);
+      if (existing) { sendJSON(res, 200, { id: existing.id, duplicate: true, serverVerified: !!existing.serverVerified }); return; }
+    }
+    const assessed = assessTraining(b);
+    const cfg = loadInstrumentConfig(b.instrumentId);
     const rec = {
       id: 'TR' + crypto.randomBytes(5).toString('hex'),
+      clientId,
       ts: new Date().toISOString(),
       emp: a.emp,
-      trainee: (b.trainee || db.trainees[a.emp]?.name || a.emp),
-      lab: (b.lab || db.trainees[a.emp]?.lab || ''),
-      instrumentId: b.instrumentId || '',
-      instrumentName: b.instrumentName || '',
-      model: b.model || '',
-      durationSec: b.durationSec || 0,
-      score: b.score || 0,
-      fatalHits: b.fatalHits || 0,
-      passed: !!b.passed,
-      steps: b.steps || []
+      trainee: text(profile.name || a.emp),
+      lab: text(profile.lab),
+      instrumentId: text(b.instrumentId, 80),
+      instrumentName: text((cfg && cfg.name) || b.instrumentName),
+      model: text((cfg && cfg.model) || b.model),
+      durationSec: finiteNumber(b.durationSec, 0, 0, 86400),
+      score: assessed.score,
+      fatalHits: assessed.fatalHits,
+      passed: assessed.passed,
+      serverVerified: assessed.serverVerified,
+      clientScore: finiteNumber(b.score, 0, 0, 100),
+      clientPassed: !!b.passed,
+      steps: assessed.steps
     };
     db.trainings.push(rec);
     saveDB(db);
-    sendJSON(res, 200, { id: rec.id });
+    sendJSON(res, 200, { id: rec.id, serverVerified: rec.serverVerified, score: rec.score, passed: rec.passed });
     return;
   }
 
@@ -148,7 +291,7 @@ async function handleApi(req, res, pathname) {
   // 管理员登录
   if (pathname === '/api/admin/login' && req.method === 'POST') {
     const b = await readBody(req);
-    if (!checkAdmin(b)) { sendJSON(res, 401, { error: '管理员账号为 姓名 ENVLAB / 工号 001' }); return; }
+    if (!checkAdmin(b)) { sendJSON(res, 401, { error: '管理员账号或凭据错误' }); return; }
     const token = newToken('001', 'admin');
     sendJSON(res, 200, {
       token,
@@ -207,12 +350,16 @@ const server = http.createServer((req, res) => {
   const u = new URL(req.url, 'http://localhost');
   const pathname = u.pathname;
   if (pathname.startsWith('/api/')) {
-    handleApi(req, res, pathname).catch(e => sendJSON(res, 500, { error: '服务器错误: ' + e.message }));
+    handleApi(req, res, pathname).catch(e => {
+      const status = Number.isInteger(e.statusCode) ? e.statusCode : 500;
+      const message = status < 500 ? e.message : '服务器内部错误';
+      sendJSON(res, status, { error: message });
+    });
   } else {
     serveStatic(req, res, pathname);
   }
 });
-server.listen(PORT, '0.0.0.0', () => {
-  console.log('EnvLab 培训系统后端已启动: http://localhost:' + PORT);
+server.listen(PORT, HOST, () => {
+  console.log('EnvLab 培训系统后端已启动: http://' + HOST + ':' + PORT);
   console.log('前端入口: http://localhost:' + PORT + '/  记录台: /admin.html');
 });

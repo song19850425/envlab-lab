@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>仪器操作培训 | EnvLab</title>
-<meta name="description" content="学员：${rec.trainee} · ${rec.lab} · 用时 ${rec.durationSec}s · 致命红线 ${rec.fatalHits} 次">
+<meta name="description" content="EnvLab 上岗培训：按真实作业流程走查、逐项确认采样表格与试剂器材清单，完成红线考核并导出培训证明。">
 <style>
   :root{ --accent:#f59e0b; --bg:#0b1020; --panel:#121a30; --line:#22304f; --txt:#e8eefc; --mut:#8aa0c6; }
   *{box-sizing:border-box}
@@ -45,6 +45,11 @@
   .picker small{color:var(--mut)}
   footer{color:var(--mut);font-size:12px;text-align:center;margin-top:30px;border-top:1px solid var(--line);padding-top:16px}
   .note{font-size:12px;color:var(--mut);background:rgba(138,160,198,.08);border-radius:8px;padding:8px 12px;margin:10px 0}
+  .sync-status{font-size:12.5px;border-radius:8px;padding:9px 12px;margin:12px 0 4px;text-align:left}
+  .sync-status.pending{color:#fde68a;background:rgba(245,158,11,.12);border-left:3px solid #f59e0b}
+  .sync-status.success{color:#bbf7d0;background:rgba(34,197,94,.12);border-left:3px solid #22c55e}
+  .sync-status.fail{color:#fecaca;background:rgba(239,68,68,.12);border-left:3px solid #ef4444}
+  .sync-retry{margin-top:8px!important;font-size:12px!important;padding:7px 12px!important}
   /* 操作规程学习区 */
   .op .op-sec{background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:12px}
   .op .op-sec h3{margin:0 0 8px;font-size:15px;color:var(--accent)}
@@ -83,6 +88,9 @@ function getProfiles(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILES)
 function getCurrent(){ try{ return JSON.parse(localStorage.getItem(LS_CURRENT)||"null"); }catch(e){ return null; } }
 function setCurrent(p){ try{ localStorage.setItem(LS_CURRENT, JSON.stringify(p)); }catch(e){} }
 const $ = s => document.querySelector(s);
+const ESC_MAP = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c=>ESC_MAP[c]); }
+function safeHref(v){ const s=String(v||''); return /^(?:[A-Za-z0-9_\u4e00-\u9fff-]+\/)*[A-Za-z0-9_\u4e00-\u9fff-]+\.html(?:#[A-Za-z0-9_-]+)?$/.test(s) ? esc(s) : '#'; }
 const params = new URLSearchParams(location.search);
 const instId = params.get("inst");
 
@@ -97,15 +105,15 @@ function buildOp(){
   if(!INST.op || !INST.op.length) return "";
   return INST.op.map(s=>`
     <div class="op-sec">
-      <h3>${s.title}</h3>
-      <ul>${s.points.map(p=>`<li>${p}</li>`).join("")}</ul>
-      ${(s.redLines&&s.redLines.length)?`<div class="redline"><b>⚠ 红线：</b>${s.redLines.map(r=>`<div>• ${r}</div>`).join("")}</div>`:""}
+      <h3>${esc(s.title)}</h3>
+      <ul>${(s.points||[]).map(p=>`<li>${esc(p)}</li>`).join("")}</ul>
+      ${(s.redLines&&s.redLines.length)?`<div class="redline"><b>⚠ 红线：</b>${s.redLines.map(r=>`<div>• ${esc(r)}</div>`).join("")}</div>`:""}
     </div>`).join("");
 }
 
 function loadInst(id){
   fetch("instruments/"+id+".json").then(r=>r.json()).then(j=>{
-    INST=j; stepState = j.steps.map(()=>({attemptsWrong:0,fatalHit:false}));
+    INST=j; stepState = j.steps.map(()=>({attemptsWrong:0,fatalHit:false,attempts:[]}));
     document.documentElement.style.setProperty('--accent', j.accent||'#f59e0b');
     boot();
   }).catch(e=>{
@@ -116,21 +124,23 @@ function loadInst(id){
 function boot(){
   $("#title").textContent = INST.name;
   $("#heroSub").textContent = "示例机型：" + INST.model + " · " + (INST.remark||"");
-  renderOp();   // 先学操作规程}
+  renderOp();   // 先学操作规程
+}
 
 function renderOp(){
-  const embed = INST.opPage ? `
+  const opPage = safeHref(INST.opPage);
+  const embed = opPage !== '#' ? `
     <div class="op-embed">
       <div class="op-embed-bar">
         <span>📟 完整交互培训（已做好的对应操作规程仿真，可点开实操演练）</span>
-        <a class="btn ghost" href="${INST.opPage}" target="_blank" rel="noopener" style="margin:0">↗ 新标签打开</a>
+        <a class="btn ghost" href="${opPage}" target="_blank" rel="noopener" style="margin:0">↗ 新标签打开</a>
       </div>
-      <iframe class="op-frame" src="${INST.opPage}" title="操作规程完整交互培训"></iframe>
+      <iframe class="op-frame" src="${opPage}" title="操作规程完整交互培训"></iframe>
     </div>` : "";
   $("#app").innerHTML = `
     <div class="card">
       <div class="step-no">培训前 · 第一步：学习操作规程</div>
-      <h2 style="margin:6px 0 4px;font-size:20px">${INST.name} 标准操作规程（要点）</h2>
+      <h2 style="margin:6px 0 4px;font-size:20px">${esc(INST.name)} 标准操作规程（要点）</h2>
       <div class="note">请先在上方「完整交互培训」中通读并演练标准操作；下方为要点速记，供快速对照。确认理解后再进入作答；作答途中也可随时「查看操作规程」。</div>
       ${embed}
       <h3 style="margin:18px 0 6px;font-size:15px;color:var(--accent)">要点速记</h3>
@@ -142,14 +152,18 @@ function renderOp(){
 
 function renderForm(){
   const cur = getCurrent();
-  const curName = cur ? cur.name : "";
-  const curEmp  = cur ? (cur.emp||"") : "";
-  const curLab  = cur ? (cur.lab||"演示实验室") : "演示实验室";
+  const curName = esc(cur ? cur.name : "");
+  const curEmp  = esc(cur ? (cur.emp||"") : "");
+  const curLab  = esc(cur ? (cur.lab||"演示实验室") : "演示实验室");
+  const curPhone = esc(cur ? (cur.phone||"") : "");
+  const curNameText = esc(cur ? cur.name : "");
+  const curEmpText = esc(cur ? (cur.emp||"") : "");
+  const curLabText = esc(cur ? (cur.lab||"演示实验室") : "演示实验室");
   $("#app").innerHTML = `
     <div class="card">
       <div class="step-no">培训前 · 第二步：培训登记</div>
       <h2 style="margin:6px 0 4px;font-size:20px">确认学员信息后开始</h2>
-      ${cur?`<div class="note" style="border-left:3px solid var(--accent);background:rgba(138,160,198,.1)">当前登录学员：<b style="color:var(--txt)">${cur.name}</b>${cur.emp?`（${cur.emp}）`:''} · ${cur.lab}${cur.phone?` · ${cur.phone}`:''}　<a class="btn ghost" href="index.html?logout=1" style="margin:0;padding:4px 10px;font-size:12px">切换 / 注销</a></div>`:`<div class="note">未检测到登录信息，也可直接填写后开始（记录仅存本机）。建议从主页登记后再进入，便于集中留痕。</div>`}
+      ${cur?`<div class="note" style="border-left:3px solid var(--accent);background:rgba(138,160,198,.1)">当前登录学员：<b style="color:var(--txt)">${curNameText}</b>${curEmpText?`（${curEmpText}）`:''} · ${curLabText}${curPhone?` · ${curPhone}`:''}　<a class="btn ghost" href="index.html?logout=1" style="margin:0;padding:4px 10px;font-size:12px">切换 / 注销</a></div>`:`<div class="note">未检测到登录信息，也可直接填写后开始（记录仅存本机）。建议从主页登记后再进入，便于集中留痕。</div>`}
       <label>姓名 / 工号称呼 *</label>
       <input id="tName" value="${curName}" placeholder="如：张某某 / 03号操作员">
       <label>工号（选填）</label>
@@ -174,25 +188,29 @@ function renderStep(){
   const s = INST.steps[stepIndex];
   const total = INST.steps.length;
   const pct = Math.round(stepIndex/total*100);
+  const opPage = safeHref(INST.opPage);
   $("#app").innerHTML = `
     <div class="card">
       <div class="op-actions">
-        <button class="btn ghost" id="opToggle">📖 查看要点</button>
-        ${INST.opPage?`<a class="btn ghost" href="${INST.opPage}" target="_blank" rel="noopener" style="margin:0">↗ 打开完整交互培训</a>`:""}
+        <button class="btn ghost" id="opToggle" type="button" aria-expanded="false" aria-controls="opPanel">📖 查看要点</button>
+        ${opPage !== '#' ? `<a class="btn ghost" href="${opPage}" target="_blank" rel="noopener" style="margin:0">↗ 打开完整交互培训</a>` : ""}
       </div>
-      <div id="opPanel" style="display:none;margin-bottom:14px">${buildOp()}</div>
-      <div class="step-no">第 ${stepIndex+1} / ${total} 步</div>
-      <div class="q">${s.q}</div>
-      <div class="progress"><i style="width:${pct}%"></i></div>
+      <div id="opPanel" role="region" aria-label="操作要点" style="display:none;margin-bottom:14px">${buildOp()}</div>
+      <div class="step-no" id="stepHeading" tabindex="-1">第 ${stepIndex+1} / ${total} 步</div>
+      <div class="q" id="questionText" role="heading" aria-level="2">${esc(s.q)}</div>
+      <div class="progress" role="progressbar" aria-label="培训进度" aria-valuemin="0" aria-valuemax="${total}" aria-valuenow="${stepIndex}" aria-valuetext="第 ${stepIndex+1} 步，共 ${total} 步"><i style="width:${pct}%"></i></div>
       <div id="opts"></div>
-      <div class="feedback" id="fb"></div>
-      <div class="log" id="log">${logLines.join("")}</div>
+      <div class="feedback" id="fb" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div class="log" id="log" role="log" aria-live="polite" aria-relevant="additions text">${logLines.join("")}</div>
     </div>`;
   $("#opToggle").addEventListener("click", ()=>{
     const p = $("#opPanel");
-    p.style.display = p.style.display==="none" ? "block" : "none";
-    $("#opToggle").textContent = p.style.display==="none" ? "📖 查看要点" : "📖 收起要点";
+    const open = p.style.display === "none";
+    p.style.display = open ? "block" : "none";
+    $("#opToggle").textContent = open ? "📖 收起要点" : "📖 查看要点";
+    $("#opToggle").setAttribute("aria-expanded", open ? "true" : "false");
   });
+  requestAnimationFrame(()=>{ const h=$("#stepHeading"); if(h) h.focus(); });
   const box = $("#opts");
   s.options.forEach((o,i)=>{
     const b = document.createElement("button");
@@ -206,10 +224,13 @@ function choose(o, btn){
   const s = INST.steps[stepIndex];
   const st = stepState[stepIndex];
   const fb = $("#fb");
+  st.attempts = st.attempts || [];
+  st.attempts.push({index:Number(btn.dataset.i)});
   if(o.fatal){
     st.fatalHit = true;
-    logLines.push(`<div class="bad">✕ 第${stepIndex+1}步 触发致命红线：${o.text}</div>`);
+    logLines.push(`<div class="bad">✕ 第${stepIndex+1}步 触发致命红线：${esc(o.text)}</div>`);
     fb.className="feedback fatal";
+    fb.setAttribute("role", "alert");
     fb.textContent = "⚠ 红线警告：" + s.explain;
     btn.classList.add("wrong");
     $("#log").innerHTML = logLines.join("");
@@ -223,7 +244,9 @@ function choose(o, btn){
     btn.classList.add("correct");
     [...$("#opts").children].forEach(c=>c.classList.add("dim"));
     logLines.push(`<div class="${st.fatalHit?'warn':'ok'}">${st.fatalHit?'⚠':'✓'} 第${stepIndex+1}步 正确${st.fatalHit?'（曾触发红线，本步记0分）':''}</div>`);
-    fb.className="feedback info"; fb.textContent = s.explain;
+    fb.className="feedback info";
+    fb.setAttribute("role", "status");
+    fb.textContent = s.explain;
     stepState[stepIndex].credit = credit;
     $("#log").innerHTML = logLines.join("");
     setTimeout(advance, 650);
@@ -232,6 +255,7 @@ function choose(o, btn){
   st.attemptsWrong++;
   btn.classList.add("wrong");
   fb.className="feedback info";
+  fb.setAttribute("role", "status");
   fb.textContent = "这一步不对，注意：" + s.explain;
   $("#log").innerHTML = logLines.join("");
 }
@@ -254,10 +278,11 @@ function finish(){
     trainee: trainee.name, emp: trainee.emp, lab: trainee.lab,
     instrumentId: INST.id, instrumentName: INST.name, model: INST.model,
     durationSec: dur, score, fatalHits, passed,
-    steps: INST.steps.map((s,i)=>({q:s.q, correct: stepState[i].credit===1, partial: stepState[i].credit===0.5, fatal: stepState[i].fatalHit}))
+    steps: INST.steps.map((s,i)=>({q:s.q, correct: stepState[i].credit===1, partial: stepState[i].credit===0.5, fatal: stepState[i].fatalHit, attempts:(stepState[i].attempts||[]).slice()}))
   };
-  saveRecord(rec);
+  const localSaved = saveRecord(rec);
   renderResult(rec);
+  syncRecord(rec, localSaved);
 }
 
 function saveRecord(rec){
@@ -265,11 +290,34 @@ function saveRecord(rec){
     const all = JSON.parse(localStorage.getItem(LS_KEY)||"[]");
     all.push(rec);
     localStorage.setItem(LS_KEY, JSON.stringify(all));
-  }catch(e){ console.warn("记录保存失败", e); }
-  // 云端同步（若后端可用；失败不影响本机留存）
-  if(window.Cloud && Cloud.available()){
-    Cloud.saveTraining(rec).catch(e=>console.warn("云端记录保存失败（已留本机）:", e.message));
+    return true;
+  }catch(e){ console.warn("记录保存失败", e); return false; }
+}
+
+function setSyncStatus(kind, text, retry){
+  const el = $("#syncStatus");
+  const btn = $("#syncRetry");
+  if(!el) return;
+  el.className = "sync-status " + kind;
+  el.textContent = text;
+  if(btn){ btn.hidden = !retry; btn.onclick = retry ? ()=>syncRecord(window.lastTrainingRecord, true) : null; }
+}
+
+function syncRecord(rec, localSaved){
+  window.lastTrainingRecord = rec;
+  if(!localSaved){
+    setSyncStatus("fail", "本机保存失败；请立即导出培训证明留存。", false);
   }
+  if(!window.Cloud || !Cloud.available()){
+    setSyncStatus("pending", localSaved ? "仅保存到本机（当前未连接云端）。换设备或清缓存前，请导出培训证明。" : "本机保存失败，当前也未连接云端。", false);
+    return;
+  }
+  setSyncStatus("pending", localSaved ? "已保存到本机，正在同步云端…" : "本机保存失败，正在尝试同步云端…", false);
+  Cloud.saveTraining(rec).then(()=>{
+    setSyncStatus("success", "云端同步成功；本机也已保留这条记录。", false);
+  }).catch(e=>{
+    setSyncStatus("fail", "云端同步失败：" + e.message + "。记录仍保存在本机，可点击重试。", true);
+  });
 }
 
 function renderResult(rec){
@@ -280,19 +328,21 @@ function renderResult(rec){
       <div class="step-no">培训结果</div>
       <div class="score">${rec.score}</div>
       <div class="${cls}">${txt}</div>
-      <div class="hero-sub">学员：${rec.trainee} · ${rec.lab} · 用时 ${rec.durationSec}s · 致命红线 ${rec.fatalHits} 次</div>
+      <div class="hero-sub">学员：${esc(rec.trainee)} · ${esc(rec.lab)} · 用时 ${rec.durationSec}s · 致命红线 ${rec.fatalHits} 次</div>
       <div style="margin-top:18px">
         <button class="btn" id="certBtn">导出培训证明</button>
         <a class="btn ghost" href="admin.html" style="text-decoration:none">查看记录台</a>
       </div>
-      <div class="note">本记录已存入本机浏览器。换设备或清缓存会丢失，重要佐证请点「导出培训证明」留存。</div>
+      <div id="syncStatus" class="sync-status pending" role="status" aria-live="polite">正在检查云端同步…</div>
+      <button class="btn ghost sync-retry" id="syncRetry" type="button" hidden>重新同步云端</button>
+      <div class="note">记录会先保存到本机；若未连接云端或同步失败，换设备/清缓存前请点「导出培训证明」留存。</div>
     </div>`;
   $("#certBtn").addEventListener("click", ()=>exportCert(rec));
 }
 
 function exportCert(rec){
   const w = window.open("", "_blank");
-  const rows = rec.steps.map((s,i)=>`<tr><td>${i+1}</td><td>${s.q}</td><td>${s.fatal?'<span style="color:#ef4444">触发红线</span>':s.correct?'<span style="color:#16a34a">正确</span>':(s.partial?'<span style="color:#f59e0b">纠正后正确</span>':'—')}</td></tr>`).join("");
+  const rows = rec.steps.map((s,i)=>`<tr><td>${i+1}</td><td>${esc(s.q)}</td><td>${s.fatal?'<span style="color:#ef4444">触发红线</span>':s.correct?'<span style="color:#16a34a">正确</span>':(s.partial?'<span style="color:#f59e0b">纠正后正确</span>':'—')}</td></tr>`).join("");
   w.document.write(`<!DOCTYPE html><html lang="zh-CN"><head><meta charset="UTF-8"><title>培训证明</title>
   <style>body{font-family:"Microsoft YaHei",sans-serif;padding:40px;color:#1a2238;max-width:720px;margin:auto}
   h1{color:#b45309;border-bottom:2px solid #b45309;padding-bottom:10px}

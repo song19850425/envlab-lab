@@ -119,6 +119,8 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
 const LS_PROFILES = "envlab_profiles";
 const LS_CURRENT  = "envlab_current";
 const params = new URLSearchParams(location.search);
+const ESC_MAP = {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'};
+function esc(v){ return String(v == null ? '' : v).replace(/[&<>"']/g, c=>ESC_MAP[c]); }
 
 function getProfiles(){ try{ return JSON.parse(localStorage.getItem(LS_PROFILES)||"[]"); }catch(e){ return []; } }
 function setProfiles(a){ localStorage.setItem(LS_PROFILES, JSON.stringify(a)); }
@@ -142,7 +144,7 @@ if(profiles.length){
     const a=document.createElement("a");
     const traineeHref = (window.Cloud && Cloud.available()) ? "train.html" : "train-standalone.html";
     a.href = (p.role==="admin") ? "admin.html" : traineeHref;
-    a.innerHTML=`<b>${p.name}</b>${p.emp?`（${(p.emp||"").replace(/[<>&]/g,"")}）`:""} <small>· ${p.lab}</small>`;
+    a.innerHTML=`<b>${esc(p.name)}</b>${p.emp?`（${esc(p.emp)}）`:""} <small>· ${esc(p.lab)}</small>`;
     a.addEventListener("click", async ()=>{
       setCurrent(p);
       if(window.Cloud && Cloud.available()){
