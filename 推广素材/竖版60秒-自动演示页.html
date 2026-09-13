@@ -97,6 +97,30 @@ body{
 .s6 .url{margin-top:40px;font-size:40px;font-weight:700;color:var(--accent);word-break:break-all;padding:0 20px}
 .s6 .tags{margin-top:30px;font-size:27px;color:var(--muted)}
 
+#gate{
+  position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;
+  background:rgba(5,8,15,.95);transition:opacity .35s;
+}
+#gate.hide{opacity:0;pointer-events:none}
+.gbox{
+  width:min(620px,88vw);padding:46px 42px;border-radius:22px;
+  border:1px solid rgba(255,255,255,.13);background:rgba(19,26,46,.97);text-align:center;
+}
+.gkick{font-size:12px;font-weight:700;letter-spacing:.18em;color:var(--accent)}
+.gtitle{margin-top:15px;font-size:23px;font-weight:800;color:#eaf7ff}
+.gbtns{display:flex;gap:12px;justify-content:center;margin-top:28px;flex-wrap:wrap}
+.gbtn{
+  padding:14px 26px;border-radius:10px;border:1px solid rgba(255,255,255,.16);
+  background:transparent;color:#c3d5e5;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+}
+.gbtn:hover{background:rgba(255,255,255,.07)}
+.gbtn.pri{border-color:rgba(56,189,248,.5);background:var(--abg);color:#e5f8ff}
+.gbtn.pri:hover{background:rgba(56,189,248,.26)}
+.ghint{margin-top:24px;font-size:12.5px;line-height:1.85;color:#8fa3b8}
+.ghint b{color:#a9c9df}
+.ghint code{font-family:ui-monospace,Consolas,monospace;color:#7dd3fc}
+
 #hud{
   position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
   display:flex;align-items:center;gap:16px;padding:12px 22px;border-radius:999px;
@@ -115,12 +139,29 @@ body{
   <div class="top"><span class="wm">EnvLab</span><span class="wm-sub">环境监测交互实验</span></div>
   <main id="scene"></main>
 </div>
+<div id="gate">
+  <div class="gbox">
+    <div class="gkick">ENVLAB · 竖版 60 秒演示</div>
+    <div class="gtitle">录屏素材 · 含中文配音</div>
+    <div class="gbtns">
+      <button class="gbtn pri" id="gStart" type="button">开始播放（含配音）</button>
+      <button class="gbtn" id="gMute" type="button">静音播放</button>
+    </div>
+    <div class="ghint">
+      浏览器需要一次点击才能播放语音。<b>建议用 Edge 打开</b>——中文配音音质明显好于 Chrome。<br>
+      录制顺序：先点这里 → 再开始录屏（OBS 记得开<b>桌面音频</b>）。<br>
+      播放中按 <b>V</b> 开关配音 · <code>?scene=N</code> 单镜重录 · <code>?auto=1</code> 跳过本页
+    </div>
+  </div>
+</div>
 <div id="hud">
   <span id="hudScene">镜 1 / 6</span><span class="sep">·</span>
   <span id="hudTime">00:00 / 01:00</span><span class="sep">·</span>
+  <span id="hudVoice">配音 <b>开</b></span><span class="sep">·</span>
   <span>空格 暂停</span><span class="sep">·</span>
   <span>← → 切换</span><span class="sep">·</span>
   <span>R 重播</span><span class="sep">·</span>
+  <span>V 配音</span><span class="sep">·</span>
   <span>H 隐藏</span>
 </div>
 <script>
@@ -245,15 +286,64 @@ body{
   }
 
   var SCENES=[
-    {t:0,     name:"钩子",           render:r1},
-    {t:4000,  name:"跳过步骤被拦",   render:r2, steps:[[1500,s2Tap],[3300,s2Block]]},
-    {t:20000, name:"参数变更作废",   render:r3, steps:[[3200,s3Void]]},
-    {t:34000, name:"异常物理解释",   render:r4, steps:[[1900,s4Warn],[3600,s4Why]]},
-    {t:46000, name:"站点规模",       render:r5},
-    {t:54000, name:"行动号召",       render:r6}
+    {t:0,     name:"钩子",         render:r1,
+      nar:{at:400,  rate:1.08, text:"照着步骤点一遍，就算学会了？"}},
+    {t:4000,  name:"跳过步骤被拦", render:r2, steps:[[1500,s2Tap],[3300,s2Block]],
+      nar:{at:500,  rate:1.14, text:"这个网站不一样。你想跳过风速，直接测阻力？它会拦住你，还会告诉你为什么——没有风速，效率数据根本没法比较。"}},
+    {t:20000, name:"参数变更作废", render:r3, steps:[[3200,s3Void]],
+      nar:{at:500,  rate:1.14, text:"更狠的是这里。把进口风速从十八改成二十六，前面测出的数据立刻作废，逼你重测。工况变了，旧数据对不上。"}},
+    {t:34000, name:"异常物理解释", render:r4, steps:[[1900,s4Warn],[3600,s4Why]],
+      nar:{at:500,  rate:1.14, text:"测出异常值，它不只弹一个错误。它会告诉你，测点落在涡流区，单点读数不代表断面平均流速。"}},
+    {t:46000, name:"站点规模",     render:r5,
+      nar:{at:400,  rate:1.12, text:"这样的页面有八十八个，单文件网页，不装插件、不注册，断网也能跑。"}},
+    {t:54000, name:"行动号召",     render:r6,
+      nar:{at:300,  rate:1.10, text:"搜 EnvLab 环境监测交互实验，先点那个判错演示台。"}}
   ];
 
-  var T=0,playing=false,last=0,cur=-1,fired={},done=false,hudTimer=null,hold=false;
+  var zhVoice=null,voiceOn=true;
+
+  function pickVoice(){
+    try{
+      if(!window.speechSynthesis)return;
+      var vs=window.speechSynthesis.getVoices()||[];
+      if(!vs.length)return;
+      var pref=[
+        /Xiaoxiao.*(Natural|Online)/i,
+        /Yunxi.*(Natural|Online)|Yunyang.*(Natural|Online)/i,
+        /Microsoft (Xiaoxiao|Yunxi|Yunjian|Xiaoyi|Huihui|Yaoyao|Kangkang)/i,
+        /Huihui|Yaoyao|Kangkang/i,
+        /zh[-_]CN/i,
+        /^zh/i
+      ];
+      for(var i=0;i<pref.length;i++){
+        var hit=vs.filter(function(v){return pref[i].test(v.name+" "+v.lang);})[0];
+        if(hit){zhVoice=hit;break;}
+      }
+    }catch(e){}
+  }
+
+  function speak(text,rate){
+    if(!voiceOn||!text)return;
+    var ss=window.speechSynthesis;
+    if(!ss||typeof window.SpeechSynthesisUtterance!=="function")return;
+    try{
+      ss.cancel();
+      var u=new window.SpeechSynthesisUtterance(text);
+      u.lang="zh-CN";
+      u.rate=rate||1.12;
+      u.pitch=1;
+      u.volume=1;
+      if(zhVoice)u.voice=zhVoice;
+      ss.speak(u);
+    }catch(e){}
+  }
+  function hush(){try{if(window.speechSynthesis)window.speechSynthesis.cancel();}catch(e){}}
+  function updateVoiceHud(){
+    var el=document.getElementById("hudVoice");
+    if(el)el.innerHTML="配音 "+(voiceOn?"<b>开</b>":"<b>关</b>");
+  }
+
+  var T=0,playing=false,last=0,cur=-1,fired={},done=false,hudTimer=null;
   var params=new URLSearchParams(location.search);
   var startAt=0;
   if(params.has("scene")){
@@ -265,7 +355,6 @@ body{
     if(!isNaN(ms))startAt=Math.max(0,Math.min(TOTAL,ms));
   }
   T=startAt;
-  if(params.get("auto")==="0")hold=true;
 
   function pad(v){return (v<10?"0":"")+v;}
   function fmt(ms){
@@ -291,8 +380,37 @@ body{
 
   function seekScene(i){
     i=Math.max(0,Math.min(SCENES.length-1,i));
+    hush();
     T=SCENES[i].t;done=false;playing=true;cur=-1;last=0;showHud(true);
   }
+
+  var gate=document.getElementById("gate");
+  var started=false;
+  function begin(withVoice){
+    voiceOn=withVoice;
+    started=true;
+    gate.classList.add("hide");
+    setTimeout(function(){gate.style.display="none";},380);
+    T=startAt;cur=-1;done=false;last=0;
+    playing=true;
+    updateVoiceHud();
+    showHud(true);
+  }
+  document.getElementById("gStart").addEventListener("click",function(){begin(true);});
+  document.getElementById("gMute").addEventListener("click",function(){begin(false);});
+
+  if(window.speechSynthesis){
+    pickVoice();
+    window.speechSynthesis.onvoiceschanged=function(){zhVoice=null;pickVoice();};
+  }
+  updateVoiceHud();
+  if(params.get("auto")==="1")begin(false);
+  else if(params.get("auto")==="0"){
+    started=true;playing=false;
+    gate.classList.add("hide");gate.style.display="none";
+    showHud(true);
+  }
+  else showHud(true);
 
   function frame(ts){
     if(!last)last=ts;
@@ -302,9 +420,10 @@ body{
 
     var idx=0;
     for(var i=0;i<SCENES.length;i++){if(T>=SCENES[i].t)idx=i;}
-    if(idx!==cur){cur=idx;fired={};SCENES[idx].render();}
+    if(idx!==cur){cur=idx;fired={};hush();SCENES[idx].render();}
 
     var sc=SCENES[idx];
+    if(sc.nar&&T>=sc.t+sc.nar.at&&!fired.__nar){fired.__nar=1;speak(sc.nar.text,sc.nar.rate);}
     if(sc.steps){
       for(var j=0;j<sc.steps.length;j++){
         var key=idx+"_"+j;
@@ -326,19 +445,25 @@ body{
   }
   requestAnimationFrame(frame);
 
-  if(!hold)setTimeout(function(){playing=true;showHud(true);},520);
-  else showHud(true);
-
   document.addEventListener("mousemove",function(){showHud(false);});
   document.addEventListener("keydown",function(e){
+    if(!started)return;
     if(e.code==="Space"){
       e.preventDefault();
-      if(done){T=0;done=false;playing=true;cur=-1;}
-      else playing=!playing;
+      if(done){hush();T=0;done=false;playing=true;cur=-1;}
+      else{
+        playing=!playing;
+        try{playing?window.speechSynthesis.resume():window.speechSynthesis.pause();}catch(err){}
+      }
       last=0;showHud(true);
     }else if(e.key==="ArrowRight"){seekScene(cur+1);}
     else if(e.key==="ArrowLeft"){seekScene(cur-1);}
-    else if(e.key==="r"||e.key==="R"){T=0;done=false;playing=true;cur=-1;last=0;showHud(true);}
+    else if(e.key==="r"||e.key==="R"){hush();T=0;done=false;playing=true;cur=-1;last=0;showHud(true);}
+    else if(e.key==="v"||e.key==="V"){
+      voiceOn=!voiceOn;
+      if(!voiceOn)hush();
+      updateVoiceHud();showHud(true);
+    }
     else if(e.key==="h"||e.key==="H"){
       hudHidden=!hudHidden;
       if(hudHidden)hud.classList.remove("show");else showHud(true);
