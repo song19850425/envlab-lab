@@ -45,6 +45,13 @@
   .old-list a{display:block;background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px;text-decoration:none;color:var(--txt);transition:.15s}
   .old-list a:hover{border-color:var(--accent2)}
   .old-list a small{color:var(--sub)}
+  /* 免登录直达：仪器操作规程清单 */
+  .op-list{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .op-list a{display:block;background:#0c1428;border:1px solid var(--line);border-radius:10px;padding:11px 13px;text-decoration:none;color:var(--txt);font-size:13.5px;transition:.15s}
+  .op-list a:hover{border-color:var(--accent2)}
+  .op-list a small{display:block;color:var(--sub);font-size:12px;margin-top:3px}
+  .op-hd{margin:0 0 4px;font-size:18px}
+  @media(max-width:680px){.op-list{grid-template-columns:1fr}}
   .note{font-size:12.5px;color:var(--sub);border-top:1px solid var(--line);padding-top:16px;line-height:1.7;margin-top:22px}
   .note b{color:var(--txt)}
   .err{color:#ff8a8a;font-size:13px;margin-top:8px;min-height:16px}
@@ -103,6 +110,21 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
           <div class="old-list" id="oldList"></div>
           <div id="oldEmpty" style="color:var(--sub);font-size:13px">本设备暂无已登记学员，请在左侧登记。</div>
         </div>
+      </div>
+    </div>
+
+
+    <!-- 免登录静态入口：即使不登记身份 / 无 JS，也能直达 6 台仪器的操作规程交互页 -->
+    <div class="card" id="opStatic" style="margin-top:16px">
+      <h2 class="op-hd">仪器操作规程（免登录直达）</h2>
+      <p class="h-sub">下列 6 台仪器的操作规程交互页可独立打开，用于课前预习、课后复看或收藏打印；要记录训练过程与成绩，请先在上方登记学员身份。</p>
+      <div class="op-list">
+        <a href="operation-pages/AAS-900T原子吸收分光光度计-交互版.html"><b>AAS-900T 原子吸收分光光度计</b><small>火焰/石墨炉进样与标准曲线</small></a>
+        <a href="operation-pages/BSC-1300IIA2生物安全柜-交互版.html"><b>BSC-1300IIA2 生物安全柜</b><small>气流分级与操作前准备</small></a>
+        <a href="operation-pages/L5S紫外可见分光光度计-交互版.html"><b>L5S 紫外可见分光光度计</b><small>基线校正与吸光度测量</small></a>
+        <a href="operation-pages/MS105DU十万分之一天平-交互版.html"><b>MS105DU 十万分之一天平</b><small>内校、水平与防静电要点</small></a>
+        <a href="operation-pages/QCS6000四气路大气采样器-交互版.html"><b>QCS6000 四气路大气采样器</b><small>流量校准与样品回收</small></a>
+        <a href="operation-pages/SPX-250B-Z生化培养箱-交互版.html"><b>SPX-250B-Z 生化培养箱</b><small>温度验证与超温保护</small></a>
       </div>
     </div>
 
