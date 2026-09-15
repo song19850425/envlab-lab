@@ -284,6 +284,7 @@ input[type=range]{width:100%;accent-color:#14b8a6;margin-top:2px}
     <div id="results"></div>
 
     <div class="acts" style="margin-top:16px">
+      <button class="btn b1" onclick="exportCSV()">📥 导出实验记录（CSV）</button>
       <button class="btn b2" onclick="resetAll()">🔄 重置实训</button>
     </div>
     <div id="log" style="margin-top:8px"></div>
@@ -317,6 +318,7 @@ input[type=range]{width:100%;accent-color:#14b8a6;margin-top:2px}
     <b>模型边界声明</b>：本页企业规模、燃煤量、发热量、排放因子取值、配额与价格均为<b>教学设定值</b>，用于演示"划边界—复核参数—三方对账—履约决策"的逻辑链路，不作为任何核查结论、检测报告、工程设计或配额核定的依据。真实核查请以现行指南与正式程序为准。
   </div>
   <div class="fw">
+    <a href="钢铁碳排放核查-教学交付包.html"><div class="t">📦 教学交付包（学生手册 / 教师指南 / 3 个现成作业 / 部署说明）</div><div class="d">给老师用的那一层：90 分钟课堂流程、知识点映射、带评分量规的现成作业、LMS 嵌入代码。</div></a>
     <a href="../index.html"><div class="t">→ 返回实验集总目录</div><div class="d">回到 EnvLab 交互实验集，查看其他交互页。</div></a>
   </div>
 </section>
@@ -326,6 +328,7 @@ input[type=range]{width:100%;accent-color:#14b8a6;margin-top:2px}
   <div class="nav">
     <a href="../index.html">实验集总目录</a>
     <a class="cur" href="钢铁企业碳排放核查与履约-交互版.html">钢铁企业碳排放核查与履约</a>
+    <a href="钢铁碳排放核查-教学交付包.html">教学交付包</a>
   </div>
 </footer>
 
@@ -913,6 +916,96 @@ function choosePlan(p){
   setOut('results',h);
   log(p==='B'?'选择 B：买入配额清缴并启动低碳改造（正确）。':'选择 A：不予理睬（错误）。');
   drawStage();
+}
+
+/* ================= 导出实验记录（CSV，纯前端） ================= */
+function csvCell(v){
+  const s=(v===undefined||v===null)?'':String(v);
+  if(s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0||s.indexOf('\r')>=0){
+    return '"'+s.split('"').join('""')+'"';
+  }
+  return s;
+}
+function csvRow(){
+  let out='';
+  for(let i=0;i<arguments.length;i++){ if(i) out+=','; out+=csvCell(arguments[i]); }
+  return out;
+}
+function buildCSV(){
+  const qn=qNetAr();
+  const dev=(qn-MODEL.qNetArDeclared)/MODEL.qNetArDeclared*100;
+  const total=inventoryTotal();
+  const decl=declaredTotal();
+  const gap=round2(total-MODEL.quotaFree);
+  const price=priceNow();
+  const rows=calcInventory();
+  const L=[];
+  L.push(csvRow('钢铁企业碳排放核查与履约 · 实验记录'));
+  L.push(csvRow('说明','本页数据为脱敏教学设定，不指向任何真实企业；不作为核查结论、检测报告或配额核定依据'));
+  L.push(csvRow('导出时间',new Date().toLocaleString()));
+  L.push('');
+  L.push(csvRow('一、四关结果',''));
+  L.push(csvRow('第一关 边界划分与源项识别',S.s1?'通过':'未通过'));
+  L.push(csvRow('第二关 入厂煤低位发热量复核',S.s2?'通过':'未通过'));
+  L.push(csvRow('第三关 台账交叉凭证核对',S.s3?'通过':'未通过'));
+  L.push(csvRow('第四关 配额清缴与交易决策',(S.plan==='B')?'正确（B 买入配额清缴）':((S.plan==='A')?'错误（A 不予理睬）':'未作答')));
+  L.push('');
+  L.push(csvRow('二、发热量复核','数值','单位'));
+  L.push(csvRow('弹筒发热量 Qb,ad',round2(qBombAd()/1000).toFixed(2),'MJ/kg'));
+  L.push(csvRow('高位发热量 Qgr,ad',round2(qGrAd()/1000).toFixed(2),'MJ/kg'));
+  L.push(csvRow('收到基低位发热量 Qnet,ar',qn.toFixed(2),'GJ/t'));
+  L.push(csvRow('企业申报发热量',MODEL.qNetArDeclared.toFixed(2),'GJ/t'));
+  L.push(csvRow('偏差',(dev>0?'+':'')+dev.toFixed(2),'%'));
+  L.push('');
+  L.push(csvRow('三、台账交叉核对','数值','单位'));
+  L.push(csvRow('企业申报燃煤量',MODEL.coalDeclared.toFixed(2),'万 t'));
+  L.push(csvRow('入厂磅单（电子汽车衡）',MODEL.coalWeighbridge.toFixed(2),'万 t'));
+  L.push(csvRow('采购发票合计',MODEL.coalInvoice.toFixed(2),'万 t'));
+  L.push(csvRow('ERP 煤炭库存账',MODEL.coalERP.toFixed(2),'万 t'));
+  L.push(csvRow('申报量与计量数据差异',LIM.coalGap.toFixed(2),'万 t'));
+  L.push('');
+  L.push(csvRow('四、企业层级排放量明细（物料平衡法，不含碳氧化率）','活动数据 × 因子','排放（万 tCO2）'));
+  for(let i=0;i<rows.length;i++){ L.push(csvRow(rows[i].n,rows[i].a,rows[i].v.toFixed(2))); }
+  L.push(csvRow('核查确认排放量合计','逐行舍入后求和',total.toFixed(2)));
+  L.push(csvRow('企业申报排放量','燃煤 160.00 万 t × 21.00 GJ/t',decl.toFixed(2)));
+  L.push('');
+  L.push(csvRow('五、履约结论','数值','单位'));
+  L.push(csvRow('免费配额',MODEL.quotaFree.toFixed(2),'万 tCO2'));
+  L.push(csvRow('缺口',gap.toFixed(2),'万 tCO2'));
+  L.push(csvRow('CEA 价格（教学取值，随行就市）',price.toFixed(2),'元/t'));
+  L.push(csvRow('清缴成本',round2(gap*price).toFixed(0),'万元'));
+  L.push(csvRow('拒缴罚款（未清缴配额 × 均价 × 5~10 倍）',round2(gap*price*LIM.ratioLow/1e4).toFixed(2)+' ~ '+round2(gap*price*LIM.ratioHigh/1e4).toFixed(2),'亿元'));
+  return L.join('\r\n');
+}
+function exportCSV(){
+  const name='钢铁碳排放核查-实验记录.csv';
+  try{
+    const csv=buildCSV();
+    if(typeof Blob!=='function'||typeof URL==='undefined'||typeof URL.createObjectURL!=='function'){
+      csvFallback(csv,name); return;
+    }
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=name;
+    if(document.body&&typeof document.body.appendChild==='function') document.body.appendChild(a);
+    if(typeof a.click==='function') a.click();
+    if(document.body&&typeof document.body.removeChild==='function') document.body.removeChild(a);
+    setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} },1500);
+    log('已导出实验记录：<b>'+name+'</b>（可用 Excel 直接打开，含四关结果、发热量复核、台账核对与排放量明细）');
+  }catch(e){
+    warn('导出失败：'+(e&&e.message?e.message:String(e)));
+  }
+}
+function csvFallback(csv,name){
+  const w=(typeof window!=='undefined'&&typeof window.open==='function')?window.open('','_blank'):null;
+  if(w&&w.document){
+    w.document.write('<pre>'+csv.split('&').join('&amp;').split('<').join('&lt;')+'</pre>');
+    log('当前环境不支持直接下载，已在新窗口打开 CSV 内容：<b>'+name+'</b>');
+  }else{
+    warn('当前环境不支持导出，请更换现代浏览器后重试。');
+  }
 }
 
 /* ================= 关卡调度 ================= */

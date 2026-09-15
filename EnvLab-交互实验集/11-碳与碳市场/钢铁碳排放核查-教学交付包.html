@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>钢铁碳排放核查 · 教学交付包 · EnvLab</title>
+<meta name="description" content="钢铁碳排放核查教学交付包：配套交互页的学生手册、教师指南与现成作业，覆盖核算边界、物料平衡法、缺省值与履约罚则，零安装纯前端，可直接嵌入课程平台。">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#0a0e17;color:#e2e8f0;overflow-x:hidden}
+:root{--ink:#0a0e17;--card:#131a2e;--border:rgba(255,255,255,.06);--accent:#14b8a6;--glow:#5eead4;--abg:rgba(20,184,166,.12);--green:#34d399;--rose:#fb7185;--blue:#38bdf8;--amber:#fbbf24}
+#sp{position:fixed;top:0;left:0;height:3px;width:0%;background:linear-gradient(90deg,#14b8a6,#5eead4);z-index:1000}
+.hr{min-height:74vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:44px 24px;background:linear-gradient(180deg,#0a0e17 0%,#06201d 50%,#0a0e17 100%);position:relative}
+.hg{position:absolute;inset:0;background-image:radial-gradient(rgba(20,184,166,.07) 1px,transparent 1px);background-size:24px 24px;z-index:0}
+.hgl{position:absolute;top:-18%;right:-8%;width:330px;height:330px;background:radial-gradient(circle,rgba(20,184,166,.16),transparent 70%);border-radius:50%}
+.h1{font-size:clamp(25px,4.6vw,42px);font-weight:900;line-height:1.18;z-index:1}
+.h1 em{color:#5eead4;font-style:normal}
+.hb{display:inline-block;padding:5px 16px;border-radius:20px;background:rgba(20,184,166,.12);color:#5eead4;font-size:11px;font-weight:600;margin-bottom:20px;border:1px solid rgba(20,184,166,.24);z-index:1}
+.hs{margin-top:14px;font-size:15px;color:#94a3b8;z-index:1;max-width:700px;line-height:1.8}
+.hst{display:flex;gap:32px;margin-top:26px;flex-wrap:wrap;justify-content:center;z-index:1}
+.hst .n{font-size:27px;font-weight:800;color:#5eead4}
+.hst .l{font-size:11px;color:#64748b;margin-top:2px}
+.sec{max-width:940px;margin:0 auto;padding:70px 24px;opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s}
+.sec.visible{opacity:1;transform:translateY(0)}
+.sn{font-size:10px;font-weight:700;letter-spacing:3px;color:#14b8a6}
+.st{font-size:clamp(21px,3.4vw,32px);font-weight:800;line-height:1.2;margin-bottom:12px}
+.sd{font-size:14px;color:#94a3b8;line-height:1.75;max-width:780px;margin-bottom:22px}
+.sd b{color:#e2e8f0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media(max-width:700px){.g2,.g3{grid-template-columns:1fr}}
+.ic{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.ic .ii{font-size:20px;margin-bottom:6px}
+.ic .in{font-size:14px;font-weight:700;margin-bottom:5px}
+.ic .id{font-size:12px;color:#94a3b8;line-height:1.65}
+.ic .it{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;margin-top:8px;background:rgba(20,184,166,.10);color:#5eead4}
+.lb{background:linear-gradient(180deg,#0a0e17,#06201d);padding:58px 0}
+.lc{max-width:1000px;margin:0 auto;padding:0 24px}
+.lh{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+.lt{font-size:12px;font-weight:700;color:#5eead4;letter-spacing:1px}
+.lbb{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.ft{text-align:center;padding:40px 24px;color:#475569;font-size:12px;border-top:1px solid var(--border);line-height:1.8}
+.ft b{color:#5eead4}
+.ft .nav{margin-top:14px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
+.ft .nav a{display:inline-block;padding:5px 12px;border:1px solid var(--border);border-radius:4px;font-size:11px;text-decoration:none;transition:.2s;color:#475569}
+.ft .nav a:hover{border-color:#14b8a6;color:#5eead4}
+.ft .nav a.cur{border-color:#14b8a6;color:#5eead4;background:rgba(20,184,166,.12)}
+.note{background:rgba(20,184,166,.06);border:1px solid rgba(20,184,166,.18);border-left:3px solid #14b8a6;border-radius:8px;padding:14px 16px;font-size:12.5px;color:#ccfbf1;line-height:1.7;margin:16px 0}
+.note b{color:#f0fdfa}
+.note.warnbox{background:rgba(251,113,133,.07);border-color:rgba(251,113,133,.2);border-left-color:var(--rose);color:#fecdd3}
+.note.warnbox b{color:#ffe4e6}
+.note.blue{background:rgba(56,189,248,.07);border-color:rgba(56,189,248,.18);border-left-color:var(--blue);color:#bae6fd}
+.note.blue b{color:#e0f2fe}
+.note.amber{background:rgba(251,191,36,.07);border-color:rgba(251,191,36,.2);border-left-color:var(--amber);color:#fde68a}
+.note.amber b{color:#fffbeb}
+.rule{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.rule .rn{font-size:11px;font-weight:800;color:#5eead4;background:rgba(20,184,166,.12);border-radius:6px;padding:4px 9px;flex-shrink:0;margin-top:1px;white-space:nowrap}
+.rule .rt{font-size:13px;font-weight:700;margin-bottom:3px}
+.rule .rd{font-size:12px;color:#94a3b8;line-height:1.65}
+.tbl{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px}
+.tbl th,.tbl td{border:1px solid var(--border);padding:8px 10px;text-align:left;vertical-align:top}
+.tbl th{background:rgba(20,184,166,.08);color:#5eead4;font-weight:700;font-size:11.5px}
+.tbl td{color:#94a3b8;line-height:1.6}
+.tbl td b{color:#e2e8f0}
+.tbl tr.sum td{background:rgba(20,184,166,.10);color:#f0fdfa;font-weight:800}
+.fw{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.fw a{flex:1;min-width:220px;text-decoration:none;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:13px 15px;transition:.2s}
+.fw a:hover{border-color:#14b8a6}
+.fw .t{font-size:12.5px;font-weight:700;color:#e2e8f0;margin-bottom:3px}
+.fw .d{font-size:11px;color:#64748b;line-height:1.6}
+.sub{font-size:12px;font-weight:700;color:#5eead4;letter-spacing:1px;margin:20px 0 8px}
+.code{font-family:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;background:rgba(2,8,20,.7);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-size:12.5px;color:#5eead4;line-height:1.8;margin:10px 0;overflow-x:auto;white-space:pre-wrap;word-break:break-word}
+.code b{color:#f0fdfa}
+.code .cm{color:#64748b}
+.toc{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:18px}
+.toc a{display:block;text-decoration:none;background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:13px 15px;transition:.2s;color:#e2e8f0;font-size:13px;font-weight:700}
+.toc a:hover{border-color:#14b8a6;color:#5eead4}
+.toc a span{display:block;font-size:11px;color:#64748b;font-weight:400;margin-top:3px}
+.kvs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin:12px 0}
+.kv{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:13px 15px}
+.kv .k{font-size:11px;color:#64748b;margin-bottom:4px}
+.kv .v{font-size:13px;color:#e2e8f0;line-height:1.6}
+.kv .v b{color:#5eead4}
+ol.task{margin:8px 0 8px 4px;padding-left:20px}
+ol.task li{font-size:13px;color:#cbd5e1;line-height:1.85;margin-bottom:4px}
+ol.task li b{color:#e2e8f0}
+#bk{position:fixed;right:22px;bottom:22px;z-index:9990;display:inline-flex;align-items:center;gap:8px;padding:11px 18px 11px 15px;border-radius:999px;font-size:13.5px;font-weight:700;letter-spacing:.02em;text-decoration:none;line-height:1;cursor:pointer;opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .22s,transform .22s,visibility .22s;background:rgba(19,26,46,.92);color:#e2e8f0;border:1px solid rgba(56,189,248,.42);box-shadow:0 6px 22px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.04) inset;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+#bk.on{opacity:1;visibility:visible;transform:translateY(0)}
+#bk:hover{transform:translateY(-2px);background:rgba(23,33,58,.98);border-color:rgba(56,189,248,.75)}
+#bk:focus-visible{outline:2px solid #fbbf24;outline-offset:3px}
+#bk .bk-a{font-size:15px;line-height:1;color:#7dd3fc}
+#bk .bk-t{font-size:13.5px;color:#e2e8f0}
+@media(max-width:640px){#bk{right:14px;bottom:14px;padding:10px 15px 10px 13px}#bk .bk-t{font-size:12.5px}}
+@media(prefers-reduced-motion:reduce){#bk{transition:none;transform:none}#bk.on{transform:none}}
+@media print{#bk{display:none!important}}
+/* ===== stdBasis 蓝色合规面板（复用交互页整段样式） ===== */
+.stdbasis{max-width:1100px;margin:40px auto 0;padding:0 20px;font-family:inherit}
+.stdbasis>summary{list-style:none;cursor:pointer;user-select:none}
+.stdbasis>summary::-webkit-details-marker{display:none}
+.stdbasis .sb-hd{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:13px 18px;border:1px solid rgba(56,189,248,.38);border-left:4px solid #38bdf8;border-radius:12px;background:linear-gradient(90deg,rgba(56,189,248,.13),rgba(56,189,248,.03));transition:background .18s,border-color .18s}
+.stdbasis .sb-hd:hover{background:rgba(56,189,248,.20)}
+.stdbasis .sb-hd:focus-visible{outline:2px solid #38bdf8;outline-offset:2px}
+.stdbasis .sb-ic{font-size:16px;line-height:1;flex:none}
+.stdbasis .sb-tt{font-size:14px;font-weight:700;color:#f1f5f9;letter-spacing:.02em}
+.stdbasis .sb-sub{font-size:11.5px;color:#a8b6c8;letter-spacing:.02em}
+.stdbasis .sb-bgs{display:flex;gap:6px;flex-wrap:wrap;margin-left:4px}
+.stdbasis .sb-bg{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:999px;font-size:11.5px;font-weight:700;line-height:1.5;white-space:nowrap}
+.stdbasis .sb-bg b{font-weight:800;font-size:12px}
+.stdbasis .sb-bg.ok{background:rgba(52,211,153,.15);color:#6ee7b7;border:1px solid rgba(52,211,153,.42)}
+.stdbasis .sb-bg.dep{background:rgba(251,113,133,.16);color:#fda4af;border:1px solid rgba(251,113,133,.45)}
+.stdbasis .sb-bg.pend{background:rgba(251,191,36,.16);color:#fcd34d;border:1px solid rgba(251,191,36,.45)}
+.stdbasis .sb-ar{margin-left:auto;flex:none;font-size:11px;color:#a8b6c8;transition:transform .2s;display:inline-block}
+.stdbasis[open] .sb-hd .sb-ar{transform:rotate(90deg)}
+.stdbasis .sb-cd{background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.14);border-top:none;border-radius:0 0 12px 12px;padding:16px 20px;margin-top:-1px}
+.stdbasis .sb-bd{display:block}
+.stdbasis table.sb-tb{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
+.stdbasis table.sb-tb th{background:rgba(56,189,248,.10);color:#7dd3fc;font-weight:700;font-size:11.5px;border:1px solid rgba(255,255,255,.12);padding:8px 10px;text-align:left}
+.stdbasis table.sb-tb td{border:1px solid rgba(255,255,255,.12);padding:8px 10px;color:#cbd5e1;line-height:1.6;font-size:12px;vertical-align:top}
+.stdbasis .sb-c{font-family:'SFMono-Regular',Consolas,Menlo,monospace;font-size:11px;color:#94a3b8}
+.stdbasis .sb-s{color:#6ee7b7;font-weight:700}
+.stdbasis .sb-u{color:#cbd5e1}
+.stdbasis .sb-ft{margin-top:12px;font-size:11.5px;color:#94a3b8;line-height:1.7}
+.stdbasis .sb-fx{margin-top:10px;font-size:11.5px;color:#cbd5e1;line-height:1.7}
+.stdbasis .sb-fx ul{margin:6px 0 0 18px;padding:0}
+.stdbasis .sb-fx li{margin-bottom:4px}
+.stdbasis .sb-fx b{color:#fde68a}
+</style>
+</head>
+<body>
+<div id="sp"></div>
+
+<section class="hr">
+  <div class="hg"></div><div class="hgl"></div>
+  <div class="hb">EnvLab · 碳核查实训 · 教学交付件</div>
+  <h1 class="h1">📦 钢铁碳排放核查 · 教学交付包</h1>
+  <div class="hs">配套《绿色大账本：钢铁企业碳排放核查与履约》交互页<br>学生手册 / 教师指南 / 现成作业 / 部署说明</div>
+  <div class="hst">
+    <div><span class="n">1 份</span><span class="l">学生手册</span></div>
+    <div><span class="n">1 份</span><span class="l">教师指南</span></div>
+    <div><span class="n">3 个</span><span class="l">现成作业</span></div>
+    <div><span class="n">0 元</span><span class="l">零安装</span></div>
+  </div>
+</section>
+
+<section class="sec" id="s00">
+  <div class="sn">00 · 怎么用这份包</div>
+  <div class="st">三分钟看清：这份包给谁、怎么用</div>
+  <div class="sd">本交付包与《钢铁企业碳排放核查与履约》交互页配套使用，是<b>纯静态网页、零安装、可离线</b>。下面按角色给出最短使用路径，下方是站内目录。</div>
+  <div class="g3">
+    <div class="ic"><div class="ii">🎓</div><div class="in">给学生</div><div class="id">先到交互页玩通四关（边界→发热量→对账→履约），再回来读<b>第 1 节</b>学生实操手册，把操作卡和公式背熟。</div><span class="it">先玩后读</span></div>
+    <div class="ic"><div class="ii">🧑‍🏫</div><div class="in">给老师</div><div class="id">读<b>第 2 节</b>教师指南，按 90 分钟课堂流程上课，用 3 个现成作业收过程性与结果性评价。</div><span class="it">按流程上课</span></div>
+    <div class="ic"><div class="ii">🛠️</div><div class="in">给教务 / 技术</div><div class="id">读<b>第 4 节</b>部署说明，把交互页以 iframe 嵌入 LMS / 课程平台；交付包本身也可一并挂载。</div><span class="it">iframe 嵌入</span></div>
+  </div>
+  <div class="sub">站内目录</div>
+  <div class="toc">
+    <a href="#s00">00 · 怎么用这份包<span>速览与角色路径</span></a>
+    <a href="#s01">01 · 学生实操手册<span>八步卡 / 公式 / 易错排查</span></a>
+    <a href="#s02">02 · 教师指南<span>目标映射 / 90 分钟 / 讨论题</span></a>
+    <a href="#s03">03 · 现成作业<span>3 个作业 + 评分量规</span></a>
+    <a href="#s04">04 · 部署与使用<span>iframe / 投影 / 导出</span></a>
+    <a href="#s05">05 · 红线与免责<span>脱敏声明与合规链接</span></a>
+  </div>
+</section>
+
+<section class="sec" id="s01">
+  <div class="sn">01 · 学生实操手册</div>
+  <div class="st">把核查员的一天，拆成可照做的操作卡</div>
+  <div class="sd">以下三块对应交互页四关的底层逻辑：先按官方八步走程序，再背熟核心公式与缺省值，最后对照易错清单自查。</div>
+
+  <div class="sub">1.1 核查程序八步操作卡</div>
+  <div class="sd" style="margin-bottom:8px">依据《企业温室气体排放报告核查指南（试行）》，核查程序是<b>法定八步</b>，顺序即证据链。每张卡写：步骤名（官方名称）＋要拿到什么材料＋最容易漏什么。</div>
+
+  <div class="rule"><span class="rn">STEP 1</span><span><span class="rt">核查安排</span><span class="rd"><b>要拿到：</b>核查委托文件或合同、核查计划与时间表，明确核查范围与重点排放单位边界。<b>最容易漏：</b>边界与范围未定就进场，导致后续核查无从对标。</span></span></div>
+  <div class="rule"><span class="rn">STEP 2</span><span><span class="rt">建立核查技术工作组</span><span class="rd"><b>要拿到：</b>工作组成员名单、资质与分工表。<b>配套事实：</b>技术工作组<b>至少 2 名成员、其中 1 名为负责人</b>。<b>最容易漏：</b>只有 1 人、缺负责人，或缺少相关专业能力证明。</span></span></div>
+  <div class="rule"><span class="rn">STEP 3</span><span><span class="rt">文件评审</span><span class="rd"><b>要拿到：</b>排放报告、核算数据、原始凭证、计量器具台账、数据质量控制方案。<b>最容易漏：</b>跳过文件评审直接进现场——不知道该查什么，证据链断裂。</span></span></div>
+  <div class="rule"><span class="rn">STEP 4</span><span><span class="rt">建立现场核查组</span><span class="rd"><b>要拿到：</b>现场核查通知与签到记录。<b>配套事实：</b>现场核查组<b>至少 2 人</b>，且应于<b>现场核查前 2 个工作日通知企业</b>。<b>最容易漏：</b>少于 2 人，或未提前 2 个工作日通知。</span></span></div>
+  <div class="rule"><span class="rn">STEP 5</span><span><span class="rt">实施现场核查</span><span class="rd"><b>要拿到：</b>现场记录、凭证抽样、不符合项初步证据。<b>方法四字：查、问、看、验</b>。<b>最容易漏：</b>只"看"不"验"，未对磅单 / 发票 / 库存账做三方交叉核对。</span></span></div>
+  <div class="rule"><span class="rn">STEP 6</span><span><span class="rt">出具《核查结论》</span><span class="rd"><b>要拿到：</b>《核查结论》，对每个核查发现按四档勾选。<b>四档：</b>符合要求 / 不符合项已整改且满足要求 / 不符合项整改但不满足要求 / 不符合项未整改。<b>最容易漏：</b>四档勾选不规范、漏写整改证据。</span></span></div>
+  <div class="rule"><span class="rn">STEP 7</span><span><span class="rt">告知核查结果</span><span class="rd"><b>要拿到：</b>结果告知书与送达回执。<b>最容易漏：</b>未正式告知或缺少送达回执，影响结论可追溯性。</span></span></div>
+  <div class="rule"><span class="rn">STEP 8</span><span><span class="rt">保存核查记录</span><span class="rd"><b>要拿到：</b>完整证据链归档（边界 / 活动数据 / 排放因子 / 质量控制 / 结论）。<b>保守原则：</b>企业逾期未整改或整改不符的，技术工作组应按核算指南与生态环境部公布的<b>缺省值</b>、按<b>保守原则</b>测算排放量。<b>最容易漏：</b>凭证缺失未记录、归档不完整。</span></span></div>
+
+  <div class="sub">1.2 核心公式速查</div>
+  <div class="sd" style="margin-bottom:8px">企业层级采用<b>物料平衡法</b>——只算"输入多少碳、输出多少碳"，不看生产系统内具体反应。</div>
+  <div class="code"><b>企业层级物料平衡法：</b>
+E企业 = Σ(FC外购燃料,i × NCVar,i × CCi × 44/12)
+      + Σ(P碳酸盐 × EF)
+      + P电极 × EF电极
+      + Σ(M外购含碳原料 × EF)
+      − Σ(AD含碳产品 × EF含碳产品)</div>
+  <div class="note blue">⚠️ <b>明确标注：企业层级公式不含碳氧化率。</b>碳氧化率（CC 下的隐含参数）只用于<b>工序层级</b>的<b>掺烧发电设施</b>核算里。沿袭旧口径的人最容易把它带进企业层级公式，导致算错。公式中 FC=外购燃料消耗量、NCVar=收到基低位发热量、CC=单位热值含碳量、P=碳酸盐消耗量、EF=过程排放因子、M=外购含碳原料、AD=含碳产品产量。</div>
+
+  <div class="sub">弹筒 → 高位 → 低位 换算链（第二关依据）</div>
+  <div class="code"><b>Qb,ad</b> = E · ΔT / m
+<span class="cm">（弹筒发热量：氧弹量热计测得，E 为热容量，ΔT 为校正温升，m 为试样质量）</span>
+<b>Qgr,ad</b> = Qb,ad − 94.1 · Sb,ad − α · Qb,ad
+<span class="cm">（高位发热量：扣除硫与氮校正）</span>
+<b>Qnet,ar</b> = (Qgr,ad − 206 · Had) × (100 − Mt) / (100 − Mad) − 23 · Mt
+<span class="cm">（收到基低位发热量：再扣除水分汽化潜热）</span></div>
+
+  <div class="sub">算例（教学设定 · 可让学生自查）</div>
+  <div class="note">热容量 <b>E = 10460 J/K</b>，试样 <b>m = 1.0000 g</b>，校正后温升 <b>ΔT = 2.35 K</b>，弹筒硫 <b>Sb,ad = 0.50%</b>，硝酸校正系数 <b>α = 0.001</b>，<b>Had = 4.00%</b>，<b>Mt = 8.0%</b>，<b>Mad = 2.0%</b>。<br>逐级代入：<b>Qb,ad = 24.58 MJ/kg</b> → <b>Qgr,ad = 24.51 MJ/kg</b> → <b>Qnet,ar = 22.05 GJ/t</b>。<br>若企业申报值与这个量级明显不符（例如按单一批次低值申报），就应当要求其出示<b>全年批次检测报告与加权计算过程</b>，而不是采信一个孤立数字。</div>
+
+  <div class="sub">附录 A 缺省值表（低位发热量 / 单位热值含碳量 CC）</div>
+  <table class="tbl">
+    <tr><th style="width:30%">燃料</th><th>低位发热量缺省值</th><th>单位热值含碳量 CC</th><th>备注</th></tr>
+    <tr><td><b>烟煤</b></td><td>23.736 GJ/t</td><td>0.02618</td><td>可实测或取缺省</td></tr>
+    <tr><td><b>无烟煤</b></td><td>25.024 GJ/t</td><td>0.02749</td><td>可实测或取缺省</td></tr>
+    <tr><td><b>焦炭</b></td><td>28.435 GJ/t</td><td>0.02942</td><td><b>强制取缺省值，不允许实测</b></td></tr>
+    <tr><td><b>天然气</b></td><td>389.310 GJ/万 Nm³</td><td>0.01532</td><td>可实测或取缺省</td></tr>
+  </table>
+
+  <div class="sub">过程排放因子表（tCO₂/t）</div>
+  <table class="tbl">
+    <tr><th style="width:34%">物料</th><th>排放因子</th><th style="width:34%">物料</th><th>排放因子</th></tr>
+    <tr><td>石灰石</td><td>0.440</td><td>直接还原铁</td><td>0.073</td></tr>
+    <tr><td>白云石</td><td>0.476</td><td>废钢</td><td>0.037</td></tr>
+    <tr><td>电极</td><td>3.663</td><td>粗钢</td><td>0.037</td></tr>
+    <tr><td>外购生铁</td><td>0.172</td><td>焦油</td><td>2.699</td></tr>
+    <tr><td>—</td><td>—</td><td>粗苯</td><td>3.382</td></tr>
+  </table>
+
+  <div class="sub">固体燃料发热量取值规则（当年确定后不可改）</div>
+  <div class="sd" style="margin-bottom:8px">固体燃料低位发热量取值<b>二选一，且取值方式当年确定后不应更改，选了实测的不可改为缺省值</b>：</div>
+  <div class="g2">
+    <div class="ic"><div class="ii">🧪</div><div class="in">a) 每批次实测值</div><div class="id">检测报告须明示采样、制样和检测依据，由通过 <b>CMA</b>（检验检测机构资质认定）认定或 <b>CNAS</b>（中国合格评定国家认可委员会）认可、具备能力的机构出具，<b>且须盖 CMA 资质认定标志或 CNAS 认可标识章</b>。</div><span class="it">须盖章</span></div>
+    <div class="ic"><div class="ii">📋</div><div class="in">b) 附录 A 缺省值</div><div class="id">直接取缺省值本身<b>合规</b>；真正的违规是"声明采用实测值，却拿不出合格的批次检测报告"。检测遵循 <b>GB/T 213</b>。</div><span class="it">合规</span></div>
+  </div>
+  <div class="note">📐 <b>加权算法：</b>月度平均低位发热量由每批次固体化石燃料的低位发热量加权计算得到，<b>权重为每批次进厂量</b>；年度平均低位发热量由月度平均低位发热量加权计算得到，<b>权重为月度消耗量</b>。所以"拿一个批次的检测值代表全年"不成立。</div>
+
+  <div class="sub">1.3 常见错误与排查</div>
+  <table class="tbl">
+    <tr><th style="width:32%">现象</th><th style="width:34%">根本原因</th><th>怎么查</th></tr>
+    <tr><td>把自产焦炭 / 自产煤气计进企业层级</td><td>重复计算（企业层级只计<b>外购</b>燃料）</td><td>看燃料来源，自产二次能源的碳已由外购煤（焦）输入承担，已在工序层级核算</td></tr>
+    <tr><td>把净购入电力算进企业层级</td><td>2025 版<b>不覆盖</b>外购电力、热力导致的间接排放</td><td>查排放源清单，确认不含"净购入电力 / 热力"项</td></tr>
+    <tr><td>漏勾"含碳产品隐含排放的扣减"（粗钢及外销生铁、粗苯、焦油）</td><td>扣减项缺失，<b>高估</b>排放量</td><td>核对公式减号项是否完整列出含碳产品</td></tr>
+    <tr><td>拿单一批次检测值代表全年</td><td>未做批次加权</td><td>查检测报告是否含全年批次及加权过程，权重是否为进厂量</td></tr>
+    <tr><td>只有发票金额、没有磅单与库存账</td><td>活动数据缺乏交叉验证</td><td>三证（磅单 / 发票 / 库存账）互相印证，缺一即开不符合项</td></tr>
+    <tr><td>用缺省值但数据质量控制方案里声明的是实测</td><td>方案执行不一致</td><td>比对监测计划声明与报告实际取值路径</td></tr>
+    <tr><td>把点火助燃、厂内运输、附属生产系统（职工食堂 / 班车）用能算进去</td><td>明确排除项被误计入</td><td>对照边界排除清单逐条剔除</td></tr>
+    <tr><td>逾期不整改以为能拖</td><td>按保守原则用缺省值测算，排放量<b>不会变小</b></td><td>核查结论中按缺省值 + 保守原则重算并标注</td></tr>
+    <tr><td>把碳氧化率带进企业层级公式</td><td>错用工序层级口径</td><td>企业层级公式无碳氧化率，仅工序层级掺烧发电设施使用</td></tr>
+    <tr><td>用 12 个月简单平均代替批次加权</td><td>加权权重应为进厂量 / 消耗量</td><td>复核加权公式，权重取每批次进厂量、月度消耗量，非简单平均</td></tr>
+  </table>
+</section>
+
+<section class="sec" id="s02">
+  <div class="sn">02 · 教师指南</div>
+  <div class="st">从教学目标到 90 分钟，一条主线讲透</div>
+  <div class="sd">本节给出知识点—关卡映射、可直接落地的课堂流程，以及 3 个开放式讨论题。所有数值与判定口径与交互页一致。</div>
+
+  <div class="sub">2.1 教学目标与知识点映射</div>
+  <table class="tbl">
+    <tr><th style="width:28%">知识点</th><th style="width:24%">对应交互关卡</th><th>达成标准（学生能做到什么）</th></tr>
+    <tr><td><b>核算边界与排放源识别</b></td><td>第一关 边界与源项</td><td>准确列出 7 项应纳入源项（含扣减项），并指出 6 项陷阱项及理由</td></tr>
+    <tr><td><b>活动数据与排放因子</b></td><td>第二、三关</td><td>区分实测与缺省取值，判断 CMA/CNAS 检测报告的合规性</td></tr>
+    <tr><td><b>低位发热量测定与加权</b></td><td>第二关 氧弹量热计</td><td>按正确顺序操作六步，并完成批次 / 月度加权计算</td></tr>
+    <tr><td><b>台账与凭证交叉核对</b></td><td>第三关 三方对账</td><td>识别申报与计量差异（6.00 万吨），选定正确取值口径</td></tr>
+    <tr><td><b>配额分配与清缴履约</b></td><td>第四关 配额清缴</td><td>计算核查确认排放量与缺口，比较履约与拒缴成本</td></tr>
+    <tr><td><b>数据不实的法律责任</b></td><td>第四关 后果推演</td><td>列举第二十二、二十三、二十四、二十七条罚则与信用后果</td></tr>
+  </table>
+
+  <div class="sub">2.2 90 分钟课堂流程（时间轴）</div>
+  <table class="tbl">
+    <tr><th style="width:12%">分钟</th><th style="width:24%">环节</th><th style="width:32%">教师动作</th><th>学生动作</th></tr>
+    <tr><td>0–10</td><td>导入</td><td>投屏第一关背景，抛出"160 万吨煤对得上吗"问题</td><td>思考边界与源项</td></tr>
+    <tr><td>10–25</td><td>原理讲解</td><td>讲清物料平衡法、三类排放源、附录 A 缺省值表</td><td>记笔记，对照公式</td></tr>
+    <tr><td>25–45</td><td>交互台第一、二关</td><td>投屏演示氧弹量热计六步，巡视指导</td><td>完成边界勾选与发热量复核</td></tr>
+    <tr><td>45–60</td><td>交互台第三关</td><td>组织三方对账讨论，提示 6 万吨差异</td><td>翻凭证、填差异、开不符合项</td></tr>
+    <tr><td>60–80</td><td>交互台第四关与讨论</td><td>引导计算缺口，对比履约 vs 拒缴成本</td><td>完成配额清缴决策</td></tr>
+    <tr><td>80–90</td><td>总结</td><td>归纳四条黄金法则与证据链清单</td><td>复盘四关、整理手册</td></tr>
+  </table>
+
+  <div class="sub">2.3 课堂讨论题（开放式）</div>
+  <div class="g3">
+    <div class="ic"><div class="ii">💬</div><div class="in">讨论一</div><div class="id">如果企业自愿提供了<b>全部批次</b>检测报告，但报告来自<b>不具备 CMA/CNAS 资质</b>的机构，这份数据能不能用？为什么？</div><span class="it">资质红线</span></div>
+    <div class="ic"><div class="ii">💬</div><div class="in">讨论二</div><div class="id">企业说"我们自产焦炭也算点排放吧"，如何向企业解释<b>重复计算</b>的风险与边界规则？</div><span class="it">边界规则</span></div>
+    <div class="ic"><div class="ii">💬</div><div class="in">讨论三</div><div class="id">若第四关算出缺口，企业选择<b>拒缴</b>能"省"下多少钱？结合罚则说明为什么履约是理性选择。</div><span class="it">履约决策</span></div>
+  </div>
+
+  <div class="sub">本包教学依据（9 项文件，已回官方源核验）</div>
+  <details class="stdbasis" id="stdBasis">
+    <summary class="sb-hd"><span class="sb-ic">📚</span><span class="sb-tt">本包教学依据标准与现行状态</span><span class="sb-sub">9 项依据 · 已回官方源核验</span><span class="sb-bgs"><span class="sb-bg ok"><b>8</b> 项现行</span><span class="sb-bg dep"><b>1</b> 项已废止</span></span><span class="sb-ar">▶</span></summary>
+    <div class="sb-cd">
+      <table class="sb-tb">
+        <tr><th style="width:26%">标准号 / 文号</th><th>名称</th><th style="width:14%">状态</th><th>本包用途</th></tr>
+        <tr><td class="sb-c">环办气候函〔2025〕27号</td><td>《企业温室气体排放核算与报告指南 钢铁行业》</td><td class="sb-s">现行</td><td class="sb-u">企业层级边界、物料平衡法、附录 A 缺省值</td></tr>
+        <tr><td class="sb-c">环办气候函〔2025〕27号</td><td>《企业温室气体排放核查技术指南 钢铁行业》</td><td class="sb-s">现行</td><td class="sb-u">行业核查要点与数据质量控制要求</td></tr>
+        <tr><td class="sb-c">国环规气候〔2025〕2号</td><td>《2024、2025 年度全国碳市场钢铁等行业配额分配方案》</td><td class="sb-s">现行</td><td class="sb-u">配额分配、清缴时限、CCER 抵销 5%</td></tr>
+        <tr><td class="sb-c">国务院令第 775 号</td><td>《碳排放权交易管理暂行条例》（第二十四条经第 843 号修改）</td><td class="sb-s">现行</td><td class="sb-u">第二十二、二十三、二十四、二十七条罚则</td></tr>
+        <tr><td class="sb-c">环办气候函〔2021〕130号</td><td>《企业温室气体排放报告核查指南（试行）》</td><td class="sb-s">现行</td><td class="sb-u">核查八步、不符合项四档、保守原则</td></tr>
+        <tr><td class="sb-c">GB/T 213-2008</td><td>《煤的发热量测定方法》</td><td class="sb-s">现行</td><td class="sb-u">低位发热量测定与批次加权</td></tr>
+        <tr><td class="sb-c">GB/T 32151.5-2015</td><td>《温室气体排放核算与报告要求 第5部分：钢铁》</td><td class="sb-s">现行（2026-10-01 起被替代）</td><td class="sb-u">行业核算要求对照</td></tr>
+        <tr><td class="sb-c">发改办气候〔2013〕2526号</td><td>《中国钢铁生产企业温室气体排放核算方法与报告指南（试行）》</td><td class="sb-s" style="color:#fda4af;font-weight:700">已废止</td><td class="sb-u">第一关"净购入电力"旧口径来源对照</td></tr>
+      </table>
+      <div class="sb-ft">本包共依据 <b>9</b> 项文件，数值与图示用于教学演示，不作为工程设计、核查结论或检测报告依据。</div>
+    </div>
+  </details>
+</section>
+
+<section class="sec" id="s03">
+  <div class="sn">03 · 现成作业</div>
+  <div class="st">3 个作业，各带 100 分制评分量规</div>
+  <div class="sd">每个作业含<b>题目背景</b>、<b>任务清单</b>与<b>评分量规</b>，可直接打印或挂载到 LMS 作为形成性评价。</div>
+
+  <div class="sub">作业 1 ·《把边界画对》</div>
+  <div class="note"><b>题目背景（脱敏设定）：</b>某年产 300 万吨粗钢的沿海钢铁企业（代称"M 厂"）主要工艺为焦化—烧结—高炉—转炉。其燃料与物料情况如下：<b>外购烟煤</b>用于烧结与喷吹；<b>外购焦炭</b>补充缺口；<b>天然气</b>用于轧钢加热炉；<b>石灰石、白云石</b>作熔剂；炼钢消耗<b>外购电极</b>；<b>外购生铁</b>与<b>废钢</b>作为含碳原料入炉；厂内自有焦炉生产<b>自产焦炭</b>供高炉使用；高炉、转炉、焦炉副产<b>自产煤气</b>在工序间流转；部分电力为<b>净购入</b>；<b>厂内运输柴油</b>用于叉车与卡车；<b>职工食堂与班车</b>也消耗能源。请判断哪些应纳入企业层级核算边界。</div>
+  <div class="sd" style="margin-bottom:6px"><b>任务清单：</b></div>
+  <ol class="task">
+    <li>列出<b>应纳入</b>企业层级核算边界的源项（含加项与扣减项）。</li>
+    <li>指出<b>不得纳入</b>的源项，并逐条说明依据（自产二次能源重复计算、净购入电力不覆盖、点火助燃 / 运输 / 附属系统排除等）。</li>
+    <li>用一句话说明企业层级物料平衡法为何只计"外购"。</li>
+  </ol>
+  <table class="tbl">
+    <tr><th style="width:42%">评分项</th><th style="width:12%">分值</th><th>评分要点</th></tr>
+    <tr><td>应纳入源项完整（7 项）</td><td>40</td><td>外购煤 / 焦 / 气、碳酸盐、电极、外购含碳原料、含碳产品扣减，缺一项扣 5 分</td></tr>
+    <tr><td>排除项及理由正确</td><td>40</td><td>自产焦炭 / 煤气、净购入电力、厂内运输柴油、职工食堂用能均正确排除并说明依据</td></tr>
+    <tr><td>表述规范</td><td>20</td><td>引用"只计外购""重复计算"等关键词，逻辑清晰</td></tr>
+    <tr class="sum"><td>合计</td><td>100</td><td>—</td></tr>
+  </table>
+
+  <div class="sub">作业 2 ·《这份检测报告能不能用？》</div>
+  <div class="note"><b>题目背景（脱敏设定）：</b>某企业申报固体燃料低位发热量采用"实测值"。核查中收到三份发热量检测报告文字材料，请你判断哪些可支撑申报、哪些不可，并写出不符合项表述。</div>
+  <table class="tbl">
+    <tr><th style="width:8%">编号</th><th style="width:30%">批次覆盖</th><th style="width:30%">机构资质与盖章</th><th>加权过程</th></tr>
+    <tr><td><b>①</b></td><td>全年 12 个批次</td><td>机构具 CMA 资质，报告盖 CMA 标识章</td><td>给出每批次进厂量加权过程</td></tr>
+    <tr><td><b>②</b></td><td>仅 1 个批次</td><td>机构具资质，盖章</td><td>无全年加权</td></tr>
+    <tr><td><b>③</b></td><td>全年 12 个批次</td><td>机构无 CMA/CNAS 资质，未盖章</td><td>给出加权过程</td></tr>
+  </table>
+  <div class="sd" style="margin-bottom:6px"><b>任务清单：</b></div>
+  <ol class="task">
+    <li>判断三份报告哪些可支撑申报、哪些不可。</li>
+    <li>对不可用的报告，写出规范的不符合项表述。</li>
+    <li>说明"直接取缺省值"与"声明实测却无合格报告"的区别。</li>
+  </ol>
+  <table class="tbl">
+    <tr><th style="width:42%">评分项</th><th style="width:12%">分值</th><th>评分要点</th></tr>
+    <tr><td>三份判定正确</td><td>40</td><td>①可用、②不可（单批次不代表全年）、③不可（无资质未盖章）</td></tr>
+    <tr><td>不符合项表述规范</td><td>40</td><td>引用 CMA/CNAS 资质与盖章要求、批次加权要求，表述完整</td></tr>
+    <tr><td>概念辨析</td><td>20</td><td>说清缺省值本身合规、无证据的"实测"才违规</td></tr>
+    <tr class="sum"><td>合计</td><td>100</td><td>—</td></tr>
+  </table>
+
+  <div class="sub">作业 3 ·《三方对账》</div>
+  <div class="note"><b>题目背景（脱敏设定）：</b>某企业申报燃煤消耗量 <b>160.00 万吨</b>；入厂磅单（电子汽车衡）<b>166.00 万吨</b>；采购发票合计 <b>160.00 万吨</b>（其中 <b>6.00 万吨</b>暂估入库、未取得发票）；财务 ERP 库存账倒推 <b>166.00 万吨</b>。请完成对账、选定口径、开具不符合项。</div>
+  <div class="sd" style="margin-bottom:6px"><b>任务清单：</b></div>
+  <ol class="task">
+    <li>填写申报量与计量数据的差异（万吨，保留两位小数）。</li>
+    <li>选定活动数据取值口径（磅单 / 发票 / 三方平均）。</li>
+    <li>就"6.00 万吨未取得发票、暂估入库未及时取得凭证"开具不符合项。</li>
+  </ol>
+  <table class="tbl">
+    <tr><th style="width:42%">评分项</th><th style="width:12%">分值</th><th>评分要点</th></tr>
+    <tr><td>差异计算正确</td><td>30</td><td>166.00 − 160.00 = 6.00 万吨，符号与单位正确</td></tr>
+    <tr><td>口径选定正确</td><td>40</td><td>以磅单与 ERP 库存账一致的 166.00 万吨为准（计量数据优先）</td></tr>
+    <tr><td>不符合项表述</td><td>30</td><td>就 6.00 万吨未取得发票、暂估入库开具不符合项，表述规范</td></tr>
+    <tr class="sum"><td>合计</td><td>100</td><td>—</td></tr>
+  </table>
+</section>
+
+<section class="sec" id="s04">
+  <div class="sn">04 · 部署与使用</div>
+  <div class="st">零安装、纯前端、可离线、可嵌入</div>
+  <div class="sd">本交付包与配套交互页均为<b>单文件、零外部依赖</b>。加载完成后即可断网使用，适合机房、考场与离线环境。</div>
+
+  <div class="sub">最低要求与环境</div>
+  <div class="kvs">
+    <div class="kv"><div class="k">安装</div><div class="v"><b>0 元 · 零安装</b>，无需服务器与数据库</div></div>
+    <div class="kv"><div class="k">依赖</div><div class="v"><b>无</b> 外部脚本 / 样式 / 图片 / CDN</div></div>
+    <div class="kv"><div class="k">离线</div><div class="v">加载后<b>可断网</b>使用</div></div>
+    <div class="kv"><div class="k">浏览器</div><div class="v">现代浏览器（Chrome / Edge / Firefox / Safari），支持 Canvas</div></div>
+  </div>
+
+  <div class="sub">LMS / 课程平台 iframe 嵌入代码</div>
+  <div class="code">&lt;iframe
+  src="https://your-lms.example.edu/courses/carbon/钢铁企业碳排放核查与履约-交互版.html"
+  width="100%"
+  height="760"
+  loading="lazy"
+  allowfullscreen&gt;
+&lt;/iframe&gt;</div>
+  <div class="note">将 <b>src</b> 换成你平台中交互页的绝对地址即可。交付包本页也可一并挂载到同一课程目录，作为学生/教师说明文档。</div>
+
+  <div class="sub">课堂投影建议</div>
+  <div class="sd" style="margin-bottom:8px">深色底有利于投影与后排观看：</div>
+  <div class="g2">
+    <div class="ic"><div class="ii">🖥️</div><div class="in">投影顺序</div><div class="id">建议先投<b>"第一关 边界与源项"</b>建立概念，再投<b>"第四关 结算"</b>看履约后果，中间二、三关由学生端操作。</div><span class="it">由浅入深</span></div>
+    <div class="ic"><div class="ii">🌑</div><div class="in">显示设置</div><div class="id">浏览器全屏（F11）、关闭环境灯干扰；本页与交互页均为深色底，对比度高。</div><span class="it">深色优先</span></div>
+  </div>
+
+  <div class="sub">实验记录导出</div>
+  <div class="sd">交互页交互台底部提供<b>「导出实验记录（CSV）」</b>按钮，学生一键导出操作轨迹与判定结果，可直接用于<b>收作业与过程性评价</b>，无需教师逐份核对。</div>
+
+  <div class="sub">浏览器与兼容性</div>
+  <div class="note blue">建议使用支持 <b>Canvas</b> 与 <b>IntersectionObserver</b> 的现代浏览器（近三年版本即可）。老旧浏览器可能无法正常渲染交互台图形，但不影响本交付包静态内容的阅读。</div>
+</section>
+
+<section class="sec" id="s05">
+  <div class="sn">05 · 红线与免责</div>
+  <div class="st">教学设定，不指向任何真实企业</div>
+  <div class="sd">请在使用前向学生明确以下红线与免责声明，避免被误读为正式核查结论。</div>
+  <div class="note warnbox">⚠️ 本页所有企业、地点、数据为<b>脱敏教学设定</b>，不指向任何真实企业；企业规模、燃煤量、发热量、排放因子、配额与价格均为演示取值。</div>
+  <div class="note warnbox">⚠️ 本页<b>不承诺</b>任何核查结论必然成立，<b>不替代</b>正式的核查、检测与主管部门核定程序；数值用于教学演示，<b>不作为</b>工程设计或检测报告依据。</div>
+  <div class="fw">
+    <a href="钢铁企业碳排放核查与履约-交互版.html"><div class="t">→ 打开配套交互页</div><div class="d">进入《绿色大账本：钢铁企业碳排放核查与履约》交互模拟台，按四关实操。</div></a>
+    <a href="../index.html"><div class="t">→ 返回实验集总目录</div><div class="d">回到 EnvLab 交互实验集，查看其他交互页与交付包。</div></a>
+  </div>
+</section>
+
+<footer class="ft">
+  <b>EnvLab 碳核查实训</b> · 钢铁碳排放核查 · 教学交付包
+  <div class="nav">
+    <a href="../index.html">实验集总目录</a>
+    <a class="cur" href="钢铁企业碳排放核查与履约-交互版.html">配套交互页</a>
+  </div>
+</footer>
+
+<a id="bk" href="../index.html" title="返回实验集总目录（Alt+Esc）"><span class="bk-a" aria-hidden="true">←</span><span class="bk-t">返回目录</span></a>
+<script>(function(){var b=document.getElementById("bk");if(!b)return;var f=function(){var y=window.pageYOffset||document.documentElement.scrollTop;if(y>260)b.classList.add("on");else b.classList.remove("on")};if(typeof window.addEventListener==='function')window.addEventListener("scroll",f,{passive:true});f();if(typeof document.addEventListener==='function')document.addEventListener("keydown",function(e){if(e.key==="Escape"&&e.altKey)location.href=b.getAttribute("href")});})();</script>
+<script>(function(){var sp=document.getElementById("sp");function f(){var h=document.documentElement.scrollHeight-window.innerHeight;var y=window.pageYOffset||document.documentElement.scrollTop;if(sp)sp.style.width=(h>0?(y/h*100):0)+"%"}if(typeof window.addEventListener==='function')window.addEventListener("scroll",f,{passive:true});f();})();</script>
+<script>(function(){try{var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting)es[i].target.classList.add("visible")}},{threshold:0.12});var secs=document.querySelectorAll(".sec");for(var j=0;j<secs.length;j++){io.observe(secs[j])}}catch(e){var s2=document.querySelectorAll(".sec");for(var k=0;k<s2.length;k++){s2[k].classList.add("visible")}}})();</script>
+</body>
+</html>
