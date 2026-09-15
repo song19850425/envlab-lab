@@ -248,6 +248,7 @@ input[type=range]{width:100%;accent-color:#f97316;margin-top:2px}
     <div id="blindOut"></div>
 
     <div class="acts" style="margin-top:16px">
+      <button class="btn b1" onclick="exportCSV()">📥 导出实验记录（CSV）</button>
       <button class="btn b2" onclick="resetAll()">🔄 重置实验</button>
     </div>
 
@@ -282,6 +283,7 @@ input[type=range]{width:100%;accent-color:#f97316;margin-top:2px}
     <b>模型边界声明</b>：本页烟气真值、稀释比、分析仪参数与盲测响应 / 漂移均为<b>教学设定值</b>，用于演示"识别—取证—盲测"的逻辑链路，不作为任何执法结论、检测报告或工程设计的依据。真实执法请以现行标准与正式程序为准。
   </div>
   <div class="fw">
+    <a href="CEMS执法检查-教学交付包.html"><div class="t">📦 教学交付包（学生手册 / 教师指南 / 3 个现成作业 / 部署说明）</div><div class="d">给老师用的那一层：90 分钟课堂流程、知识点映射、带评分量规的现成作业、LMS 嵌入代码。</div></a>
     <a href="../index.html"><div class="t">→ 返回实验集总目录</div><div class="d">回到 EnvLab 交互实验集，查看其他交互页。</div></a>
     <a href="../08-大气污染控制/LDAR泄漏检测与修复-交互版.html"><div class="t">→ LDAR 泄漏检测与修复</div><div class="d">同属现场检查线：VOCs（Volatile Organic Compounds，挥发性有机物）无组织排放的建档—检测—判定。</div></a>
   </div>
@@ -292,6 +294,7 @@ input[type=range]{width:100%;accent-color:#f97316;margin-top:2px}
   <div class="nav">
     <a href="../index.html">实验集总目录</a>
     <a class="cur" href="CEMS造假识别与执法检查-交互版.html">CEMS 造假识别与执法检查</a>
+    <a href="CEMS执法检查-教学交付包.html">教学交付包</a>
   </div>
 </footer>
 
@@ -676,6 +679,98 @@ function resetAll(){
   $('blindOut').innerHTML = ''; $('results').innerHTML = ''; $('log').innerHTML = '';
   buildZones(); buildSeq(); buildChecks();
   setSts('⏳ 未开始', 'si'); warn(''); refreshGates(); render();
+}
+
+/* ---------- 导出实验记录（CSV，纯前端） ---------- */
+function csvCell(v){
+  const s=(v===undefined||v===null)?'':String(v);
+  if(s.indexOf(',')>=0||s.indexOf('"')>=0||s.indexOf('\n')>=0||s.indexOf('\r')>=0){
+    return '"'+s.split('"').join('""')+'"';
+  }
+  return s;
+}
+function csvRow(){
+  let out='';
+  for(let i=0;i<arguments.length;i++){ if(i) out+=','; out+=csvCell(arguments[i]); }
+  return out;
+}
+function buildCSV(){
+  const r=judgeBlind();
+  const blindDone=G.z4;
+  const cMeas=Math.round(currentCmeas());
+  const blindC=Math.round(r.cMeas);
+  const L=[];
+  L.push(csvRow('CEMS（烟气排放连续监测系统）造假识别与执法检查 · 实验记录'));
+  L.push(csvRow('说明','本页数据为脱敏教学设定，不指向任何真实企业；不作为执法结论、检测报告或司法鉴定依据'));
+  L.push(csvRow('导出时间',new Date().toLocaleString()));
+  L.push('');
+  L.push(csvRow('一、四关结果'));
+  L.push(csvRow('关卡','结果'));
+  L.push(csvRow('关卡1 站房勘察',G.z1?'通过':'未通过'));
+  L.push(csvRow('关卡2 拆除伪装与管线复位',G.z2?'通过':'未通过'));
+  L.push(csvRow('关卡3 参数与备案一致性核对',G.z3?'通过':'未通过'));
+  L.push(csvRow('关卡4 标准气体盲测',G.z4?'通过':'未通过'));
+  L.push('');
+  L.push(csvRow('二、站房世界模型快照'));
+  L.push(csvRow('参数','数值','单位'));
+  L.push(csvRow('烟气真值 C_true',Math.round(S.Ctrue),'μmol/mol'));
+  L.push(csvRow('CEMS 实测 C_meas',cMeas,'μmol/mol'));
+  L.push(csvRow('稀释比 k',S.bypassOpen?S.k.toFixed(2):'—','0–0.60'));
+  L.push(csvRow('伴热温度',Math.round(S.heatTemp),'℃'));
+  L.push(csvRow('三通阀/旁路状态',S.bypassOpen?'开启(旁路放空)':'关闭(已复位)','三通阀'));
+  L.push(csvRow('分析仪斜率',S.slope,'—'));
+  L.push(csvRow('分析仪截距',S.offset,'—'));
+  L.push(csvRow('分析仪量程',S.fs,'μmol/mol'));
+  L.push(csvRow('输出下限',S.floor,'mg/m³'));
+  L.push('');
+  L.push(csvRow('三、盲测判定（HJ 76-2017）'));
+  L.push(csvRow('项目','数值','单位','判据'));
+  L.push(csvRow('标准气体 SO₂ 标称值',MODEL.Cstd,'μmol/mol','证书 '+MODEL.certId));
+  L.push(csvRow('CEMS 示值',blindDone?blindC:'未测','μmol/mol','通入标气后读取'));
+  L.push(csvRow('示值误差',blindDone?r.err.toFixed(1):'未测','%','≤ ±5%（相对标准气体标称值）'));
+  L.push(csvRow('系统响应时间',blindDone?r.resp:'未测','s','≤ 200 s（HJ 76-2017 §6.2.1.2 系统口径）'));
+  L.push(csvRow('24h 漂移',blindDone?r.drift.toFixed(2):'未测','%FS','≤ ±2.5% FS（气态污染物 CEMS）'));
+  L.push(csvRow('最终判定结论',blindDone?(r.pass?'通过（符合 HJ 76-2017）':'不通过（不符合 HJ 76-2017）'):'未测','—','结合物证与参数篡改记录综合判定'));
+  L.push('');
+  L.push(csvRow('四、依据标准'));
+  L.push(csvRow('标准','本页用途'));
+  L.push(csvRow('HJ 75-2017','校准周期分档、日常质控与运行维护要求'));
+  L.push(csvRow('HJ 76-2017','示值误差、响应时间、零点 / 量程漂移等技术指标'));
+  L.push(csvRow('HJ 212-2025','数据采集传输（DAS）与联网传输要求（2026-01-01 实施）'));
+  L.push(csvRow('环发〔2015〕175号','弄虚作假行为的判定情形与处理'));
+  L.push(csvRow('生态环境部公告 2022年第21号','自动监测数据标记与异常数据判定'));
+  L.push(csvRow('法释〔2023〕7号','自动监测数据造假的刑事责任'));
+  return L.join('\r\n');
+}
+function exportCSV(){
+  const name='CEMS执法检查-实验记录.csv';
+  try{
+    const csv=buildCSV();
+    if(typeof Blob!=='function'||typeof URL==='undefined'||typeof URL.createObjectURL!=='function'){
+      csvFallback(csv,name); return;
+    }
+    const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.href=url;
+    a.download=name;
+    if(document.body&&typeof document.body.appendChild==='function') document.body.appendChild(a);
+    if(typeof a.click==='function') a.click();
+    if(document.body&&typeof document.body.removeChild==='function') document.body.removeChild(a);
+    setTimeout(function(){ try{ URL.revokeObjectURL(url); }catch(e){} },1500);
+    log('已导出实验记录：<b>'+name+'</b>（含四关结果、站房模型快照、盲测判定与依据标准，可用 Excel 直接打开）');
+  }catch(e){
+    warn('导出失败：'+(e&&e.message?e.message:String(e)));
+  }
+}
+function csvFallback(csv,name){
+  const w=(typeof window!=='undefined'&&typeof window.open==='function')?window.open('','_blank'):null;
+  if(w&&w.document){
+    w.document.write('<pre>'+csv.split('&').join('&amp;').split('<').join('&lt;')+'</pre>');
+    log('当前环境不支持直接下载，已在新窗口打开 CSV 内容：<b>'+name+'</b>');
+  }else{
+    warn('当前环境不支持导出，请更换现代浏览器后重试。');
+  }
 }
 
 /* ---------- 初始化 ---------- */
