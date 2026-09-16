@@ -514,6 +514,7 @@ function clickZone(z){
   } else {
     score = Math.max(0, score - 5); el.classList.add('ok'); el.querySelector('.zb').textContent = '✓ 正常';
     log('你点选了正常项 #'+z.id+'（'+z.t+'）：这是正常状态，误判已扣分。', false);
+    renderResults();   // 误判后立即刷新结算区，别让得分显示滞后到关卡1 结束
   }
   warn('');
   if(foundZones.size === 4){
@@ -653,7 +654,9 @@ function renderResults(){
 /* ---------- 解锁门控 ---------- */
 function refreshGates(){
   const seqBtns = document.querySelectorAll('#seqBox .pb');
-  if(seqBtns.forEach) seqBtns.forEach(b=>{ if(!G.z1) b.disabled = true; });
+  // 关卡1 通过后必须把顺序按钮解禁（原来只置 true、从不置回 false，真实浏览器里点不动）；
+  // 已就位的步骤保持禁用，避免重复点击。
+  if(seqBtns.forEach) seqBtns.forEach(b=>{ b.disabled = !G.z1 || b.classList.contains('on'); });
   $('btnChk').disabled = !G.z2;
   $('btnResetParam').disabled = !G.z3;
   $('btnBlind').disabled = !G.z3;
