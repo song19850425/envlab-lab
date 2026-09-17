@@ -16,10 +16,34 @@ import os
 import sys
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
-# 脚本可能放在仓库同级目录，也可能放在仓库的 _tools/ 下 —— 两种位置都支持
-ROOT = _HERE if os.path.isdir(os.path.join(_HERE, "EnvLab-交互实验集")) else os.path.dirname(_HERE)
-if not os.path.isdir(ROOT):
-    raise SystemExit("找不到仓库根目录：%s" % ROOT)
+
+# 站点仓库的标志文件。**不要用 `.git` 判别** —— 上级目录本身也是 git 仓库
+# （remote 指向另一个项目），只看 .git 会把上级目录误判成站点仓库，
+# 于是把整棵上级目录树都改了（踩过两次：第二次误改 1790 个文件）。
+_SITE_MARKERS = ("sitemap.xml", "robots.txt", ".nojekyll", "EnvLab-交互实验集")
+
+
+def _is_site_repo(d):
+    return bool(d) and all(os.path.exists(os.path.join(d, m)) for m in _SITE_MARKERS)
+
+
+def _find_repo(start):
+    """脚本可能放在仓库根、仓库的 _tools/ 下、或仓库的同级目录。"""
+    for c in (start,
+              os.path.dirname(start),
+              os.path.join(start, "_deploy_github"),
+              os.path.join(os.path.dirname(start), "_deploy_github")):
+        if _is_site_repo(c):
+            return os.path.abspath(c)
+    return None
+
+
+ROOT = os.environ.get("ENVLAB_REPO", "").strip() or _find_repo(_HERE)
+if not _is_site_repo(ROOT):
+    raise SystemExit(
+        "找不到站点仓库（需同时含 %s）。\n脚本位置：%s\n"
+        "可用环境变量 ENVLAB_REPO 显式指定仓库根目录。" % ("、".join(_SITE_MARKERS), _HERE))
+print("[repo] %s" % ROOT)
 
 # (说明, 原文, 替换) —— 顺序即执行顺序，长句在前避免被短句截断
 RULES = [

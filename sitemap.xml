@@ -660,4 +660,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
+  <url>
+    <loc>https://song19850425.github.io/envlab-lab/EnvLab-交互实验集/03-仪器分析/五气分析仪-汽车尾气检测-交互版.html</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://song19850425.github.io/envlab-lab/标准依据-溯源总表.html</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>

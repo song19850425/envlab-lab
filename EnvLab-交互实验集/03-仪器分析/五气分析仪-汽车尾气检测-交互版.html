@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="description" content="五气分析仪与汽车尾气检测交互实验：认识尾气中的五种关键气体（CO、CO₂、HC、O₂、NOₓ）、理解不分光红外与电化学传感器的工作原理，按标准检测四步法完成一次尾气检测，并可在模拟器上调整工况观察读数变化。">
+<title>五气分析仪 · 汽车尾气检测 · EnvLab 交互实验</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+    --ink:#1a1a2e;--ink-light:#555;--paper:#faf9f6;--paper-warm:#f5f0e8;
+    --ex:#0ea5e9;--ex-light:#e0f2fe;
+    --warn:#f59e0b;--warn-light:#fef3c7;
+    --bad:#dc2626;--bad-light:#fef2f2;
+    --good:#16a34a;--good-light:#f0fdf4;
+    --carbon:#374151;--carbon-light:#f3f4f6;
+    --border:#e8e0d4;
+    --sr:'Songti SC','Source Han Serif SC','Noto Serif SC',SimSun,serif;
+    --sn:-apple-system,'PingFang SC','Microsoft YaHei','Hiragino Sans GB',system-ui,sans-serif;
+    --mono:'Cascadia Mono','JetBrains Mono',Consolas,'Courier New',monospace;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--sn);color:var(--ink);background:var(--paper);overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+#sp{position:fixed;top:0;left:0;height:3px;width:0%;background:linear-gradient(90deg,var(--ex),var(--carbon));z-index:1000;transition:width .1s linear}
+
+#nv{position:fixed;right:24px;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;gap:14px}
+.nd{width:10px;height:10px;border-radius:50%;background:var(--border);cursor:pointer;transition:.3s;border:2px solid transparent;position:relative}
+.nd.ac{background:var(--ex);transform:scale(1.5)}
+.nd:hover{border-color:var(--ex)}
+.nl{position:absolute;right:20px;top:50%;transform:translateY(-50%);font-size:11px;white-space:nowrap;color:var(--ink-light);background:#fff;padding:3px 10px;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.1);opacity:0;pointer-events:none;transition:opacity .2s}
+.nd:hover .nl{opacity:1}
+
+.hero{min-height:100vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 24px;position:relative;background:linear-gradient(180deg,var(--ex-light) 0%,var(--paper) 100%)}
+.hero-badge{display:inline-block;padding:6px 18px;border-radius:20px;background:var(--ex-light);color:var(--ex);font-size:12px;font-weight:600;letter-spacing:1px;margin-bottom:24px;border:1px solid rgba(14,165,233,.15)}
+.hero h1{font-family:var(--sr);font-size:clamp(36px,6vw,72px);font-weight:900;line-height:1.1;color:var(--ink);max-width:700px}
+.hero h1 em{font-style:normal;color:var(--ex)}
+.hero-sub{margin-top:20px;font-size:clamp(14px,2vw,18px);color:var(--ink-light);max-width:560px;line-height:1.7}
+.hero-stats{display:flex;gap:32px;margin-top:48px;flex-wrap:wrap;justify-content:center}
+.hero-stat{text-align:center}
+.hero-stat .num{font-family:var(--sr);font-size:36px;font-weight:900;color:var(--ex);display:block;line-height:1}
+.hero-stat .lbl{font-size:12px;color:var(--ink-light);margin-top:4px}
+.scroll-hint{position:absolute;bottom:32px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;color:var(--ink-light);font-size:12px;letter-spacing:1px;animation:float 2s ease-in-out infinite}
+.scroll-hint .arrow{font-size:18px}
+@keyframes float{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(8px)}}
+
+.section{max-width:900px;margin:0 auto;padding:100px 24px;opacity:0;transform:translateY(40px);transition:opacity .8s ease,transform .8s ease}
+.section.visible{opacity:1;transform:translateY(0)}
+.section-num{font-size:11px;font-weight:600;letter-spacing:3px;color:var(--ex);text-transform:uppercase;margin-bottom:8px}
+.section-title{font-family:var(--sr);font-size:clamp(28px,4vw,48px);font-weight:700;line-height:1.2;color:var(--ink);margin-bottom:12px}
+.section-desc{font-size:16px;color:var(--ink-light);line-height:1.8;max-width:600px;margin-bottom:48px}
+
+.gas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;margin-bottom:32px}
+.gas-card{background:#fff;border-radius:14px;padding:24px;border:1px solid var(--border);cursor:pointer;transition:.35s ease;position:relative;overflow:hidden}
+.gas-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--ex);transform:scaleX(0);transform-origin:left;transition:transform .4s ease}
+.gas-card:hover::before{transform:scaleX(1)}
+.gas-card:hover{transform:translateY(-4px);box-shadow:0 12px 32px rgba(0,0,0,.08)}
+.gas-card.revealed{background:var(--ex-light);border-color:rgba(14,165,233,.2)}
+.gas-icon{width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:14px;font-family:var(--mono);font-weight:700}
+.gas-name{font-weight:700;font-size:15px;margin-bottom:2px}
+.gas-formula{font-size:12px;color:var(--ink-light);font-family:var(--mono)}
+.gas-role{font-size:13px;color:var(--ink-light);line-height:1.6;margin-top:10px;max-height:0;overflow:hidden;transition:max-height .5s ease,margin-top .5s ease}
+.gas-card.revealed .gas-role{max-height:300px;margin-top:10px}
+.gas-limit{display:inline-block;margin-top:8px;padding:3px 10px;border-radius:6px;font-size:12px;font-weight:600;font-family:var(--mono)}
+
+.inst-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px;margin-bottom:32px}
+.inst-card{background:#fff;border-radius:14px;overflow:hidden;border:1px solid var(--border);transition:.35s ease}
+.inst-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,.1)}
+.inst-visual{height:100px;display:flex;align-items:center;justify-content:center;font-size:40px;position:relative;overflow:hidden}
+.inst-info{padding:20px}
+.inst-name{font-weight:700;font-size:16px;margin-bottom:4px}
+.inst-name-en{font-size:11px;color:var(--ink-light);font-weight:400}
+.inst-desc{font-size:13px;color:var(--ink-light);line-height:1.7;margin-top:8px}
+.inst-spec{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.inst-spec span{padding:3px 10px;border-radius:6px;font-size:11px;font-weight:600}
+
+.tl{position:relative;padding-left:40px}
+.tl::before{content:'';position:absolute;left:15px;top:8px;bottom:8px;width:2px;background:var(--border)}
+.ps{position:relative;margin-bottom:40px;opacity:0;transform:translateX(-20px);transition:opacity .6s ease,transform .6s ease}
+.ps.visible{opacity:1;transform:translateX(0)}
+.ps::before{content:'';position:absolute;left:-33px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--paper);border:2px solid var(--border);transition:.3s}
+.ps.visible::before{background:var(--ex);border-color:var(--ex)}
+.ps-num{font-size:11px;font-weight:700;color:var(--ex);letter-spacing:1px;margin-bottom:4px}
+.ps-title{font-weight:700;font-size:16px;margin-bottom:6px}
+.ps-desc{font-size:14px;color:var(--ink-light);line-height:1.7}
+.ps-note{display:inline-block;margin-top:8px;padding:4px 12px;background:var(--ex-light);color:var(--ex);border-radius:6px;font-size:12px}
+
+/* ═══ Analyzer Instrument ═══ */
+.exp-section{background:linear-gradient(180deg,var(--ex-light) 0%,var(--paper) 100%);padding:80px 24px 100px}
+.exp-section .section{padding-top:0}
+.analyzer-wrap{max-width:880px;margin:0 auto;background:linear-gradient(160deg,#1a1a2e,#0d0d1a);border-radius:20px;padding:0;box-shadow:0 8px 40px rgba(0,0,0,.2);border:1px solid rgba(14,165,233,.1);overflow:hidden}
+.analyzer-header{padding:20px 28px;background:rgba(0,0,0,.3);border-bottom:1px solid rgba(14,165,233,.1);display:flex;justify-content:space-between;align-items:center}
+.analyzer-header h3{font-size:16px;font-weight:700;color:#e2e8f0;font-family:var(--sr)}
+.analyzer-header .status-led{display:flex;align-items:center;gap:8px;font-size:11px;color:#64748b}
+.analyzer-header .led-dot{width:8px;height:8px;border-radius:50%;background:#16a34a;box-shadow:0 0 8px rgba(22,163,74,.4)}
+
+.analyzer-body{padding:24px;display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:600px){.analyzer-body{grid-template-columns:1fr}}
+
+/* Gas readouts */
+.gas-readouts{display:flex;flex-direction:column;gap:8px}
+.gas-row{display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:rgba(0,0,0,.2);border-radius:10px;border:1px solid rgba(14,165,233,.06);transition:.3s}
+.gas-row .gr-label{display:flex;align-items:center;gap:8px;font-size:12px;color:#94a3b8}
+.gas-row .gr-label .gr-chem{font-family:var(--mono);font-weight:700;font-size:13px;color:#e2e8f0;width:36px}
+.gas-row .gr-value{font-family:var(--mono);font-size:20px;font-weight:700;line-height:1}
+.gas-row .gr-unit{font-size:10px;color:#64748b;margin-left:4px}
+.gas-row .gr-bar{flex:1;height:6px;margin:0 12px;background:rgba(0,0,0,.3);border-radius:3px;overflow:hidden;max-width:120px}
+.gas-row .gr-fill{height:100%;border-radius:3px;transition:width .5s ease,background .5s}
+
+.gas-row.warn{border-color:rgba(245,158,11,.2);background:rgba(245,158,11,.05)}
+.gas-row.over{border-color:rgba(220,38,38,.25);background:rgba(220,38,38,.05);animation:pulse-warn 1s ease infinite}
+@keyframes pulse-warn{0%,100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}50%{box-shadow:0 0 12px 2px rgba(220,38,38,.15)}}
+
+/* Right panel: engine + probe */
+.engine-panel{display:flex;flex-direction:column;gap:16px}
+.engine-display{background:rgba(0,0,0,.2);border-radius:14px;padding:20px;border:1px solid rgba(14,165,233,.06);text-align:center}
+.engine-rpm{font-family:var(--mono);font-size:48px;font-weight:700;color:#0ea5e9;line-height:1;text-shadow:0 0 20px rgba(14,165,233,.15)}
+.engine-rpm-label{font-size:11px;color:#64748b;margin-top:4px;letter-spacing:2px;text-transform:uppercase}
+.engine-mode{display:inline-block;margin-top:8px;padding:4px 16px;border-radius:8px;font-size:12px;font-weight:600}
+
+/* Car + exhaust SVG */
+.car-viz{background:rgba(0,0,0,.15);border-radius:14px;padding:16px;border:1px solid rgba(14,165,233,.04);position:relative;min-height:140px;display:flex;align-items:center;justify-content:center}
+.car-viz svg{width:100%;max-width:340px;height:auto}
+.exhaust-particle{position:absolute;border-radius:50%;pointer-events:none}
+
+/* Controls */
+.ctrl-row{margin-bottom:12px}
+.ctrl-row .cr-label{display:flex;justify-content:space-between;font-size:12px;color:#94a3b8;margin-bottom:4px}
+.ctrl-row .cr-val{color:#e2e8f0;font-weight:600;font-family:var(--mono)}
+.ctrl-row input[type=range]{width:100%;height:5px;-webkit-appearance:none;appearance:none;background:rgba(14,165,233,.08);border-radius:3px;outline:none}
+.ctrl-row input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#0ea5e9;cursor:pointer;border:2px solid rgba(255,255,255,.1);box-shadow:0 0 12px rgba(14,165,233,.3)}
+.ctrl-row input[type=range]:disabled{opacity:.3}
+.ctrl-row input[type=range]:disabled::-webkit-slider-thumb{cursor:not-allowed}
+
+.btn{padding:10px 24px;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;transition:.2s;font-family:var(--sn);border:1px solid transparent}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-primary{background:rgba(14,165,233,.15);color:#0ea5e9;border-color:rgba(14,165,233,.3)}
+.btn-primary:hover:not(:disabled){background:rgba(14,165,233,.25);border-color:#0ea5e9;box-shadow:0 0 16px rgba(14,165,233,.2)}
+.btn-secondary{background:rgba(255,255,255,.05);color:#94a3b8;border-color:rgba(255,255,255,.08)}
+.btn-secondary:hover:not(:disabled){background:rgba(255,255,255,.1);color:#e2e8f0}
+
+/* Result panel */
+.result-panel{margin-top:16px;padding:16px;background:rgba(0,0,0,.15);border-radius:12px;border:1px solid rgba(34,197,94,.08);text-align:center}
+.result-pass{font-size:20px;font-weight:700;color:#4ade80}
+.result-fail{font-size:20px;font-weight:700;color:#f87171}
+.result-detail{font-size:11px;color:#64748b;margin-top:4px}
+
+/* Log */
+.exp-log{margin-top:12px;padding:12px 16px;background:rgba(0,0,0,.1);border-radius:10px;border:1px solid rgba(14,165,233,.04);max-height:80px;overflow-y:auto;font-family:var(--mono);font-size:12px;color:#94a3b8;line-height:1.8}
+.exp-log::-webkit-scrollbar{width:3px}
+.exp-log::-webkit-scrollbar-thumb{background:rgba(14,165,233,.15);border-radius:2px}
+.exp-log .lt{color:#475569;margin-right:8px}
+.exp-log .lok{color:#4ade80}
+.exp-log .lwarn{color:#fbbf24}
+.exp-log .lbad{color:#f87171}
+
+/* Summary cards */
+.sum-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.sum-card{padding:20px;background:#fff;border-radius:12px;border:1px solid var(--border)}
+.sum-card .si{font-size:28px;margin-bottom:8px}
+.sum-card .st2{font-weight:700;font-size:14px;margin-bottom:4px}
+.sum-card .sd2{font-size:12px;color:var(--ink-light);line-height:1.6}
+
+.footer{text-align:center;padding:60px 24px;color:var(--ink-light);font-size:13px;border-top:1px solid var(--border);background:var(--paper-warm)}
+.footer a{color:var(--ex);text-decoration:none}
+
+@media(max-width:600px){
+    .hero-stats{gap:24px}
+    #nv{right:12px}
+    .tl{padding-left:32px}
+}
+</style>
+<link rel="canonical" href="https://song19850425.github.io/envlab-lab/EnvLab-交互实验集/03-仪器分析/五气分析仪-汽车尾气检测-交互版.html">
+</head>
+<body>
+
+<div id="sp"></div>
+
+<div id="nv">
+    <div class="nd ac" onclick="gs(0)"><span class="nl">开篇</span></div>
+    <div class="nd" onclick="gs(1)"><span class="nl">五种气体</span></div>
+    <div class="nd" onclick="gs(2)"><span class="nl">仪器原理</span></div>
+    <div class="nd" onclick="gs(3)"><span class="nl">检测流程</span></div>
+    <div class="nd" onclick="gs(4)"><span class="nl">交互模拟</span></div>
+    <div class="nd" onclick="gs(5)"><span class="nl">总结</span></div>
+</div>
+
+<!-- ═══ HERO ═══ -->
+<section class="hero">
+    <div class="hero-badge">汽车尾气检测 · 交互式教学</div>
+    <h1>五气分析仪与<em>汽车尾气</em>检测</h1>
+    <p class="hero-sub">
+        Five-Gas Analyzer · 一次测量 CO、CO₂、HC、O₂、NO 五种关键气体<br>
+        判断发动机燃烧状态与尾气排放是否达标。
+    </p>
+    <div class="hero-stats">
+        <div class="hero-stat"><span class="num">5</span><span class="lbl">种气体同步检测</span></div>
+        <div class="hero-stat"><span class="num">NDIR</span><span class="lbl">红外分析原理</span></div>
+        <div class="hero-stat"><span class="num">4</span><span class="lbl">步标准流程</span></div>
+        <div class="hero-stat"><span class="num">≤60</span><span class="lbl">秒完成检测</span></div>
+    </div>
+    <div class="scroll-hint"><span>向下滚动开始</span><span class="arrow">↓</span></div>
+</section>
+
+<!-- ═══ SECTION 01 · 五种气体 ═══ -->
+<section class="section" id="s1">
+    <div class="section-num">Section 01 · 检测对象</div>
+    <h2 class="section-title">尾气中的五种关键气体</h2>
+    <p class="section-desc">五气分析仪同步测量以下五种气体，每种的浓度反映发动机不同的工作状态。点击卡片查看详细信息。</p>
+    <div class="gas-grid">
+        <div class="gas-card" onclick="rc(this)">
+            <div class="gas-icon" style="background:#fef2f2;color:#dc2626;">CO</div>
+            <div class="gas-name">一氧化碳</div>
+            <div class="gas-formula">Carbon Monoxide · %vol</div>
+            <div class="gas-role"><strong>不完全燃烧产物。</strong>CO 浓度直接反映混合气浓稀：浓度高说明燃油过多、氧气不足，燃烧不充分。是判断空燃比的重要指标。汽油车限值：怠速 ≤ 0.5%。</div>
+            <span class="gas-limit" style="background:#fef2f2;color:#dc2626;">限值 ≤ 0.5%</span>
+        </div>
+        <div class="gas-card" onclick="rc(this)">
+            <div class="gas-icon" style="background:#f3f4f6;color:#374151;">CO₂</div>
+            <div class="gas-name">二氧化碳</div>
+            <div class="gas-formula">Carbon Dioxide · %vol</div>
+            <div class="gas-role"><strong>完全燃烧产物。</strong>CO₂ 越高说明燃烧越充分。理论最佳值约 13~16%。若 CO₂ 低而 CO 高，说明混合气过浓。CO₂ + CO 之和可评估燃烧效率。</div>
+            <span class="gas-limit" style="background:#f3f4f6;color:#374151;">正常 13~16%</span>
+        </div>
+        <div class="gas-card" onclick="rc(this)">
+            <div class="gas-icon" style="background:#fef3c7;color:#92400e;">HC</div>
+            <div class="gas-name">碳氢化合物</div>
+            <div class="gas-formula">Hydrocarbons · ppm vol</div>
+            <div class="gas-role"><strong>未燃燃油。</strong>HC 浓度高说明燃油未完全燃烧就排出，常见于点火不良、气缸密封差、混合气过稀导致失火。汽油车限值：怠速 ≤ 200 ppm。</div>
+            <span class="gas-limit" style="background:#fef3c7;color:#92400e;">限值 ≤ 200 ppm</span>
+        </div>
+        <div class="gas-card" onclick="rc(this)">
+            <div class="gas-icon" style="background:#e0f2fe;color:#0c4a6e;">O₂</div>
+            <div class="gas-name">氧气</div>
+            <div class="gas-formula">Oxygen · %vol</div>
+            <div class="gas-role"><strong>过剩空气指标。</strong>O₂ 高说明混合气过稀或排气系统漏气。正常约 0.5~2%。O₂ 与 CO₂ 配合可判断空燃比偏移方向。催化器后 O₂ 应极低。</div>
+            <span class="gas-limit" style="background:#e0f2fe;color:#0c4a6e;">正常 0.5~2%</span>
+        </div>
+        <div class="gas-card" onclick="rc(this)">
+            <div class="gas-icon" style="background:#fef2f2;color:#dc2626;">NO</div>
+            <div class="gas-name">氮氧化物</div>
+            <div class="gas-formula">Nitric Oxide · ppm vol</div>
+            <div class="gas-role"><strong>高温燃烧产物。</strong>发动机温度越高、燃烧越充分，NO 生成越多。EGR（废气再循环）系统的作用就是降低燃烧温度以减少 NO。三元催化器后 NO 应大幅降低。</div>
+            <span class="gas-limit" style="background:#fef2f2;color:#dc2626;">限值 ≤ 1500 ppm</span>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ SECTION 02 · 仪器原理 ═══ -->
+<section class="section" id="s2">
+    <div class="section-num">Section 02 · 仪器原理</div>
+    <h2 class="section-title">五气分析仪的工作原理</h2>
+    <p class="section-desc">五气分析仪采用两种核心传感器技术，分别针对不同气体的物理化学特性进行测量。</p>
+    <div class="inst-grid">
+        <div class="inst-card">
+            <div class="inst-visual" style="background:linear-gradient(135deg,#e0f2fe,#bfdbfe);">📡</div>
+            <div class="inst-info">
+                <div class="inst-name">不分光红外分析器 <span class="inst-name-en">NDIR</span></div>
+                <div class="inst-desc">利用不同气体对特定波长红外光的吸收特性进行浓度测量。CO、CO₂、HC 三种气体在同一光路中分别检测，测量精度高、响应快。</div>
+                <div class="inst-spec">
+                    <span style="background:#e0f2fe;color:#0c4a6e;">CO/CO₂/HC</span>
+                    <span style="background:#fef3c7;color:#92400e;">红外吸收</span>
+                    <span style="background:#f0fdf4;color:#166534;">≤3s 响应</span>
+                </div>
+            </div>
+        </div>
+        <div class="inst-card">
+            <div class="inst-visual" style="background:linear-gradient(135deg,#fef3c7,#fde68a);">⚡</div>
+            <div class="inst-info">
+                <div class="inst-name">电化学传感器 <span class="inst-name-en">Electrochemical</span></div>
+                <div class="inst-desc">利用气体在电极上的电化学反应产生的电流信号来测量浓度。O₂ 和 NO 分别使用专用电化学传感器，寿命约 2~3 年，需定期校准。</div>
+                <div class="inst-spec">
+                    <span style="background:#e0f2fe;color:#0c4a6e;">O₂/NO</span>
+                    <span style="background:#fef3c7;color:#92400e;">电化学</span>
+                    <span style="background:#f0fdf4;color:#166534;">2~3年寿命</span>
+                </div>
+            </div>
+        </div>
+        <div class="inst-card">
+            <div class="inst-visual" style="background:linear-gradient(135deg,#f0fdf4,#dcfce7);">🌡️</div>
+            <div class="inst-info">
+                <div class="inst-name">取样探头 <span class="inst-name-en">Sampling Probe</span></div>
+                <div class="inst-desc">不锈钢探头插入排气管深度 ≥ 300mm，内置粉尘过滤器和水分离器。取样管路需加热保温，防止水汽冷凝溶解 HC 和 NO₂。</div>
+                <div class="inst-spec">
+                    <span style="background:#f0fdf4;color:#166534;">≥300mm</span>
+                    <span style="background:#e0f2fe;color:#0c4a6e;">不锈钢</span>
+                    <span style="background:#fef3c7;color:#92400e;">过滤+除水</span>
+                </div>
+            </div>
+        </div>
+        <div class="inst-card">
+            <div class="inst-visual" style="background:linear-gradient(135deg,#f3e8ff,#ddd6fe);">💻</div>
+            <div class="inst-info">
+                <div class="inst-name">数据处理单元 <span class="inst-name-en">CPU Unit</span></div>
+                <div class="inst-desc">采集传感器信号，进行温度/压力补偿计算，实时显示浓度值。自动校零、量程校准、数据存储和打印报告。</div>
+                <div class="inst-spec">
+                    <span style="background:#f3e8ff;color:#6b21a8;">自动校零</span>
+                    <span style="background:#e0f2fe;color:#0c4a6e;">数据存储</span>
+                    <span style="background:#f0fdf4;color:#166534;">打印报告</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ SECTION 03 · 检测流程 ═══ -->
+<section class="section" id="s3">
+    <div class="section-num">Section 03 · 检测流程</div>
+    <h2 class="section-title">标准检测四步法</h2>
+    <p class="section-desc">依据 GB 18285-2018《汽油车污染物排放限值及测量方法》，尾气检测分为以下四个步骤。</p>
+    <div class="tl">
+        <div class="ps">
+            <div class="ps-num">STEP 01</div>
+            <div class="ps-title">仪器预热与校准</div>
+            <div class="ps-desc">开机预热 ≥ 15 分钟，使传感器达到工作温度。使用标准气体进行量程校准，确认各通道精度。环境空气自动校零。</div>
+            <span class="ps-note">⏱️ 预热不足会导致数据漂移</span>
+        </div>
+        <div class="ps">
+            <div class="ps-num">STEP 02</div>
+            <div class="ps-title">车辆准备与怠速</div>
+            <div class="ps-desc">确认发动机达到正常工作温度（水温 ≥ 80°C），保持怠速运转。检查排气系统无泄漏。插入取样探头至排气管深度 ≥ 300mm。</div>
+            <span class="ps-note">🌡️ 冷车数据不准确</span>
+        </div>
+        <div class="ps">
+            <div class="ps-num">STEP 03</div>
+            <div class="ps-title">高怠速测量</div>
+            <div class="ps-desc">将发动机转速提升至 2500±200 rpm，保持 15 秒后读取 30 秒平均值。记录 CO、CO₂、HC、O₂、NO 浓度。</div>
+            <span class="ps-note">🔄 高怠速反映中等负荷排放</span>
+        </div>
+        <div class="ps">
+            <div class="ps-num">STEP 04</div>
+            <div class="ps-title">怠速测量与判定</div>
+            <div class="ps-desc">松开油门回到怠速，保持 15 秒后读取 30 秒平均值。将两次测量结果与 GB 18285 限值比对，判定是否达标。</div>
+            <span class="ps-note">📋 双怠速法更全面反映排放状态</span>
+        </div>
+    </div>
+</section>
+
+<!-- ═══ SECTION 04 · 交互模拟 ═══ -->
+<section class="exp-section" id="s4">
+    <div class="section" style="padding-bottom:0;opacity:1;transform:none;">
+        <div class="section-num">Section 04 · 交互模拟</div>
+        <h2 class="section-title">五气分析仪模拟器</h2>
+        <p class="section-desc">调节发动机工况参数，实时观察五种气体浓度变化，判断尾气是否达标。</p>
+    </div>
+    <div style="max-width:880px;margin:0 auto;padding:0 24px 100px;">
+    <div class="analyzer-wrap">
+        <div class="analyzer-header">
+            <h3>🔬 五气分析仪 · MEXA-100</h3>
+            <div class="status-led">
+                <span class="led-dot" id="ledDot"></span>
+                <span id="ledText">就绪</span>
+            </div>
+        </div>
+        <div class="analyzer-body">
+            <!-- Left: Gas readouts -->
+            <div>
+                <div class="gas-readouts" id="gasReadouts"></div>
+            </div>
+            <!-- Right: Engine + controls -->
+            <div class="engine-panel">
+                <!-- Engine RPM display -->
+                <div class="engine-display">
+                    <div class="engine-rpm" id="rpmDisplay">800</div>
+                    <div class="engine-rpm-label">RPM · 发动机转速</div>
+                    <div class="engine-mode" id="modeDisplay" style="background:rgba(14,165,233,.12);color:#0ea5e9;">怠速</div>
+                </div>
+
+                <!-- Car + exhaust visualization -->
+                <div class="car-viz" id="carViz">
+                    <svg viewBox="0 0 340 120">
+                        <!-- Road -->
+                        <line x1="0" y1="105" x2="340" y2="105" stroke="rgba(255,255,255,.08)" stroke-width="2" stroke-dasharray="8,4"/>
+                        <!-- Car body -->
+                        <rect x="50" y="45" width="160" height="45" rx="8" fill="rgba(14,165,233,.08)" stroke="rgba(14,165,233,.15)" stroke-width="1.5"/>
+                        <!-- Roof -->
+                        <path d="M80,45 L100,20 L160,20 L180,45 Z" fill="rgba(14,165,233,.06)" stroke="rgba(14,165,233,.12)" stroke-width="1"/>
+                        <!-- Wheels -->
+                        <circle cx="85" cy="90" r="15" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/>
+                        <circle cx="85" cy="90" r="6" fill="rgba(255,255,255,.06)"/>
+                        <circle cx="175" cy="90" r="15" fill="rgba(255,255,255,.04)" stroke="rgba(255,255,255,.08)" stroke-width="1.5"/>
+                        <circle cx="175" cy="90" r="6" fill="rgba(255,255,255,.06)"/>
+                        <!-- Exhaust pipe -->
+                        <rect x="205" y="70" width="40" height="6" rx="3" fill="rgba(100,116,139,.3)" stroke="rgba(255,255,255,.08)"/>
+                        <!-- Probe -->
+                        <rect x="240" y="68" width="3" height="10" rx="1" fill="#0ea5e9" opacity="0.6"/>
+                        <text x="242" y="60" text-anchor="middle" font-size="7" fill="#0ea5e9" font-family="monospace">探头</text>
+                        <!-- Exhaust smoke -->
+                        <g id="smokeGroup"></g>
+                    </svg>
+                </div>
+
+                <!-- Controls -->
+                <div class="ctrl-row">
+                    <div class="cr-label"><span>🎚️ 发动机转速</span><span><span class="cr-val" id="rpmVal">800</span> rpm</span></div>
+                    <input type="range" id="rpmSlider" min="600" max="4000" value="800" step="50">
+                </div>
+                <div class="ctrl-row">
+                    <div class="cr-label"><span>⛽ 混合气浓度 (λ)</span><span><span class="cr-val" id="lambdaVal">1.00</span></span></div>
+                    <input type="range" id="lambdaSlider" min="0.80" max="1.20" value="1.00" step="0.01">
+                </div>
+                <div class="ctrl-row">
+                    <div class="cr-label"><span>🔥 催化器状态</span><span class="cr-val" id="catVal">正常</span></div>
+                    <input type="range" id="catSlider" min="0" max="1" value="1" step="0.05">
+                </div>
+
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-primary" id="measureBtn" onclick="toggleMeasure()" style="flex:1;">📊 开始测量</button>
+                    <button class="btn btn-secondary" onclick="resetSim()" style="flex:1;">🔄 重置</button>
+                </div>
+
+                <!-- Result -->
+                <div class="result-panel" id="resultPanel">
+                    <div id="resultText" style="font-size:16px;font-weight:600;color:#94a3b8;">等待测量</div>
+                    <div class="result-detail" id="resultDetail">点击「开始测量」启动检测</div>
+                </div>
+            </div>
+        </div>
+        <!-- Measuring hint -->
+        <div id="measuringHint" style="text-align:center;font-size:12px;color:#f59e0b;opacity:0;transition:opacity .3s;margin:0 24px 6px;">⏳ 测量进行中，请等待完成后再调整参数</div>
+        <!-- Log -->
+        <div class="exp-log" id="expLog" style="margin:0 24px 24px;">
+            <div><span class="lt">⏳</span>调节参数后点击「开始测量」</div>
+        </div>
+    </div>
+    </div>
+</section>
+
+<!-- ═══ SECTION 05 · 总结 ═══ -->
+<section class="section" id="s5">
+    <div class="section-num">Section 05 · 总结</div>
+    <h2 class="section-title">关键要点回顾</h2>
+    <p class="section-desc">掌握以下核心要点，有助于准确理解和执行汽车尾气检测。</p>
+    <div class="sum-grid">
+        <div class="sum-card">
+            <div class="si">🌡️</div>
+            <div class="st2">预热不可省</div>
+            <div class="sd2">仪器预热 ≥ 15 分钟，否则数据漂移</div>
+        </div>
+        <div class="sum-card">
+            <div class="si">🔍</div>
+            <div class="st2">双怠速法</div>
+            <div class="sd2">高怠速 2500rpm + 低怠速，全面反映排放</div>
+        </div>
+        <div class="sum-card">
+            <div class="si">📊</div>
+            <div class="st2">CO+CO₂</div>
+            <div class="sd2">两者之和 > 12% 说明燃烧效率正常</div>
+        </div>
+        <div class="sum-card">
+            <div class="si">⚠️</div>
+            <div class="st2">λ 值判断</div>
+            <div class="sd2">λ<1 过浓(CO高)，λ>1 过稀(HC/O₂高)</div>
+        </div>
+    </div>
+</section>
+
+<div class="footer">
+    <p>EnvLab · 环境检测交互式教学平台</p>
+    <p style="margin-top:4px;">联系方式：jinghao.song@gmail.com</p>
+</div>
+
+<script>
+// ═══ Scroll & Nav ═══
+window.addEventListener('scroll',()=>{
+    const h=document.documentElement.scrollHeight-window.innerHeight;
+    document.getElementById('sp').style.width=(window.scrollY/h*100)+'%';
+});
+const sections=document.querySelectorAll('.section,.exp-section');
+const dots=document.querySelectorAll('.nd');
+const so=new IntersectionObserver(e=>e.forEach(n=>n.isIntersecting&&n.target.classList.add('visible')),{threshold:.1});
+sections.forEach(s=>so.observe(s));
+const po=new IntersectionObserver(e=>e.forEach(n=>n.isIntersecting&&n.target.classList.add('visible')),{threshold:.2});
+document.querySelectorAll('.ps').forEach(s=>po.observe(s));
+window.addEventListener('scroll',()=>{let c=0;sections.forEach((s,i)=>{if(window.scrollY>=s.offsetTop-300)c=i});dots.forEach((d,i)=>d.classList.toggle('ac',i===c))});
+function gs(i){if(sections[i])sections[i].scrollIntoView({behavior:'smooth'})}
+function rc(c){
+    const was=c.classList.contains('revealed');
+    document.querySelectorAll('.gas-card.revealed').forEach(x=>x.classList.remove('revealed'));
+    if(!was) c.classList.add('revealed');
+}
+
+// ═══ Five-Gas Analyzer Simulator ═══
+const GASES = [
+    {id:'CO', label:'CO', name:'一氧化碳', unit:'%vol', color:'#f87171', limit:0.5, fmt:v=>v.toFixed(2)},
+    {id:'CO2', label:'CO₂', name:'二氧化碳', unit:'%vol', color:'#94a3b8', limit:16, fmt:v=>v.toFixed(1)},
+    {id:'HC', label:'HC', name:'碳氢化合物', unit:'ppm', color:'#fbbf24', limit:200, fmt:v=>Math.round(v)},
+    {id:'O2', label:'O₂', name:'氧气', unit:'%vol', color:'#60a5fa', limit:2, fmt:v=>v.toFixed(2)},
+    {id:'NO', label:'NO', name:'氮氧化物', unit:'ppm', color:'#f87171', limit:1500, fmt:v=>Math.round(v)},
+];
+
+let sim = {rpm:800, lambda:1.0, cat:1, measuring:false, _int:null, _smoke:null};
+let gasValues = {CO:0.3, CO2:14.5, HC:80, O2:1.0, NO:300};
+
+// Build readouts
+function buildReadouts(){
+    const c=document.getElementById('gasReadouts');
+    c.innerHTML=GASES.map(g=>`
+        <div class="gas-row" id="row-${g.id}">
+            <div class="gr-label">
+                <span class="gr-chem" style="color:${g.color}">${g.label}</span>
+                <span>${g.name}</span>
+            </div>
+            <div class="gr-bar"><div class="gr-fill" id="bar-${g.id}" style="width:0%;background:${g.color}"></div></div>
+            <div><span class="gr-value" id="val-${g.id}" style="color:${g.color}">—</span><span class="gr-unit">${g.unit}</span></div>
+        </div>
+    `).join('');
+}
+buildReadouts();
+
+function calcGases(){
+    const rpm = sim.rpm;
+    const lam = sim.lambda;
+    const cat = sim.cat;
+    const idle = rpm < 1200;
+    const load = Math.max(0, (rpm - 800) / 3200); // 0~1
+
+    // CO: high when rich (lambda<1), increases with load
+    let CO = 0.15 + Math.max(0, (1.0 - lam)) * 8 + load * 0.2;
+    if (cat > 0) CO *= (1 - cat * 0.9); // cat=1→×0.1 (90%去除), cat=0.5→×0.55
+    CO = Math.max(0.01, CO);
+
+    // CO2: high when lambda=1, drops when rich or lean
+    let CO2 = 14.5 - Math.abs(1.0 - lam) * 12 + (Math.random() - 0.5) * 0.5;
+    if (cat > 0) CO2 = Math.min(15.5, CO2 + 0.3 * cat);
+    CO2 = Math.max(8, Math.min(16, CO2));
+
+    // HC: high when lean misfire (lambda>1.05) or rich, increases with load
+    let HC = 40 + load * 60;
+    if (lam > 1.05) HC += (lam - 1.05) * 800; // lean misfire
+    if (lam < 0.95) HC += (0.95 - lam) * 300; // rich unburned
+    if (cat > 0) HC *= (1 - cat * 0.92); // cat=1→×0.08 (92%去除)
+    HC = Math.max(10, HC);
+
+    // O2: high when lean, near 0 when catalytic works
+    let O2 = Math.max(0.1, (lam - 1.0) * 5 + 0.5);
+    if (lam > 1.05) O2 += (lam - 1.05) * 3;
+    if (cat > 0) O2 = Math.max(0.05, O2 * (1 - cat * 0.85));
+    O2 = Math.max(0.05, Math.min(8, O2));
+
+    // NO: high at high temp (high rpm + lambda near 1), drops when very rich or very lean
+    let NO = 100 + load * 800;
+    // Peak NO at lambda slightly > 1 (lean mixture, high temp)
+    if (lam >= 0.98 && lam <= 1.03) NO *= 1.5;
+    else if (lam < 0.95) NO *= 0.3; // rich = cooler = less NO
+    else if (lam > 1.10) NO *= 0.5; // lean misfire = less NO
+    if (cat > 0) NO *= (1 - cat * 0.9);
+    NO = Math.max(20, NO);
+
+    // Add noise
+    CO *= (0.95 + Math.random() * 0.1);
+    CO2 *= (0.98 + Math.random() * 0.04);
+    HC *= (0.95 + Math.random() * 0.1);
+    O2 *= (0.95 + Math.random() * 0.1);
+    NO *= (0.9 + Math.random() * 0.2);
+
+    return {CO, CO2, HC, O2, NO};
+}
+
+function updateReadouts(){
+    const v = gasValues;
+    GASES.forEach(g=>{
+        const val = v[g.id];
+        const el = document.getElementById('val-'+g.id);
+        const bar = document.getElementById('bar-'+g.id);
+        const row = document.getElementById('row-'+g.id);
+        el.textContent = g.fmt(val);
+        row.classList.remove('warn','over');
+
+        if(g.id === 'CO2'){
+            // CO2 is a combustion efficiency indicator (13~16% = normal)
+            // NOT a "lower is better" limit indicator
+            const pct = Math.min(100, (val / 16) * 100);
+            bar.style.width = pct + '%';
+            if(val < 10 || val > 16.5) row.classList.add('over');
+            else if(val < 13) row.classList.add('warn');
+            // bar color stays gray (normal) — no red for CO2
+        } else {
+            // Standard exceeded-limit logic for CO, HC, O2, NO
+            const pct = Math.min(100, (val / g.limit) * 100);
+            bar.style.width = pct + '%';
+            if(val > g.limit) row.classList.add('over');
+            else if(val > g.limit * 0.8) row.classList.add('warn');
+        }
+    });
+}
+
+function logMsg(m, t){
+    const l=document.getElementById('expLog'), d=new Date();
+    const ts=String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
+    const cls = t==='ok'?'lok':t==='warn'?'lwarn':t==='bad'?'lbad':'';
+    l.innerHTML+=`<div><span class="lt">${ts}</span><span class="${cls}">${m}</span></div>`;
+    l.scrollTop=l.scrollHeight;
+}
+
+function updateMode(){
+    const rpm = sim.rpm;
+    const mode = document.getElementById('modeDisplay');
+    if (rpm < 1200) {
+        mode.textContent = '怠速';
+        mode.style.background = 'rgba(14,165,233,.12)';
+        mode.style.color = '#0ea5e9';
+    } else if (rpm < 2500) {
+        mode.textContent = '加速中';
+        mode.style.background = 'rgba(245,158,11,.12)';
+        mode.style.color = '#fbbf24';
+    } else {
+        mode.textContent = '高怠速';
+        mode.style.background = 'rgba(220,38,38,.12)';
+        mode.style.color = '#f87171';
+    }
+    document.getElementById('rpmDisplay').textContent = rpm;
+}
+
+function updateSmoke(){
+    const sg = document.getElementById('smokeGroup');
+    const rpm = sim.rpm;
+    const lam = sim.lambda;
+    // Smoke color: dark if rich, light if lean, blue tint if cat works
+    let smokeColor = 'rgba(100,100,100,0.4)';
+    if (lam < 0.95) smokeColor = 'rgba(60,60,60,0.5)'; // dark smoke (rich)
+    else if (lam > 1.05) smokeColor = 'rgba(200,200,200,0.3)'; // white smoke (lean)
+    else if (sim.cat > 0) smokeColor = 'rgba(150,200,255,0.15)'; // barely visible
+
+    // Smoke density based on rpm
+    const density = Math.max(1, Math.floor(rpm / 800));
+    sg.innerHTML = '';
+    for(let i=0;i<density;i++){
+        const x = 248 + i * 8;
+        const r = 4 + Math.random() * 4;
+        sg.innerHTML += `<circle cx="${x}" cy="${73 + Math.random()*4}" r="${r}" fill="${smokeColor}" opacity="${0.3 + Math.random()*0.3}">
+            <animate attributeName="cx" from="${x}" to="${x+60}" dur="${1.5+i*0.3}s" repeatCount="indefinite"/>
+            <animate attributeName="opacity" from="0.5" to="0" dur="${1.5+i*0.3}s" repeatCount="indefinite"/>
+            <animate attributeName="r" from="${r}" to="${r+3}" dur="${1.5+i*0.3}s" repeatCount="indefinite"/>
+        </circle>`;
+    }
+}
+
+// Sliders
+function showMeasuringHint(){
+    const info = document.getElementById('measuringHint');
+    if(info){ info.style.opacity='1'; setTimeout(()=>info.style.opacity='0',1500); }
+}
+
+document.getElementById('rpmSlider').addEventListener('input', function(){
+    sim.rpm = parseInt(this.value);
+    document.getElementById('rpmVal').textContent = sim.rpm;
+    updateMode();
+    if (!sim.measuring) { gasValues = calcGases(); updateReadouts(); }
+    else showMeasuringHint();
+    updateSmoke();
+});
+
+document.getElementById('lambdaSlider').addEventListener('input', function(){
+    sim.lambda = parseFloat(this.value);
+    document.getElementById('lambdaVal').textContent = sim.lambda.toFixed(2);
+    if (!sim.measuring) { gasValues = calcGases(); updateReadouts(); }
+    else showMeasuringHint();
+    updateSmoke();
+});
+
+document.getElementById('catSlider').addEventListener('input', function(){
+    sim.cat = parseFloat(this.value);
+    const effPct = Math.round(sim.cat * 100);
+    document.getElementById('catVal').textContent = effPct === 100 ? '正常 (100%)' : effPct === 0 ? '失效 (0%)' : `老化 (${effPct}%)`;
+    if (!sim.measuring) { gasValues = calcGases(); updateReadouts(); }
+    else showMeasuringHint();
+});
+
+// Measurement
+function toggleMeasure(){
+    if (sim.measuring) {
+        stopMeasure();
+    } else {
+        startMeasure();
+    }
+}
+
+function startMeasure(){
+    sim.measuring = true;
+    document.getElementById('measureBtn').textContent = '⏹ 停止测量';
+    document.getElementById('ledText').textContent = '测量中';
+    document.getElementById('ledDot').style.background = '#f59e0b';
+    document.getElementById('ledDot').style.boxShadow = '0 0 8px rgba(245,158,11,.4)';
+
+    // 双怠速法：阶段一 高怠速(2500rpm) → 阶段二 低怠速(800rpm)
+    const origRpm = sim.rpm;
+    const origLambda = sim.lambda;
+    let phase = 1;
+    let tick = 0;
+    let hiResults = null;
+
+    logMsg('📊 阶段一：升至高怠速 2500rpm…', 'info');
+    // 阶段一：模拟升速到2500rpm
+    sim.rpm = 2500;
+    document.getElementById('rpmVal').textContent = '2500';
+    document.getElementById('rpmSlider').value = 2500;
+    updateMode(); updateSmoke();
+
+    sim._int = setInterval(()=>{
+        tick++;
+        gasValues = calcGases();
+        updateReadouts();
+
+        if(phase === 1){
+            // 高怠速阶段 15 ticks
+            const modeEl = document.getElementById('modeDisplay');
+            modeEl.textContent = '高怠速测量中 '+ tick +'/15';
+            if(tick >= 15){
+                hiResults = {...gasValues};
+                logMsg('✅ 高怠速数据：CO='+hiResults.CO.toFixed(2)+'% HC='+Math.round(hiResults.HC)+'ppm NO='+Math.round(hiResults.NO)+'ppm', 'ok');
+                phase = 2; tick = 0;
+                // 切换回低怠速
+                sim.rpm = 800;
+                document.getElementById('rpmVal').textContent = '800';
+                document.getElementById('rpmSlider').value = 800;
+                updateMode(); updateSmoke();
+                logMsg('📊 阶段二：回到低怠速 800rpm…', 'info');
+            }
+        } else {
+            // 低怠速阶段 15 ticks
+            const modeEl = document.getElementById('modeDisplay');
+            modeEl.textContent = '低怠速测量中 '+ tick +'/15';
+            if(tick >= 15){
+                const loResults = {...gasValues};
+                logMsg('✅ 低怠速数据：CO='+loResults.CO.toFixed(2)+'% HC='+Math.round(loResults.HC)+'ppm NO='+Math.round(loResults.NO)+'ppm', 'ok');
+                stopMeasure();
+                // 恢复原始滑块位置
+                sim.rpm = origRpm;
+                sim.lambda = origLambda;
+                document.getElementById('rpmSlider').value = origRpm;
+                document.getElementById('rpmVal').textContent = origRpm;
+                updateMode(); updateSmoke();
+                evaluateResult(hiResults, loResults);
+            }
+        }
+    }, 200);
+}
+
+function stopMeasure(){
+    if (sim._int) { clearInterval(sim._int); sim._int = null; }
+    sim.measuring = false;
+    document.getElementById('measureBtn').textContent = '📊 开始测量';
+    document.getElementById('ledText').textContent = '就绪';
+    document.getElementById('ledDot').style.background = '#16a34a';
+    document.getElementById('ledDot').style.boxShadow = '0 0 8px rgba(22,163,74,.4)';
+}
+
+function evaluateResult(hi, lo){
+    // 双怠速法：两组数据取严者
+    const v = lo || gasValues; // 低怠速结果
+    const vHi = hi || gasValues; // 高怠速结果
+    const co2_co_sum = v.CO2 + v.CO;
+    let pass = true;
+    let issues = [];
+
+    // 低怠速限值（GB 18285-2018 国V怠速）
+    if(v.CO > 0.5)   { pass=false; issues.push('低怠速CO超标('+v.CO.toFixed(2)+'%)'); }
+    if(v.HC > 200)   { pass=false; issues.push('低怠速HC超标('+Math.round(v.HC)+'ppm)'); }
+    // 高怠速限值
+    if(vHi.CO > 0.3) { pass=false; issues.push('高怠速CO超标('+vHi.CO.toFixed(2)+'%)'); }
+    if(vHi.HC > 100) { pass=false; issues.push('高怠速HC超标('+Math.round(vHi.HC)+'ppm)'); }
+    if(vHi.NO > 1500){ pass=false; issues.push('NO超标('+Math.round(vHi.NO)+'ppm)'); }
+    if(co2_co_sum < 12){ pass=false; issues.push('燃烧效率低(CO+CO₂='+co2_co_sum.toFixed(1)+'%)'); }
+    if(v.O2 > 2 && sim.cat > 0){ issues.push('O₂偏高，疑似排气泄漏'); }
+
+    const rt = document.getElementById('resultText');
+    const rd = document.getElementById('resultDetail');
+
+    if(pass){
+        rt.textContent = '✅ 双怠速检测通过';
+        rt.className = 'result-pass';
+        rd.textContent = `高怠速 CO=${vHi.CO.toFixed(2)}% HC=${Math.round(vHi.HC)}ppm · 低怠速 CO=${v.CO.toFixed(2)}% CO₂+CO=${co2_co_sum.toFixed(1)}%`;
+        logMsg('✅ 双怠速检测通过！排放达标（GB 18285-2018）', 'ok');
+    } else {
+        rt.textContent = '❌ 检测不合格';
+        rt.className = 'result-fail';
+        rd.textContent = issues.join(' · ');
+        logMsg('❌ 检测不合格：'+issues.join('、'), 'bad');
+    }
+
+    // 诊断建议
+    let diag = [];
+    if(sim.lambda < 0.95) diag.push('混合气过浓（CO偏高）');
+    if(sim.lambda > 1.05) diag.push('混合气过稀（HC/O₂偏高）');
+    const catEff = Math.round(sim.cat * 100);
+    if(catEff < 30)  diag.push(`催化器严重老化（效率${catEff}%）`);
+    else if(catEff < 70) diag.push(`催化器轻度老化（效率${catEff}%）`);
+    if(v.O2 > 3) diag.push('排气系统疑似泄漏');
+    if(diag.length > 0){
+        logMsg('🔧 诊断建议：'+diag.join('、'), 'warn');
+    }
+}
+
+function resetSim(){
+    if (sim._int) { clearInterval(sim._int); sim._int = null; }
+    sim.measuring = false;
+    document.getElementById('measureBtn').textContent = '📊 开始测量';
+    document.getElementById('ledText').textContent = '就绪';
+    document.getElementById('ledDot').style.background = '#16a34a';
+    document.getElementById('ledDot').style.boxShadow = '0 0 8px rgba(22,163,74,.4)';
+
+    document.getElementById('rpmSlider').value = 800;
+    document.getElementById('lambdaSlider').value = 1.00;
+    document.getElementById('catSlider').value = 1;
+    sim.rpm = 800; sim.lambda = 1.0; sim.cat = 1;
+    document.getElementById('rpmVal').textContent = '800';
+    document.getElementById('lambdaVal').textContent = '1.00';
+    document.getElementById('catVal').textContent = '正常 (100%)';
+
+    gasValues = calcGases();
+    updateReadouts();
+    updateMode();
+    updateSmoke();
+
+    document.getElementById('resultText').textContent = '等待测量';
+    document.getElementById('resultText').className = '';
+    document.getElementById('resultText').style.color = '#94a3b8';
+    document.getElementById('resultText').style.fontSize = '16px';
+    document.getElementById('resultText').style.fontWeight = '600';
+    document.getElementById('resultDetail').textContent = '点击「开始测量」启动检测';
+
+    document.getElementById('expLog').innerHTML = '<div><span class="lt">⏳</span>调节参数后点击「开始测量」</div>';
+    logMsg('🔄 已重置', 'info');
+}
+
+// Init
+gasValues = calcGases();
+updateReadouts();
+updateMode();
+updateSmoke();
+</script>
+<a id="bk" href="../index.html" title="返回目录（Alt+Esc）" style="position:fixed;right:18px;bottom:18px;z-index:90;display:inline-flex;align-items:center;gap:8px;padding:10px 17px;border-radius:999px;background:rgba(19,26,46,.92);color:#e2e8f0;border:1px solid rgba(56,189,248,.42);font-size:13px;text-decoration:none;box-shadow:0 6px 22px rgba(0,0,0,.35)"><span aria-hidden="true">&#8592;</span><span>返回目录</span></a>
+<script>(function(){var b=document.getElementById("bk");if(!b)return;if(typeof document.addEventListener==="function")document.addEventListener("keydown",function(e){if(e.key==="Escape"&&e.altKey)location.href=b.getAttribute("href")});})();</script>
+<footer style="text-align:center;padding:34px 20px;font-size:12px;line-height:1.9;opacity:.72;border-top:1px solid rgba(128,128,128,.25);margin-top:40px">EnvLab · 环境监测与污染控制交互实验<br><div style="margin-top:10px;font-size:12px;line-height:1.9">&#128231; 联系作者：<a class="elmail" href="#" data-u="jinghao.song" data-d="gmail.com" style="color:inherit;text-decoration:underline">载入中…</a><noscript><span>jinghao.song [at] gmail.com</span></noscript></div></footer>
+<script>(function(){var a=document.querySelectorAll("a.elmail");for(var i=0;i<a.length;i++){var u=a[i].getAttribute("data-u"),d=a[i].getAttribute("data-d");if(!u||!d)continue;var e=u+"@"+d;a[i].href="mailto:"+e;a[i].textContent=e;}})();</script>
+</body>
+</html>
