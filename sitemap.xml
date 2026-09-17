@@ -648,4 +648,16 @@
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
+  <url>
+    <loc>https://song19850425.github.io/envlab-lab/EnvLab-交互实验集/12-黑灯实验室/BlackLab-数字黑灯实验室-概念演示.html</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://song19850425.github.io/envlab-lab/EnvLab-交互实验集/12-黑灯实验室/全自动水质黑灯实验室-概念演示.html</loc>
+    <lastmod>2026-09-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
 </urlset>

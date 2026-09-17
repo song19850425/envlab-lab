@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="EnvLab 全自动水质监测黑灯实验室概念演示：把水样从进样、前处理、上机检测到质控与出报告的全流程做成可视化流水线，展示无人值守实验室的任务流转、耗时统计与异常处置。">
+<title>EnvLab · 全自动水质监测黑灯实验室 DEMO</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:"PingFang SC","Microsoft YaHei","Noto Sans SC",sans-serif;background:#0a0a12;color:#e0e0f0;padding:30px 16px;}
+
+.doc{max-width:960px;margin:0 auto;}
+h1{font-size:26px;font-weight:700;color:#fff;text-align:center;margin-bottom:2px;}
+.sub{text-align:center;font-size:12px;color:#888;margin-bottom:6px;}
+.paras{text-align:center;font-size:11px;color:#555;margin-bottom:28px;}
+
+/* 流水线 */
+.pipeline{display:flex;gap:0;margin-bottom:30px;overflow-x:auto;padding-bottom:8px;}
+.pl-step{flex:1;min-width:110px;text-align:center;padding:10px 6px;border-radius:4px;background:#14141e;border:1px solid #2a2a3a;position:relative;margin:0 3px;}
+.pl-step .icon{font-size:24px;margin-bottom:4px;}
+.pl-step .name{font-size:11px;font-weight:600;color:#e0e0f0;margin-bottom:2px;}
+.pl-step .desc{font-size:9px;color:#888;line-height:1.4;}
+.pl-step .time{font-size:8px;color:#555;margin-top:3px;padding:1px 6px;border-radius:6px;background:#0d0d18;display:inline-block;}
+.pl-step.active{border-color:#2ea043;background:#1a2a1e;}
+.pl-step.active .name{color:#2ea043;}
+.pl-step.done{border-color:#3b82f6;background:#1a1a2a;}
+.pl-step.done .name{color:#3b82f6;}
+.arrow{color:#555;font-size:14px;display:flex;align-items:center;padding:0 2px;flex-shrink:0;}
+
+/* 主区 */
+.main{display:grid;grid-template-columns:1.5fr 1fr;gap:16px;margin-bottom:20px;}
+.left-panel{background:#14141e;border:1px solid #2a2a3a;border-radius:6px;overflow:hidden;}
+.panel-title{background:#1a1a28;padding:8px 12px;font-size:12px;font-weight:600;color:#fff;border-bottom:1px solid #2a2a3a;display:flex;justify-content:space-between;align-items:center;}
+.panel-title .status{font-size:10px;font-weight:400;}
+.panel-body{padding:10px 12px;min-height:300px;}
+
+.right-panel{background:#14141e;border:1px solid #2a2a3a;border-radius:6px;overflow:hidden;}
+
+/* 任务 */
+.task-box{border:1px solid #2a2a3a;border-radius:4px;padding:10px;margin-bottom:8px;background:#0d0d18;}
+.task-box .th{display:flex;justify-content:space-between;margin-bottom:4px;}
+.task-box .th .tid{font-size:11px;font-weight:600;color:#3b82f6;}
+.task-box .th .ttag{font-size:9px;padding:1px 8px;border-radius:6px;background:rgba(46,160,67,.15);color:#2ea043;}
+.task-box .tl{font-size:10.5px;color:#b0b0c0;line-height:1.6;}
+.task-box .tl b{color:#e0e0f0;}
+.task-box .tl .point{color:#3b82f6;}
+
+/* 时间线 */
+.timeline{padding:6px 0;}
+.tl-item{display:flex;gap:8px;padding:5px 0;border-bottom:1px solid #1e1e2a;font-size:11px;}
+.tl-item:last-child{border-bottom:none;}
+.tl-item .tt{color:#555;white-space:nowrap;width:50px;}
+.tl-item .te{color:#b0b0c0;line-height:1.5;}
+.tl-item .te b{color:#e0e0f0;}
+.tl-item .te em{color:#2ea043;font-style:normal;}
+
+/* 数据面板 */
+.data-grid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:8px 0;}
+.dg-item{padding:8px;border-radius:3px;background:#0d0d18;border:1px solid #1e1e2a;text-align:center;}
+.dg-item .dv{font-size:16px;font-weight:700;}
+.dg-item .dl{font-size:9px;color:#888;margin-top:1px;}
+
+/* 报告 */
+.rpt-table{width:100%;border-collapse:collapse;font-size:11px;margin:6px 0;}
+.rpt-table th{background:#1a1a28;color:#888;padding:4px 6px;text-align:left;font-weight:500;border:1px solid #2a2a3a;}
+.rpt-table td{padding:4px 6px;border:1px solid #2a2a3a;color:#b0b0c0;}
+.rpt-table .val{color:#2ea043;font-weight:600;}
+.rpt-table .warn{color:#d29922;font-weight:600;}
+
+/* 地图点位 */
+.map-mini{background:#0d0d18;border:1px solid #2a2a3a;border-radius:4px;padding:8px;margin:8px 0;display:flex;gap:8px;flex-wrap:wrap;}
+.map-point{display:flex;align-items:center;gap:4px;font-size:10px;color:#888;}
+.map-point .dot{width:6px;height:6px;border-radius:50%;display:inline-block;}
+.dot.g{background:#2ea043;}.dot.b{background:#3b82f6;}.dot.y{background:#d29922;}
+
+.step-btn{display:block;width:100%;padding:8px;border:none;border-radius:4px;background:#2ea043;color:#fff;font-size:12px;font-weight:600;cursor:pointer;margin-top:8px;}
+.step-btn:hover{background:#3ab850;}
+.step-btn:disabled{background:#2a2a3a;color:#555;cursor:not-allowed;}
+
+@media(max-width:700px){.main{grid-template-columns:1fr;}}
+</style>
+<link rel="canonical" href="https://song19850425.github.io/envlab-lab/EnvLab-交互实验集/12-黑灯实验室/全自动水质黑灯实验室-概念演示.html">
+</head>
+<body>
+<div class="doc">
+
+<h1>🚁 EnvLab · 黑灯实验室</h1>
+<div class="sub">环境检测全自动无人化流程 DEMO</div>
+<div class="paras">接到任务 → 无人机采样 → 样品流转 → 全自动分析 → CMA报告</div>
+
+<!-- 流水线 -->
+<div class="pipeline" id="pipeline">
+<div class="pl-step active" id="st0"><div class="icon">📋</div><div class="name">任务接收</div><div class="desc">系统自动派单</div><div class="time">T+0min</div></div>
+<div class="arrow">→</div>
+<div class="pl-step" id="st1"><div class="icon">🛸</div><div class="name">无人机采样</div><div class="desc">5km半径·6点位</div><div class="time">T+45min</div></div>
+<div class="arrow">→</div>
+<div class="pl-step" id="st2"><div class="icon">🤖</div><div class="name">样品流转</div><div class="desc">AGV+机械臂接样</div><div class="time">T+60min</div></div>
+<div class="arrow">→</div>
+<div class="pl-step" id="st3"><div class="icon">🧪</div><div class="name">自动前处理</div><div class="desc">消解+加液+定容</div><div class="time">T+90min</div></div>
+<div class="arrow">→</div>
+<div class="pl-step" id="st4"><div class="icon">🔬</div><div class="name">自动检测</div><div class="desc">9参数同步分析</div><div class="time">T+150min</div></div>
+<div class="arrow">→</div>
+<div class="pl-step" id="st5"><div class="icon">🧠</div><div class="name">AI分析</div><div class="desc">谱图+异常识别</div><div class="time">T+155min</div></div>
+<div class="arrow">→</div>
+<div class="pl-step" id="st6"><div class="icon">📄</div><div class="name">自动报告</div><div class="desc">CMA合规+电子签</div><div class="time">T+160min</div></div>
+</div>
+
+<!-- 主区 -->
+<div class="main">
+<div class="left-panel" id="mainPanel">
+<div class="panel-title">📋 任务执行看板 <span class="status" id="statusText">● 就绪</span></div>
+<div class="panel-body" id="panelBody">
+
+<!-- 初始：任务信息 -->
+<div id="step0">
+<div class="task-box">
+<div class="th"><span class="tid">任务 #ENV-20260717-003</span><span class="ttag">常规水质监测</span></div>
+<div class="tl"><b>断面</b>：黄河流域 · 某市 6个国控断面<br><b>指令</b>：2026年7月月度例行监测 · 水质全分析<br><b>参数</b>：pH · DO · 氨氮 · 总磷 · 总氮 · CODMn · 铜 · 锌 · 砷 · 镉 · 铅 · 汞 · 六价铬 · 挥发酚 · 氰化物 · 氟化物 · 硫化物 · 阴离子表面活性剂<br><b>任务要求</b>：24小时内出具CMA合规报告</div>
+</div>
+<div class="map-mini">
+<div class="map-point"><span class="dot g"></span>S-01 上游对照</div>
+<div class="map-point"><span class="dot b"></span>S-02 城市排污影响</div>
+<div class="map-point"><span class="dot b"></span>S-03 支流汇入</div>
+<div class="map-point"><span class="dot b"></span>S-04 工业区下游</div>
+<div class="map-point"><span class="dot g"></span>S-05 水源保护区</div>
+<div class="map-point"><span class="dot y"></span>S-06 控制断面</div>
+</div>
+<div class="data-grid">
+<div class="dg-item"><div class="dv" style="color:#3b82f6;">6</div><div class="dl">采样点位</div></div>
+<div class="dg-item"><div class="dv" style="color:#3b82f6;">18</div><div class="dl">检测参数</div></div>
+<div class="dg-item"><div class="dv" style="color:#2ea043;">自动</div><div class="dl">采样方式</div></div>
+<div class="dg-item"><div class="dv" style="color:#d29922;">24h</div><div class="dl">任务时限</div></div>
+</div>
+</div>
+
+</div>
+</div>
+
+<div class="right-panel">
+<div class="panel-title">📡 实时日志 <span class="status" id="logCount">0条</span></div>
+<div class="panel-body" style="padding:8px 10px;max-height:340px;overflow-y:auto;" id="logPanel">
+<div class="timeline" id="timeline">
+<div class="tl-item"><div class="tt">10:00</div><div class="te">📋 系统自动生成月度监测任务 <b>#ENV-20260717-003</b></div></div>
+<div class="tl-item"><div class="tt">10:01</div><div class="te">🛸 无人机 M350 RTK 已就绪 · 取水器已校验 · 航线已计算</div></div>
+</div>
+</div>
+</div>
+</div>
+
+<button class="step-btn" id="nextBtn" onclick="nextStep()">▶ 开始执行 — 无人机起飞采样</button>
+
+<script>
+const STEPS = [
+  { name:'任务接收', time:'10:00', done:true },
+  { name:'无人机采样', time:'10:00', done:true },
+  { name:'样品流转', time:'' },
+  { name:'自动前处理', time:'' },
+  { name:'自动检测', time:'' },
+  { name:'AI分析', time:'' },
+  { name:'自动报告', time:'' }
+];
+
+const STEP_LOGS = [
+  // step 2 - 样品流转
+  [
+    {t:'10:42', m:'🛸 无人机返航降落 · 6瓶水样已采集', b:true},
+    {t:'10:43', m:'🤖 AGV机器人接驳 · 取水器转运至接样口', b:true},
+    {t:'10:45', m:'📦 机械臂扫码入库 · 6个样品已登记 · 样品链完整', b:true},
+    {t:'10:48', m:'🔬 自动分样完成 · 平行样+质控样已分配', b:true},
+  ],
+  // step 3 - 前处理
+  [
+    {t:'10:50', m:'🧪 总氮/总磷消解仪启动 · 120℃ · 30min', b:true},
+    {t:'10:52', m:'🧪 CODMn 水浴加热启动', b:true},
+    {t:'10:55', m:'🧪 重金属样品自动加酸 · HNO₃ 消解', b:true},
+    {t:'11:00', m:'🧪 六价铬/氰化物前处理完成', b:true},
+  ],
+  // step 4 - 检测
+  [
+    {t:'11:15', m:'🔬 氨氮·总磷·总氮 连续流动分析仪 开始检测', b:true},
+    {t:'11:20', m:'🔬 CODMn 自动滴定分析', b:true},
+    {t:'11:25', m:'🔬 ICP-MS 开始测定 铜·锌·砷·镉·铅·汞', b:true},
+    {t:'11:40', m:'🔬 原子荧光 测定砷·汞 完成', b:true},
+  ],
+  // step 5 - AI分析
+  [
+    {t:'11:45', m:'🧠 AI谱图识别完成 · 所有峰已标注', b:true},
+    {t:'11:46', m:'🧠 AI标准比对：18项参数 vs GB 3838-2002 Ⅲ类', b:true},
+    {t:'11:47', m:'🧠 异常标记：S-04 工业区下游 · 氨氮 1.85mg/L 超标（限值1.0）⚠️', b:true},
+    {t:'11:48', m:'🧠 AI建议：S-04 已自动触发复测流程', b:true},
+  ],
+  // step 6 - 报告
+  [
+    {t:'11:50', m:'📄 AI自动生成 CMA合规报告 草稿', b:true},
+    {t:'11:51', m:'📄 样品链·原始谱图·质控数据 已归档', b:true},
+    {t:'11:52', m:'📄 电子签名已推送 · 授权签字人复核中', b:true},
+    {t:'11:55', m:'✅ 报告已签发 · 任务闭环 · 总耗时 1h55min', b:true},
+  ]
+];
+
+const STEP_CONTENT = [
+  // step 0 - already shown
+  ``,
+  // step 1 - 无人机采样中
+  `<div class="task-box">
+    <div class="th"><span class="tid">🛸 无人机采样执行中</span><span class="ttag" style="background:rgba(210,153,34,.15);color:#d29922;">● 飞行中</span></div>
+    <div class="tl">
+      <b>机型</b>：大疆 M350 RTK + 可飞迅汲V3<br>
+      <b>航线</b>：6个断面自动巡航 · 半径 5km<br>
+      <b>状态</b>：已完成 S-01~S-04 · S-05 采样中<br>
+      <b>当前</b>：S-05 水源保护区 · 取水深度 0.5m<br>
+      <b>采样量</b>：2L/点 · 500ml 常规+500ml 重金属+500ml 留样
+    </div>
+  </div>
+  <div class="map-mini">
+    <div class="map-point"><span class="dot g"></span>S-01 ✅</div>
+    <div class="map-point"><span class="dot b"></span>S-02 ✅</div>
+    <div class="map-point"><span class="dot b"></span>S-03 ✅</div>
+    <div class="map-point"><span class="dot b"></span>S-04 ✅</div>
+    <div class="map-point"><span class="dot y"></span>S-05 🛸</div>
+    <div class="map-point"><span class="dot" style="background:#333;"></span>S-06 待采样</div>
+  </div>
+  <div class="data-grid">
+    <div class="dg-item"><div class="dv" style="color:#2ea043;">4/6</div><div class="dl">已完成点位</div></div>
+    <div class="dg-item"><div class="dv" style="color:#d29922;">+32°</div><div class="dl">当前气温</div></div>
+    <div class="dg-item"><div class="dv" style="color:#3b82f6;">12L</div><div class="dl">累计采水量</div></div>
+    <div class="dg-item"><div class="dv" style="color:#2ea043;">38min</div><div class="dl">已飞行时长</div></div>
+  </div>`,
+  // step 2-6 will be filled by JS
+];
+
+// current step index (0-indexed pipeline steps)
+let cur = 1; // 已经完成了0和1
+
+function updatePipeline(n){
+  for(let i=0;i<7;i++){
+    const el = document.getElementById('st'+i);
+    el.classList.remove('active','done');
+    if(i<n) el.classList.add('done');
+    else if(i===n) el.classList.add('active');
+  }
+}
+
+function addLog(t, m){
+  const tl = document.getElementById('timeline');
+  const item = document.createElement('div');
+  item.className = 'tl-item';
+  item.innerHTML = `<div class="tt">${t}</div><div class="te">${m}</div>`;
+  tl.appendChild(item);
+  document.getElementById('logCount').textContent = tl.children.length + '条';
+}
+
+function nextStep(){
+  if(cur >= 7) return;
+  
+  const btn = document.getElementById('nextBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ 执行中...';
+  
+  const panel = document.getElementById('panelBody');
+  const statusText = document.getElementById('statusText');
+
+  const stepNames = ['任务接收','无人机采样','样品流转','自动前处理','自动检测','AI分析','自动报告'];
+  
+  // 更新流水线
+  updatePipeline(cur);
+  
+  // 更新面板内容和日志
+  if(cur === 2){
+    // 样品流转
+    statusText.innerHTML = '● <span style="color:#3b82f6;">样品流转中</span>';
+    panel.innerHTML = `<div class="task-box">
+      <div class="th"><span class="tid">🤖 样品自动流转中</span><span class="ttag" style="background:rgba(59,130,246,.15);color:#3b82f6;">● 进行中</span></div>
+      <div class="tl">
+        <b>AGV</b>：接样机器人已取回6瓶水样<br>
+        <b>扫码</b>：6个样品已逐瓶扫码 · 信息已入库<br>
+        <b>分样</b>：平行样+质控样已分配至各分析模块<br>
+        <b>样品链完整率</b>：100% · 无断链
+      </div>
+    </div>
+    <div class="data-grid">
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">6/6</div><div class="dl">已入库</div></div>
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">18</div><div class="dl">检测项目</div></div>
+      <div class="dg-item"><div class="dv" style="color:#3b82f6;">3</div><div class="dl">分析模块</div></div>
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">100%</div><div class="dl">样品链完整性</div></div>
+    </div>`;
+    setTimeout(() => {
+      STEP_LOGS[0].forEach(l => addLog(l.t, l.m));
+      btn.disabled = false; btn.textContent = '▶ 下一步 — 自动前处理';
+      statusText.innerHTML = '● <span style="color:#2ea043;">样品流转完成</span>';
+      cur++;
+    },800);
+    return;
+  }
+  
+  if(cur === 3){
+    statusText.innerHTML = '● <span style="color:#d29922;">前处理中</span>';
+    panel.innerHTML = `<div class="task-box">
+      <div class="th"><span class="tid">🧪 自动前处理</span><span class="ttag" style="background:rgba(210,153,34,.15);color:#d29922;">● 进行中</span></div>
+      <div class="tl">
+        <b>总氮/总磷消解</b>：碱性过硫酸钾消解 · 120℃ · 30min ✅<br>
+        <b>CODMn</b>：水浴加热 · 100℃ · 30min ✅<br>
+        <b>重金属消解</b>：HNO₃+HCl 混酸消解 · 180℃<br>
+        <b>氰化物前处理</b>：中段蒸馏 · 已完成 ✅
+      </div>
+    </div>
+    <div class="data-grid">
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">4/4</div><div class="dl">前处理任务</div></div>
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">100%</div><div class="dl">完成率</div></div>
+    </div>`;
+    setTimeout(() => {
+      STEP_LOGS[1].forEach(l => addLog(l.t, l.m));
+      btn.disabled = false; btn.textContent = '▶ 下一步 — 自动检测';
+      statusText.innerHTML = '● <span style="color:#2ea043;">前处理完成</span>';
+      cur++;
+    },800);
+    return;
+  }
+  
+  if(cur === 4){
+    statusText.innerHTML = '● <span style="color:#3b82f6;">检测中</span>';
+    panel.innerHTML = `<div class="task-box">
+      <div class="th"><span class="tid">🔬 自动检测</span><span class="ttag" style="background:rgba(59,130,246,.15);color:#3b82f6;">● 进行中</span></div>
+      <div class="tl">
+        <b>连续流动分析仪</b>：氨氮·总磷·总氮 · 6样品/45min ✅<br>
+        <b>自动滴定仪</b>：CODMn · 6样品/30min ✅<br>
+        <b>ICP-MS</b>：Cu·Zn·As·Cd·Pb·Hg · 6样品/20min ✅<br>
+        <b>原子荧光</b>：As·Hg 已完成 ✅<br>
+        <b>离子色谱</b>：氟化物·氯化物·硝酸盐 · 进行中
+      </div>
+    </div>
+    <div class="data-grid">
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">108</div><div class="dl">检测数据/总</div></div>
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">6</div><div class="dl">分析设备</div></div>
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">100%</div><div class="dl">通过率</div></div>
+      <div class="dg-item"><div class="dv" style="color:#d29922;">1</div><div class="dl">异常待复核</div></div>
+    </div>`;
+    setTimeout(() => {
+      STEP_LOGS[2].forEach(l => addLog(l.t, l.m));
+      btn.disabled = false; btn.textContent = '▶ 下一步 — AI数据分析';
+      statusText.innerHTML = '● <span style="color:#2ea043;">检测完成</span>';
+      cur++;
+    },1000);
+    return;
+  }
+  
+  if(cur === 5){
+    statusText.innerHTML = '● <span style="color:#d29922;">AI分析中</span>';
+    panel.innerHTML = `<div class="task-box">
+      <div class="th"><span class="tid">🧠 AI 数据分析</span><span class="ttag" style="background:rgba(210,153,34,.15);color:#d29922;">● 分析中</span></div>
+      <div class="tl">
+        <b>谱图识别</b>：108条谱图已自动识别 · 峰标记完成<br>
+        <b>标准比对</b>：18项参数 vs GB 3838-2002 Ⅲ类 ✅<br>
+        <b>异常标记</b>：S-04 氨氮 1.85mg/L → 超标（限值1.0）⚠️ <em style="color:#d29922;">已触发复测</em><br>
+        <b>质控判定</b>：平行样RSD 2.3% · 加标回收率96% · 质控菌株 ✅
+      </div>
+    </div>
+    <div class="data-grid">
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">17/18</div><div class="dl">参数达标</div></div>
+      <div class="dg-item"><div class="dv" style="color:#d29922;">1</div><div class="dl">超标项(S-04)</div></div>
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">96%</div><div class="dl">加标回收率</div></div>
+      <div class="dg-item"><div class="dv" style="color:#2ea043;">2.3%</div><div class="dl">平行样RSD</div></div>
+    </div>`;
+    setTimeout(() => {
+      STEP_LOGS[3].forEach(l => addLog(l.t, l.m));
+      btn.disabled = false; btn.textContent = '▶ 下一步 — 生成报告';
+      statusText.innerHTML = '● <span style="color:#2ea043;">AI分析完成</span>';
+      cur++;
+    },1000);
+    return;
+  }
+  
+  if(cur === 6){
+    statusText.innerHTML = '● <span style="color:#2ea043;">报告已生成 ✅</span>';
+    panel.innerHTML = `<div class="task-box">
+      <div class="th"><span class="tid">📄 CMA合规检测报告</span><span class="ttag" style="background:rgba(46,160,67,.15);color:#2ea043;">✅ 已签发</span></div>
+    </div>
+    <table class="rpt-table">
+      <tr><th>点位</th><th>氨氮</th><th>总磷</th><th>总氮</th><th>CODMn</th><th>铜</th><th>锌</th><th>砷</th><th>镉</th><th>铅</th></tr>
+      <tr><td>S-01</td><td class="val">0.12</td><td class="val">0.03</td><td class="val">1.2</td><td class="val">2.1</td><td class="val">0.005</td><td class="val">0.02</td><td class="val">0.001</td><td class="val"><0.0001</td><td class="val">0.002</td></tr>
+      <tr><td>S-02</td><td class="val">0.45</td><td class="val">0.08</td><td class="val">2.8</td><td class="val">3.5</td><td class="val">0.008</td><td class="val">0.03</td><td class="val">0.002</td><td class="val"><0.0001</td><td class="val">0.003</td></tr>
+      <tr><td>S-03</td><td class="val">0.28</td><td class="val">0.05</td><td class="val">1.9</td><td class="val">2.8</td><td class="val">0.006</td><td class="val">0.02</td><td class="val">0.001</td><td class="val"><0.0001</td><td class="val">0.002</td></tr>
+      <tr style="background:#1e1a0a;"><td><b style="color:#d29922;">S-04 ⚠️</b></td><td><b class="warn">1.85</b></td><td class="val">0.12</td><td class="val">4.5</td><td class="val">5.2</td><td class="val">0.015</td><td class="val">0.05</td><td class="val">0.003</td><td class="val">0.0002</td><td class="val">0.005</td></tr>
+      <tr><td>S-05</td><td class="val">0.08</td><td class="val">0.02</td><td class="val">0.9</td><td class="val">1.5</td><td class="val">0.003</td><td class="val">0.01</td><td class="val">0.001</td><td class="val"><0.0001</td><td class="val">0.001</td></tr>
+      <tr><td>S-06</td><td class="val">0.35</td><td class="val">0.07</td><td class="val">2.2</td><td class="val">3.0</td><td class="val">0.007</td><td class="val">0.03</td><td class="val">0.002</td><td class="val"><0.0001</td><td class="val">0.003</td></tr>
+    </table>
+    <div style="font-size:10px;color:#555;text-align:right;margin-top:4px;">GB 3838-2002 Ⅲ类水质标准 · 单位 mg/L · 超标项标红</div>
+    <div style="margin-top:8px;padding:8px;background:#1a2a1e;border:1px solid #2a4a2a;border-radius:4px;font-size:11px;color:#b0d0b0;">
+      ✅ 报告已自动归档 · 原始数据链完整 · 电子签名已签发 · 任务总耗时 <b>1h55min</b>
+    </div>`;
+    setTimeout(() => {
+      STEP_LOGS[4].forEach(l => addLog(l.t, l.m));
+      btn.disabled = false; btn.textContent = '✅ 全流程完成 — 总耗时1h55min';
+      statusText.innerHTML = '● <span style="color:#2ea043;">全部完成 ✅</span>';
+      cur++;
+      updatePipeline(7);
+    },800);
+    return;
+  }
+}
+
+// 初始化：标记已完成步骤
+updatePipeline(2);
+document.getElementById('step0').innerHTML = STEP_CONTENT[1];
+</script>
+</div>
+<a id="bk" href="../index.html" title="返回实验集总目录（Alt+Esc）" style="position:fixed;right:18px;bottom:18px;z-index:90;display:inline-flex;align-items:center;gap:8px;padding:10px 17px;border-radius:999px;background:rgba(19,26,46,.92);color:#e2e8f0;border:1px solid rgba(56,189,248,.42);font-size:13px;text-decoration:none;box-shadow:0 6px 22px rgba(0,0,0,.35)"><span aria-hidden="true">&#8592;</span><span>返回目录</span></a>
+<script>(function(){var b=document.getElementById("bk");if(!b)return;if(typeof document.addEventListener==="function")document.addEventListener("keydown",function(e){if(e.key==="Escape"&&e.altKey)location.href=b.getAttribute("href")});})();</script>
+<footer style="text-align:center;padding:34px 20px;font-size:12px;line-height:1.9;opacity:.72;border-top:1px solid rgba(128,128,128,.25);margin-top:40px">EnvLab · 环境监测与污染控制交互实验<br><div style="margin-top:10px;font-size:12px;line-height:1.9">&#128231; 联系作者：<a class="elmail" href="#" data-u="jinghao.song" data-d="gmail.com" style="color:inherit;text-decoration:underline">载入中…</a><noscript><span>jinghao.song [at] gmail.com</span></noscript></div></footer>
+<script>(function(){var a=document.querySelectorAll("a.elmail");for(var i=0;i<a.length;i++){var u=a[i].getAttribute("data-u"),d=a[i].getAttribute("data-d");if(!u||!d)continue;var e=u+"@"+d;a[i].href="mailto:"+e;a[i].textContent=e;}})();</script>
+</body>
+</html>
