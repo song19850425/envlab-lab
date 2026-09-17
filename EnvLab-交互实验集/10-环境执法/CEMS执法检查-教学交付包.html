@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CEMS 执法检查 · 教学交付包 · EnvLab</title>
-<meta name="description" content="CEMS 执法检查教学交付包：配套《CEMS 造假识别与执法检查》交互页，提供学生实操手册、教师指南与 3 个现成作业，覆盖采样链路、判据速查表与标准气体盲测，可离线嵌入课程平台。">
+<meta name="description" content="CEMS 执法检查教学交付包索取页：配套《CEMS 造假识别与执法检查》交互页，提供学生实操手册、教师指南与 3 个现成作业（各带 100 分制评分量规），通过邮件按需获取。">
+<link rel="canonical" href="https://song19850425.github.io/envlab-lab/EnvLab-交互实验集/10-环境执法/CEMS执法检查-教学交付包.html">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#0a0e17;color:#e2e8f0;overflow-x:hidden}
@@ -102,219 +103,65 @@ ol.task li b{color:#e2e8f0}
     <div><span class="n">1 份</span><span class="l">学生手册</span></div>
     <div><span class="n">1 份</span><span class="l">教师指南</span></div>
     <div><span class="n">3 个</span><span class="l">现成作业</span></div>
-    <div><span class="n">0 元</span><span class="l">零安装</span></div>
+    <div><span class="n">3 套</span><span class="l">评分量规</span></div>
   </div>
 </section>
 
 <section class="sec" id="s00">
-  <div class="sn">00 · 怎么用这份包</div>
-  <div class="st">三分钟看清：这份包给谁、怎么用</div>
-  <div class="sd">本交付包与《CEMS 造假识别与执法检查》交互页配套使用，是<b>纯静态网页、零安装、可离线</b>。下面按角色给出最短使用路径，下方是站内目录。</div>
-  <div class="g3">
-    <div class="ic"><div class="ii">🎓</div><div class="in">给学生</div><div class="id">先到交互页玩通四关（勘察 → 拆除复位 → 参数核对 → 盲测），再回来读<b>第 1 节</b>学生实操手册，把操作卡和判据速查表背熟。</div><span class="it">先玩后读</span></div>
-    <div class="ic"><div class="ii">🧑‍🏫</div><div class="in">给老师</div><div class="id">读<b>第 2 节</b>教师指南，按 90 分钟课堂流程上课，用 3 个现成作业收过程性与结果性评价。</div><span class="it">按流程上课</span></div>
-    <div class="ic"><div class="ii">🛠️</div><div class="in">给教务 / 技术</div><div class="id">读<b>第 4 节</b>部署说明，把交互页以 iframe 嵌入 LMS / 课程平台；交付包本身也可一并挂载。</div><span class="it">iframe 嵌入</span></div>
-  </div>
-  <div class="sub">站内目录</div>
-  <div class="toc">
-    <a href="#s00">00 · 怎么用这份包<span>速览与角色路径</span></a>
-    <a href="#s01">01 · 学生实操手册<span>六步卡 / 判据 / 易错排查</span></a>
-    <a href="#s02">02 · 教师指南<span>目标映射 / 90 分钟 / 讨论题</span></a>
-    <a href="#s03">03 · 现成作业<span>3 个作业 + 评分量规</span></a>
-    <a href="#s04">04 · 部署与使用<span>iframe / 投影 / 导出</span></a>
-    <a href="#s05">05 · 红线与免责<span>脱敏声明与合规链接</span></a>
-  </div>
+  <div class="sn">00 · 分发说明</div>
+  <div class="st">交互页免费开放，交付包按需索取</div>
+  <div class="sd">配套交互页（含四关模拟台）<b>永久免费公开</b>，打开即用、可离线、可嵌入课程，不需要任何申请。本交付包是面向<b>教师与培训机构</b>的备课材料，包含现成作业与评分量规，不再公开分发。</div>
+  <div class="note">为什么要分开：交互页解决「学生怎么练」，交付包解决「老师怎么教、怎么评」。前者越多人用越好；后者是备课成品，按需分发更合适。</div>
+  <div class="note blue">四关模拟台（站房勘察 → 拆除伪装与管线复位 → 参数与备案核对 → 标准气体盲测）无需索取，直接打开即用。<br><a href="CEMS造假识别与执法检查-交互版.html" style="color:#38bdf8;font-weight:600">→ 打开《CEMS 造假识别与执法检查》交互页</a></div>
 </section>
 
 <section class="sec" id="s01">
-  <div class="sn">01 · 学生实操手册</div>
-  <div class="st">把现场检查的一天，拆成可照做的操作卡</div>
-  <div class="sd">以下三块对应交互页四关的底层逻辑：先按标准链路走程序，再背熟判据速查表，最后对照易错清单自查。所有数值与判定口径与交互页一致，<b>不得改动</b>。</div>
-
-  <div class="sub">1.1 现场检查六步操作卡</div>
-  <div class="sd" style="margin-bottom:8px">现场检查（CEMS）标准链路，<b>顺序错了，证据可能不被采信</b>。每张卡写：步骤名 ＋ 做什么 ＋ 这一步最容易错在哪。</div>
-
-  <div class="rule"><span class="rn">STEP 1</span><span><span class="rt">进站房前固定现场原始状态</span><span class="rd"><b>做什么：</b>拍照录像、记录仪表参数与各阀门开度，先把现场原始状态固定下来。<b>最容易错：</b>一进门就动设备，原始状态灭失，物证不可逆。</span></span></div>
-  <div class="rule"><span class="rn">STEP 2</span><span><span class="rt">站房勘察与异常识别</span><span class="rd"><b>做什么：</b>识别旁路管、三通阀、标气瓶与标签、伴热温度、探头状态等异常。<b>最容易错：</b>只看仪表读数，漏看管路与阀门的物理伪装——多出的三通阀是造假直接物证。</span></span></div>
-  <div class="rule"><span class="rn">STEP 3</span><span><span class="rt">先取证，后动手</span><span class="rd"><b>做什么：</b>先固定物理痕迹（拍照 / 录像 / 备份日志）再拆阀复位。<b>最容易错：</b>先拆旁路阀再拍照，现场原始状态灭失，证据不可逆。</span></span></div>
-  <div class="rule"><span class="rn">STEP 4</span><span><span class="rt">拆除伪装与采样管线复位</span><span class="rd"><b>做什么：</b>按正确顺序关闭旁路阀、拆除伪装三通阀、恢复采样管线直连。<b>最容易错：</b>顺序错（未先取证就拆）→ 证据可能不被采信。</span></span></div>
-  <div class="rule"><span class="rn">STEP 5</span><span><span class="rt">分析仪参数与备案 / 验收值一致性核对</span><span class="rd"><b>做什么：</b>核对斜率、截距、量程、输出下限与备案 / 验收值。<b>最容易错：</b>只核仪表参数、不调后台日志与 DAS 操作记录，数据链条对不上。</span></span></div>
-  <div class="rule"><span class="rn">STEP 6</span><span><span class="rt">标准气体盲测</span><span class="rd"><b>做什么：</b>执法方自带标气，从采样探头处通入，检验含采样管线的全系统。<b>最容易错：</b>用企业自测结果当执法结论；盲测不用自带标气、或错用分析仪口径判系统响应。</span></span></div>
-
-  <div class="sub">1.2 判据速查表（已核准口径，原样不得改动）</div>
-  <div class="sd" style="margin-bottom:8px">下列判据为已核准口径，<b>必须原样使用，不得改动数值</b>。现场检测判定以"系统（含采样管线）"口径为准，实验室 / 型式检验口径仅作对照、现场不引用。</div>
+  <div class="sn">01 · 交付内容</div>
+  <div class="st">6 节，从怎么用到免责声明</div>
+  <div class="sd">交付包为单文件网页，与配套交互页数值口径完全一致，可整目录下载离线使用。</div>
   <table class="tbl">
-    <tr><th style="width:20%">技术指标</th><th>判据与出处（原样，不得改动）</th></tr>
-    <tr><td><b>示值误差</b></td><td>SO₂ 满量程 ≥100 μmol/mol（NOx 满量程 ≥200 μmol/mol）时 ≤ ±5%（相对标准气体标称值）；量程低于该档时 ≤ ±2.5%（相对满量程 FS）。（HJ 76-2017 §6.2.1.1，两档）</td></tr>
-    <tr><td><b>系统响应时间</b></td><td>≤ 200 s，含采样管线的现场系统口径。（§6.2.1.2）</td></tr>
-    <tr><td><b>分析仪仪表响应时间</b></td><td>≤ 120 s，属实验室 / 型式检验口径，现场检测不引用（两档禁混用）。（§6.1.1.1）</td></tr>
-    <tr><td><b>零点 / 量程漂移（24 h）</b></td><td>分析仪（§6.1.1.4，24 h）≤ ±2% FS；气态污染物 CEMS ≤ ±2.5% FS；颗粒物 CEMS ≤ ±2% FS。</td></tr>
-    <tr><td><b>伴热要求</b></td><td>两条件并列 —— 温度 ≥ 120 ℃，且 高于烟气露点 10 ℃ 以上。（HJ 75-2017 §7.2.7）</td></tr>
-    <tr><td><b>校准与校验</b></td><td>校准（§11.2，四档：24 h / 15 d / 7 d / 3 个月）与校验（§11.3）不得混用。</td></tr>
-    <tr><td><b>数据传输标准</b></td><td>HJ 212-2025 全部代替 HJ 212-2017，2026-01-01 实施。</td></tr>
-  </table>
-
-  <div class="sub">1.3 常见错误与排查</div>
-  <table class="tbl">
-    <tr><th style="width:30%">现象</th><th style="width:34%">根本原因</th><th>怎么查</th></tr>
-    <tr><td>先拆旁路阀再拍照</td><td>现场原始状态灭失，物证不可逆</td><td>进场先固定原始状态（拍照 / 录像 / 备份日志），再动手拆阀 / 复位</td></tr>
-    <tr><td>用分析仪 ≤120 s 去判现场系统响应</td><td>口径混用：分析仪 ≤120 s 是实验室 / 型式检验口径，现场应判系统（含采样管线）≤200 s</td><td>现场系统响应时间按 §6.2.1.2 ≤200 s 判定，不得套用 §6.1.1.1</td></tr>
-    <tr><td>示值误差用满量程 FS 作基准</td><td>量程达档时应相对标准气体标称值，而非 FS</td><td>量程 ≥100 μmol/mol（SO₂）时，示值误差以标气标称值为基准、≤ ±5%</td></tr>
-    <tr><td>把"校验"当"校准"</td><td>§11.2 校准与 §11.3 校验是两件事，周期与目的不同</td><td>区分校准（24 h / 15 d / 7 d / 3 个月）与校验，各按其条款执行</td></tr>
-    <tr><td>伴热只查 ≥120 ℃、漏掉"高于露点 10 ℃ 以上"</td><td>两条件是并列关系，缺一不可</td><td>同时核验温度 ≥120 ℃ 且 高于烟气露点 10 ℃ 以上（HJ 75-2017 §7.2.7）</td></tr>
-    <tr><td>标气瓶过期或无证仍出具合格结论</td><td>标准物质须可溯源，过期 / 无证即不可信</td><td>查标气证书有效期与溯源编号，无证 / 过期不得作为合格依据</td></tr>
-    <tr><td>只改台账不改后台日志</td><td>数据链条对不上，篡改痕迹仍在 DAS / 仪表日志</td><td>台账、DAS 与仪表操作日志交叉核对，参数修改记录须一致</td></tr>
-    <tr><td>把企业自测结果当执法结论</td><td>须用执法方自带标气盲测，企业自测可能预先应对</td><td>执法方自带标准气体从采样探头通入做全系统盲测</td></tr>
+    <thead><tr><th style="width:56px">节</th><th>内容</th><th style="width:110px">给谁</th></tr></thead>
+    <tbody>
+      <tr><td><b>00</b></td><td>怎么用这份包<br><span style="color:#64748b">三分钟看清：这份包给谁、怎么用</span></td><td>教师</td></tr>
+      <tr><td><b>01</b></td><td>学生实操手册<br><span style="color:#64748b">操作卡 · 判据速查表 · 易错清单</span></td><td>学生</td></tr>
+      <tr><td><b>02</b></td><td>教师指南<br><span style="color:#64748b">知识点—关卡映射 · 90 分钟课堂流程 · 3 个开放讨论题</span></td><td>教师</td></tr>
+      <tr><td><b>03</b></td><td>现成作业<br><span style="color:#64748b">3 个作业，各带 100 分制评分量规</span></td><td>教师</td></tr>
+      <tr><td><b>04</b></td><td>部署与使用<br><span style="color:#64748b">零安装 · 可离线 · 可嵌入课程平台</span></td><td>教务 / 教师</td></tr>
+      <tr><td><b>05</b></td><td>红线与免责<br><span style="color:#64748b">教学设定，不指向任何真实企业</span></td><td>全体</td></tr>
+    </tbody>
   </table>
 </section>
 
 <section class="sec" id="s02">
-  <div class="sn">02 · 教师指南</div>
-  <div class="st">从教学目标到 90 分钟，一条主线讲透</div>
-  <div class="sd">本节给出知识点—关卡映射、可直接落地的课堂流程，以及 3 个开放式讨论题。所有数值与判定口径与交互页一致。</div>
-
-  <div class="sub">2.1 教学目标与知识点映射</div>
-  <table class="tbl">
-    <tr><th style="width:26%">知识点</th><th style="width:24%">对应交互关卡</th><th>达成标准（学生能做到什么）</th></tr>
-    <tr><td><b>CEMS 系统组成与采样链路</b></td><td>第一关 站房勘察</td><td>画出 采样探头 → 伴热管线 → 预处理 → 分析仪 → DAS 链路，指出每段可动手脚的位置</td></tr>
-    <tr><td><b>自动监测数据质量体系与数据标记</b></td><td>第一 / 三关</td><td>说明数据标记规则（生态环境部公告 2022 年第 21 号）与异常数据判定</td></tr>
-    <tr><td><b>现场检查程序与证据固定</b></td><td>第二关 拆除复位</td><td>按八步标准链路操作，说明"先取证、后动手"与应固定的证据类别</td></tr>
-    <tr><td><b>标准气体质控与盲测</b></td><td>第四关 标准气体盲测</td><td>用执法方自带标气从探头通入，按 §6.2.1.2 判系统响应 ≤200 s</td></tr>
-    <tr><td><b>技术指标判定（HJ 75 / HJ 76）</b></td><td>第三 / 四关</td><td>逐项判定示值误差、响应时间、漂移，区分实验室 / 现场口径</td></tr>
-    <tr><td><b>自动监测数据弄虚作假的法律责任（含刑事责任）</b></td><td>第四关 后果推演</td><td>列举 环发〔2015〕175 号 判定情形与 法释〔2023〕7 号 刑事责任</td></tr>
-  </table>
-
-  <div class="sub">2.2 90 分钟课堂流程（时间轴）</div>
-  <table class="tbl">
-    <tr><th style="width:12%">分钟</th><th style="width:22%">环节</th><th style="width:33%">教师动作</th><th>学生动作</th></tr>
-    <tr><td>0–10</td><td>导入</td><td>投屏第一关背景，抛出"数据为什么稳得可疑"问题</td><td>思考采样链路与造假可能</td></tr>
-    <tr><td>10–25</td><td>链路与手法讲解</td><td>讲清采样链路五节点、四类造假手法与判据速查表</td><td>记笔记，对照 1.2 判据表</td></tr>
-    <tr><td>25–45</td><td>交互台第一、二关</td><td>投屏演示站房勘察与拆除复位，巡视指导</td><td>完成勘察点选与八步顺序复位</td></tr>
-    <tr><td>45–60</td><td>交互台第三关</td><td>组织参数核对讨论，提示斜率 / 截距 / 量程篡改</td><td>勾选被篡改项并与备案值对账</td></tr>
-    <tr><td>60–80</td><td>交互台第四关盲测与讨论</td><td>引导自带标气盲测，对比系统 ≤200 s 与实验室 ≤120 s 口径</td><td>完成盲测并解释口径差异</td></tr>
-    <tr><td>80–90</td><td>总结</td><td>归纳四条黄金法则与证据链清单</td><td>复盘四关、整理手册</td></tr>
-  </table>
-
-  <div class="sub">2.3 课堂讨论题（开放式）</div>
+  <div class="sn">02 · 获取方式</div>
+  <div class="st">发一封邮件，说明三件事</div>
+  <div class="sd">请在邮件里写明下面三项，方便直接给你合适的版本：</div>
   <div class="g3">
-    <div class="ic"><div class="ii">💬</div><div class="in">讨论一</div><div class="id">企业说"设备故障导致数据缺失"，你怎么区分"真故障"和"故意断网"？</div><span class="it">故障 or 造假</span></div>
-    <div class="ic"><div class="ii">💬</div><div class="in">讨论二</div><div class="id">执法方自带标气从探头通入、不拆旁路，这算不算现场检查的常规做法？为什么？</div><span class="it">盲测程序</span></div>
-    <div class="ic"><div class="ii">💬</div><div class="in">讨论三</div><div class="id">企业把分析仪斜率从 1.000 改成 0.78，辩称"设备出厂就这样"。你如何用备案 / 验收值戳穿这个说法？</div><span class="it">参数篡改</span></div>
+    <div class="ic"><div class="ii">🏫</div><div class="in">你的身份</div><div class="id">学校 / 机构名称，以及你是教师、教务还是培训机构。</div><span class="it">必填</span></div>
+    <div class="ic"><div class="ii">📅</div><div class="in">使用场景</div><div class="id">课程名称、学生层次与大致人数、计划什么时候用。</div><span class="it">必填</span></div>
+    <div class="ic"><div class="ii">📦</div><div class="in">需要哪一份</div><div class="id">本页对应的交付包，或其他配套交付包（可以都要）。</div><span class="it">必填</span></div>
+  </div>
+  <div style="margin-top:26px;text-align:center">
+    <a id="mail" href="#mail"
+       data-u="jinghao.song" data-d="gmail.com"
+       data-s="索取教学交付包：CEMS 执法检查"
+       data-b="&#10;您好，我想索取《CEMS 造假识别与执法检查》教学交付包。&#10;&#10;身份（学校 / 机构）：&#10;使用场景（课程名称、学生层次、人数、计划时间）：&#10;需要哪一份：&#10;&#10;谢谢。"
+       style="display:inline-block;padding:15px 38px;border-radius:10px;background:linear-gradient(90deg,#f97316,#fb923c);color:#0a0e17;font-size:15px;font-weight:800;text-decoration:none;letter-spacing:.5px">✉ 发送邮件索取</a>
+    <div style="margin-top:14px;font-size:12.5px;color:#64748b">收件邮箱：<span id="mailText">（正在载入…）</span></div>
+    <noscript><div class="note warnbox" style="margin-top:16px;text-align:left">本页需要开启 JavaScript 才能显示收件邮箱。也可以先<a href="CEMS造假识别与执法检查-交互版.html" style="color:#38bdf8">打开免费的交互页</a>，再从<a href="../index.html" style="color:#38bdf8">实验集总目录</a>找到入口。</div></noscript>
   </div>
 </section>
 
 <section class="sec" id="s03">
-  <div class="sn">03 · 现成作业</div>
-  <div class="st">3 个作业，各带 100 分制评分量规</div>
-  <div class="sd">每个作业含<b>题目背景</b>、<b>任务清单</b>与<b>评分量规</b>，可直接打印或挂载到 LMS 作为形成性评价。</div>
-
-  <div class="sub">作业 1 ·《这条链路上哪几处能动手脚？》</div>
-  <div class="note"><b>题目背景（脱敏设定）：</b>某钢铁企业排口安装 CEMS，采样链路为：<b>采样探头 → 伴热管线 → 预处理 → 分析仪 → 数据采集传输仪（DAS）</b>。请逐环节分析这条链路上可能被动手脚的位置。</div>
-  <div class="sd" style="margin-bottom:6px"><b>任务清单：</b></div>
-  <ol class="task">
-    <li>沿采样链路<b>逐环节</b>写出可能的造假手法（至少覆盖探头 / 伴热 / 预处理 / 分析仪 / DAS 五处）。</li>
-    <li>为每一条手法给出<b>现场可见特征</b>（即在站房现场能被直接观察到的破绽）。</li>
-    <li>用一句话概括四类典型手法（旁路稀释 / 标气作弊 / 参数篡改 / 采样失真）分别发生在哪段。</li>
-  </ol>
-  <table class="tbl">
-    <tr><th style="width:42%">评分项</th><th style="width:12%">分值</th><th>评分要点</th></tr>
-    <tr><td>逐环节列出造假手法（5 环节）</td><td>50</td><td>探头 / 伴热 / 预处理 / 分析仪 / DAS 各环节至少给出一种手法，缺一项扣 10 分</td></tr>
-    <tr><td>给出现场可见特征</td><td>40</td><td>每条手法对应可现场识别的特征（多出阀门、标签撕毁、伴热不足、日志异常等）</td></tr>
-    <tr><td>表述规范</td><td>10</td><td>引用"旁路稀释 / 标气作弊 / 参数篡改 / 采样失真"等关键词，逻辑清晰</td></tr>
-    <tr class="sum"><td>合计</td><td>100</td><td>—</td></tr>
-  </table>
-
-  <div class="sub">作业 2 ·《这三份验收数据，哪份过得了？》</div>
-  <div class="note"><b>题目背景（脱敏设定）：</b>SO₂ 标准气体标称值 <b>200 μmol/mol</b>、分析仪量程 <b>500 μmol/mol</b>。现场给出三组验收数据，请按 HJ 76-2017 判定哪组符合、哪组不符合。</div>
-  <table class="tbl">
-    <tr><th style="width:8%">编号</th><th style="width:28%">示值误差</th><th style="width:28%">系统响应时间</th><th>24 h 漂移</th></tr>
-    <tr><td><b>①</b></td><td>+3.8%</td><td>165 s</td><td>−1.8% FS</td></tr>
-    <tr><td><b>②</b></td><td>+6.2%</td><td>240 s</td><td>−3.1% FS</td></tr>
-    <tr><td><b>③</b></td><td>+2.0%</td><td>用的是分析仪 110 s</td><td>用 ±2% FS 判据</td></tr>
-  </table>
-  <div class="sd" style="margin-bottom:6px"><b>任务清单：</b></div>
-  <ol class="task">
-    <li>写出判定所用判据：示值误差（量程 500 ≥100，按 ±5% 相对标气标称值）、系统响应时间（≤200 s，含采样管线）、气态污染物 CEMS 24 h 漂移（≤±2.5% FS）。</li>
-    <li>对三组数据<b>逐项</b>写出判据与结论。</li>
-    <li>说明 ③ 中"响应时间用分析仪 110 s""漂移用 ±2% FS 判据"为何属于口径混用。</li>
-  </ol>
-  <table class="tbl">
-    <tr><th style="width:42%">评分项</th><th style="width:12%">分值</th><th>评分要点</th></tr>
-    <tr><td>判据基准正确</td><td>30</td><td>正确写出三档判据：±5% 相对标气、系统 ≤200 s、气态 CEMS 漂移 ±2.5% FS</td></tr>
-    <tr><td>三组逐项判定正确</td><td>50</td><td>①符合（三项均满足）；②不符合（三项均超）；③不符合（错用分析仪口径与 ±2% FS 档）</td></tr>
-    <tr><td>结论与口径说明</td><td>20</td><td>说明 ③ 的口径混用问题（§6.1.1.1 与 §6.2.1.2 不得混用），结论表述规范</td></tr>
-    <tr class="sum"><td>合计</td><td>100</td><td>—</td></tr>
-  </table>
-
-  <div class="sub">作业 3 ·《现场检查笔录怎么写？》</div>
-  <div class="note"><b>题目背景（脱敏设定）：</b>执法人员突击某站房，发现三处异常：① 采样管线旁多出<b>旁路三通阀</b>；② 分析仪<b>斜率被改为 0.78</b>（备案 1.000）；③ <b>标气瓶已过期</b>、证书缺失。请按"先取证、后动手"顺序拟写检查步骤。</div>
-  <div class="sd" style="margin-bottom:6px"><b>任务清单：</b></div>
-  <ol class="task">
-    <li>按"先取证、后动手"顺序写出检查步骤（先固定什么、再做什么）。</li>
-    <li>列出应当固定的<b>证据类别</b>（物证 / 文书 / 数据 / 比对）。</li>
-    <li>说明顺序错（先拆阀再拍照）会导致什么后果。</li>
-  </ol>
-  <table class="tbl">
-    <tr><th style="width:42%">评分项</th><th style="width:12%">分值</th><th>评分要点</th></tr>
-    <tr><td>检查步骤符合"先取证、后动手"</td><td>50</td><td>先拍照 / 录像 / 备份日志固定物证，再拆阀复位；顺序错（先拆后拍）即扣分</td></tr>
-    <tr><td>证据类别完整</td><td>40</td><td>物证（照片 / 录像 / 旁路阀 / 过期标气）、文书（笔录 / 询问）、数据（参数记录 / DAS 日志）、比对（盲测记录）</td></tr>
-    <tr><td>表述规范</td><td>10</td><td>引用 环发〔2015〕175 号 等判定依据，表述清晰</td></tr>
-    <tr class="sum"><td>合计</td><td>100</td><td>—</td></tr>
-  </table>
-</section>
-
-<section class="sec" id="s04">
-  <div class="sn">04 · 部署与使用</div>
-  <div class="st">零安装、纯前端、可离线、可嵌入</div>
-  <div class="sd">本交付包与配套交互页均为<b>单文件、零外部依赖</b>。加载完成后即可断网使用，适合机房、考场与离线环境。</div>
-
-  <div class="sub">最低要求与环境</div>
-  <div class="kvs">
-    <div class="kv"><div class="k">安装</div><div class="v"><b>0 元 · 零安装</b>，无需服务器与数据库</div></div>
-    <div class="kv"><div class="k">依赖</div><div class="v"><b>无</b> 外部脚本 / 样式 / 图片 / CDN</div></div>
-    <div class="kv"><div class="k">离线</div><div class="v">加载后<b>可断网</b>使用</div></div>
-    <div class="kv"><div class="k">浏览器</div><div class="v">现代浏览器（Chrome / Edge / Firefox / Safari），支持 Canvas</div></div>
-  </div>
-
-  <div class="sub">LMS / 课程平台 iframe 嵌入代码</div>
-  <div class="code">&lt;iframe
-  src="https://your-lms.example.edu/courses/cems/CEMS造假识别与执法检查-交互版.html"
-  width="100%"
-  height="760"
-  loading="lazy"
-  allowfullscreen&gt;
-&lt;/iframe&gt;</div>
-  <div class="note">将 <b>src</b> 换成你平台中交互页的绝对地址即可。交付包本页也可一并挂载到同一课程目录，作为学生 / 教师说明文档。</div>
-
-  <div class="sub">课堂投影建议</div>
-  <div class="sd" style="margin-bottom:8px">深色底有利于投影与后排观看：</div>
-  <div class="g2">
-    <div class="ic"><div class="ii">🖥️</div><div class="in">投影顺序</div><div class="id">建议先投<b>"第一关 站房勘察"</b>建立概念，再投<b>"第四关 盲测结算"</b>看判定后果，中间二、三关由学生端操作。</div><span class="it">由浅入深</span></div>
-    <div class="ic"><div class="ii">🌑</div><div class="in">显示设置</div><div class="id">浏览器全屏（F11）、关闭环境灯干扰；本页与交互页均为深色底，对比度高。</div><span class="it">深色优先</span></div>
-  </div>
-
-  <div class="sub">实验记录导出</div>
-  <div class="sd">交互页交互台底部提供<b>「导出实验记录（CSV）」</b>按钮，学生一键导出操作轨迹与判定结果，可直接用于<b>收作业与过程性评价</b>，无需教师逐份核对。</div>
-
-  <div class="sub">浏览器与兼容性</div>
-  <div class="note blue">建议使用支持 <b>Canvas</b> 与 <b>IntersectionObserver</b> 的现代浏览器（近三年版本即可）。老旧浏览器可能无法正常渲染交互台图形，但不影响本交付包静态内容的阅读。</div>
-</section>
-
-<section class="sec" id="s05">
-  <div class="sn">05 · 红线与免责</div>
-  <div class="st">教学设定，不指向任何真实企业</div>
-  <div class="sd">请在使用前向学生明确以下红线与免责声明，避免被误读为正式执法结论。</div>
-  <div class="note warnbox">⚠️ 本页是<b>教学演示与执法流程实训</b>，所有企业、地点、数据为<b>脱敏教学设定</b>，不指向任何真实企业。</div>
-  <div class="note warnbox">⚠️ 本页<b>不承诺</b>任何执法结论必然成立，<b>不替代</b>正式的现场检查、采样与司法鉴定程序。</div>
-  <div class="note warnbox">⚠️ 本页数值用于<b>教学演示</b>，<b>不作为</b>执法依据。</div>
-  <div class="fw">
-    <a href="CEMS造假识别与执法检查-交互版.html"><div class="t">→ 打开配套交互页</div><div class="d">进入《CEMS 造假识别与执法检查》交互模拟台，按四关实操。</div></a>
-    <a href="../index.html"><div class="t">→ 返回实验集总目录</div><div class="d">回到 EnvLab 交互实验集，查看其他交互页与交付包。</div></a>
-  </div>
+  <div class="sn">03 · 使用许可</div>
+  <div class="st">可教学使用，不可再分发</div>
+  <div class="sd">交付包可用于课堂教学、岗前培训与内部考核；可打印，可上传到校内 LMS 或课程平台。<b>请勿公开转载、二次分发或用于商业售卖。</b></div>
+  <div class="note warnbox">如果所在机构需要多校区共享、或用于对外收费培训，请来信说明，可以单独授权。</div>
+  <div class="note">本交付包为教学设定，不指向任何真实企业，不构成正式执法结论。</div>
 </section>
 
 <footer class="ft">
-  <b>EnvLab 环境执法实训</b> · CEMS 造假识别与执法检查 · 教学交付包
+  <b>EnvLab 环境实训</b> · CEMS 造假识别与执法检查 · 教学交付包
   <div class="nav">
     <a href="../index.html">实验集总目录</a>
     <a class="cur" href="CEMS造假识别与执法检查-交互版.html">配套交互页</a>
@@ -325,5 +172,15 @@ ol.task li b{color:#e2e8f0}
 <script>(function(){var b=document.getElementById("bk");if(!b)return;var f=function(){var y=window.pageYOffset||document.documentElement.scrollTop;if(y>260)b.classList.add("on");else b.classList.remove("on")};if(typeof window.addEventListener==='function')window.addEventListener("scroll",f,{passive:true});f();if(typeof document.addEventListener==='function')document.addEventListener("keydown",function(e){if(e.key==="Escape"&&e.altKey)location.href=b.getAttribute("href")});})();</script>
 <script>(function(){var sp=document.getElementById("sp");function f(){var h=document.documentElement.scrollHeight-window.innerHeight;var y=window.pageYOffset||document.documentElement.scrollTop;if(sp)sp.style.width=(h>0?(y/h*100):0)+"%"}if(typeof window.addEventListener==='function')window.addEventListener("scroll",f,{passive:true});f();})();</script>
 <script>(function(){try{var io=new IntersectionObserver(function(es){for(var i=0;i<es.length;i++){if(es[i].isIntersecting)es[i].target.classList.add("visible")}},{threshold:0.12});var secs=document.querySelectorAll(".sec");for(var j=0;j<secs.length;j++){io.observe(secs[j])}}catch(e){var s2=document.querySelectorAll(".sec");for(var k=0;k<s2.length;k++){s2[k].classList.add("visible")}}})();</script>
+<script>(function(){
+  var a=document.getElementById("mail"); if(!a) return;
+  var u=a.getAttribute("data-u"), d=a.getAttribute("data-d");
+  if(!u||!d) return;
+  var addr=u+"@"+d;
+  a.href="mailto:"+addr
+    +"?subject="+encodeURIComponent(a.getAttribute("data-s")||"")
+    +"&body="+encodeURIComponent(a.getAttribute("data-b")||"");
+  var t=document.getElementById("mailText"); if(t) t.textContent=addr;
+})();</script>
 </body>
 </html>
