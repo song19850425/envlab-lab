@@ -118,7 +118,7 @@ def rel_to_qr(page_abs):
 def main():
     dry = "--dry" in sys.argv
     stats = {"after_footer": 0, "before_body": 0, "skip": 0, "done": 0, "nodody": 0}
-    touched = []
+    pending = []          # (绝对路径, 相对路径, 新内容) —— 全部校验通过后才统一写盘
     for p in walk_html():
         rel = os.path.relpath(p, ROOT).replace("\\", "/")
         if rel in SKIP:
@@ -145,9 +145,26 @@ def main():
             print("  ⚠ 无 </footer> 也无 </body>，跳过：%s" % rel)
             continue
 
-        if not dry:
+        # 结构自检：插入只能追加，不能破坏文档骨架。
+        # 本项目踩过一次「锚点索引算错，把 <!DOCTYPE html> 拆成 <!DO + 卡片 + CTYPE html>」，
+        # 而当时的自检全绿（只查标签配对，看不见 DOCTYPE 被截断）。所以这里硬性挡一道。
+        # 大小写不敏感 —— 站内有页面写的是小写 <!doctype html>。
+        _head = s.lstrip("\ufeff")[:24].lower()
+        if not _head.startswith("<!doctype html>"):
+            raise SystemExit("结构自检失败（%s）：开头不是完整 DOCTYPE，实际开头 %r\n"
+                             "本次未写盘，站点保持原样。" % (rel, s[:40]))
+        if not s.rstrip().lower().endswith("</html>"):
+            raise SystemExit("结构自检失败（%s）：结尾不是 </html>，实际结尾 %r\n"
+                             "本次未写盘，站点保持原样。" % (rel, s[-40:]))
+
+        pending.append((p, rel, s))
+
+    # 全部校验通过，才统一落盘（全有或全无）。
+    # 不边算边写：否则中途报错会留下「前一半已注入、后一半没注入」的半成品站点。
+    if not dry:
+        for p, _rel, s in pending:
             io.open(p, "w", encoding="utf-8", newline="").write(s)
-        touched.append(rel)
+    touched = [rel for _p, rel, _s in pending]
 
     print("\n形态 A（插在 </footer> 之后）：%d 个" % stats["after_footer"])
     print("形态 B（插在 </body> 之前）：%d 个" % stats["before_body"])
