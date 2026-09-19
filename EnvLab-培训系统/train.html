@@ -76,7 +76,67 @@
 
   <footer>EnvLab 仪器操作培训 · 依据受控操作规程构建（已脱敏）<br>本培训系统为配置驱动，记录留存于本机浏览器，若已接入后端则同步至云端数据库，数据不出实验室。  <div style="margin-top:10px;font-size:12px;line-height:1.9">&#128231; 联系作者：<a class="elmail" href="#" data-u="jinghao.song" data-d="gmail.com" style="color:inherit;text-decoration:underline">载入中…</a><noscript><span>jinghao.song [at] gmail.com</span></noscript></div>
 </footer>
-<div class="elqr" style="margin:18px 0 0;text-align:center;font-size:12px;line-height:1.7"><a href="../assets/wechat-qrcode.png" target="_blank" rel="noopener" title="点击放大二维码" style="display:inline-block;color:inherit;text-decoration:none"><img src="../assets/wechat-qrcode.png" alt="微信公众号「小宋的环保笔记」二维码" width="112" height="112" loading="lazy" decoding="async" style="display:block;width:112px;height:112px;margin:0 auto;padding:6px;background:#fff;border:1px solid rgba(128,128,128,.25);border-radius:8px;box-sizing:content-box"><span style="display:block;margin-top:7px;opacity:.85">微信公众号 · 小宋的环保笔记</span></a></div>
+<div class="elqr" style="margin:18px 0 0;text-align:center;font-size:12px;line-height:1.7"><a href="../assets/wechat-qrcode.png" target="_blank" rel="noopener" data-elqr-zoom title="点击放大二维码" style="display:inline-block;color:inherit;text-decoration:none;cursor:zoom-in"><img src="../assets/wechat-qrcode.png" alt="微信公众号「小宋的环保笔记」二维码" width="112" height="112" loading="lazy" decoding="async" style="display:block;width:112px;height:112px;margin:0 auto;padding:6px;background:#fff;border:1px solid rgba(128,128,128,.25);border-radius:8px;box-sizing:content-box"><span style="display:block;margin-top:7px;opacity:.85">微信公众号 · 小宋的环保笔记</span></a></div>
+<script data-elqr-script>(function(){
+if(window.__elqrZoom)return;window.__elqrZoom=1;
+var ALT="微信公众号「小宋的环保笔记」二维码",CAP="微信公众号 · 小宋的环保笔记",HINT="点击空白处或按 Esc 关闭";
+var ov=null,prev=null;
+function close(){
+  var o=ov;if(!o)return;ov=null;
+  o.style.opacity="0";
+  setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},180);
+  document.removeEventListener("keydown",onKey);
+  if(prev&&prev.focus){try{prev.focus();}catch(e){}}
+  prev=null;
+}
+function onKey(e){if(e.key==="Escape"||e.keyCode===27)close();}
+function build(src){
+  var o=document.createElement("div");
+  o.setAttribute("role","dialog");
+  o.setAttribute("aria-modal","true");
+  o.setAttribute("aria-label","微信公众号二维码");
+  o.style.cssText="position:fixed;left:0;top:0;width:100%;height:100%;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:rgba(0,0,0,.78);cursor:zoom-out;opacity:0;transition:opacity .16s ease-out";
+  var b=document.createElement("div");
+  b.style.cssText="text-align:center;cursor:default";
+  var im=document.createElement("img");
+  im.src=src;im.alt=ALT;
+  im.style.cssText="display:block;width:420px;max-width:92vw;height:auto;width:min(66vw,66vh);background:#fff;padding:16px;border-radius:14px;box-sizing:border-box;box-shadow:0 20px 60px rgba(0,0,0,.5)";
+  var c=document.createElement("div");
+  c.textContent=CAP;
+  c.style.cssText="margin-top:16px;font-size:14px;line-height:1.7;color:#fff;opacity:.92";
+  var h=document.createElement("div");
+  h.textContent=HINT;
+  h.style.cssText="margin-top:6px;font-size:12px;line-height:1.7;color:#fff;opacity:.72";
+  var x=document.createElement("button");
+  x.type="button";x.setAttribute("aria-label","关闭");x.innerHTML="&times;";
+  x.style.cssText="position:fixed;top:18px;right:22px;width:42px;height:42px;padding:0;font-size:26px;line-height:1;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:50%;cursor:pointer;font-family:inherit";
+  b.appendChild(im);b.appendChild(c);b.appendChild(h);
+  o.appendChild(b);o.appendChild(x);
+  o.addEventListener("click",function(e){if(e.target===o||e.target===x)close();});
+  document.body.appendChild(o);
+  return o;
+}
+function open(src,trigger){
+  prev=trigger||null;
+  ov=ov||build(src);
+  var im=ov.querySelector("img");
+  if(im&&im.getAttribute("src")!==src)im.setAttribute("src",src);
+  document.addEventListener("keydown",onKey);
+  setTimeout(function(){if(ov)ov.style.opacity="1";},10);
+  var btn=ov.querySelector("button");
+  if(btn&&btn.focus){try{btn.focus();}catch(e){}}
+}
+document.addEventListener("click",function(e){
+  var t=e.target;
+  while(t&&t!==document){
+    if(t.getAttribute&&t.getAttribute("data-elqr-zoom")!==null)break;
+    t=t.parentNode;
+  }
+  if(!t||t===document||!t.getAttribute)return;
+  e.preventDefault();
+  open(t.getAttribute("href"),t);
+});
+})();</script>
 </div>
 
 <script src="config.js"></script>
