@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>河流健康实验室 · RIVER HEALTH LAB</title>
+<style>
+:root{
+--bg:#0A0E14; --panel:#101722; --panel2:#151e2b; --line:#26303f;
+--txt:#f2f6fb; --dim:#93A0B4; --faint:#667180;
+--amber:#F0A832; --cyan:#3FE3E8; --blue:#2E7CF6; --red:#ff5252; --green:#43B968;
+--glow:rgba(63,227,232,.5);
+--mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:radial-gradient(1200px 760px at 50% -8%, #0e1622 0%, var(--bg) 55%, #04070b 100%);
+color:var(--txt);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+#loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;
+align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity.5s}
+#loader.done{opacity:0;pointer-events:none}
+#loader.spin{width:46px;height:46px;border-radius:50%;
+border:3px solid var(--line);border-top-color:var(--cyan);animation:sp 1s linear infinite}
+@keyframes sp{to{transform:rotate(360deg)}}
+#loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+.kicker{display:inline-block;font-size:11px;letter-spacing:.3em;color:var(--dim);
+border:1px solid var(--cyan);border-radius:20px;padding:5px 14px;margin-bottom:14px;font-family:var(--mono);
+box-shadow:0 0 12px -4px var(--glow), inset 0 0 8px -6px var(--glow)}
+h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.06em;margin-bottom:8px}
+h1.dim{color:var(--faint);font-weight:300}
+.sub{color:var(--cyan);font-family:var(--mono);font-size:13px;letter-spacing:.35em;margin-bottom:14px;
+text-shadow:0 0 18px var(--glow)}
+.hook{border-left:3px solid var(--cyan);padding-left:14px;max-width:680px;
+font-size:15px;line-height:1.8;color:var(--dim);margin-bottom:6px}
+.hook b{color:var(--cyan);text-shadow:0 0 12px var(--glow)}
+.stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+@media (max-width:900px){.stage{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,rgba(255,255,255,.025),rgba(255,255,255,0) 42%),var(--panel);
+border:1px solid var(--line);border-radius:14px;padding:16px;
+box-shadow:0 18px 50px -22px rgba(0,0,0,.8), inset 0 1px 0 rgba(255,255,255,.04)}
+.card h3{font-size:12px;color:var(--faint);letter-spacing:.2em;margin-bottom:12px;font-weight:600}
+#river{width:100%;height:auto;display:block}
+.rhi{display:flex;align-items:center;gap:16px;margin-bottom:14px}
+.rhi.num{font-family:var(--mono);font-size:52px;font-weight:800;line-height:1;text-shadow:0 0 26px currentColor}
+.rhi.badge{font-size:15px;font-weight:800;letter-spacing:.15em;padding:8px 16px;border-radius:10px;border:1px solid;
+box-shadow:0 0 16px -4px currentColor, inset 0 0 12px -8px currentColor}
+.rhi.sub2{font-size:11px;color:var(--faint);margin-top:6px;font-family:var(--mono)}
+.dims{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.dimc{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.dimc.t{font-size:12px;font-weight:700;margin-bottom:6px;display:flex;justify-content:space-between}
+.dimc.t.v{font-family:var(--mono)}
+.dimc.bar{height:8px;background:#080c12;border-radius:4px;overflow:hidden;
+box-shadow:inset 0 1px 3px rgba(0,0,0,.6)}
+.dimc.fill{height:100%;border-radius:4px;transition:width.3s ease}
+.dimc.note{font-size:10px;color:var(--faint);margin-top:5px;font-family:var(--mono)}
+.dimc.short{border-color:var(--red)}
+.dimc.short.t{color:var(--red)}
+#narrate{min-height:86px;background:var(--panel2);border:1px solid var(--line);
+border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;
+font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px;transition:opacity.3s}
+#narrate.warn{color:var(--red);font-weight:700}
+#narrate.ok{color:var(--green);font-weight:700}
+.ctl{margin-bottom:14px}
+.ctl.row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ctl.name{font-size:13px;color:var(--dim);letter-spacing:.08em}
+.ctl.val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+.kbd{display:inline-block;min-width:20px;text-align:center;font-family:var(--mono);font-size:11px;
+color:var(--faint);border:1px solid var(--line);border-radius:5px;padding:2px 6px;margin-left:6px;background:#080c12}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:70px;padding:10px 6px;font-size:13px;cursor:pointer;
+background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;transition:all.2s}
+.seg button small{display:block;font-size:10px;color:var(--faint);margin-top:3px;font-weight:400}
+.seg button.on{background:rgba(63,227,232,.1);border-color:var(--cyan);color:var(--cyan);
+box-shadow:0 0 14px -2px var(--glow), inset 0 0 10px -6px var(--glow);text-shadow:0 0 10px var(--glow)}
+.seg button.on small{color:var(--cyan)}
+input[type=range]{width:100%;accent-color:var(--cyan);margin:4px 0}
+.ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);font-family:var(--mono);margin-top:2px}
+.redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+@media (max-width:700px){.redlines{grid-template-columns:1fr}}
+.rl{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+.rl.bad{border-color:var(--red)}
+.rl.t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.rl.t.dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+.rl.bad.t.dot{background:var(--red)}
+.rl.d{font-size:12.5px;line-height:1.7;color:var(--dim)}
+.formula{margin-top:18px;background:#080c12;border:1px dashed var(--line);border-radius:12px;
+padding:14px 16px;font-family:var(--mono);font-size:12px;line-height:2;color:var(--faint);white-space:pre-wrap}
+.foot{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);
+display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--faint)}
+.foot a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--faint)}
+.flash{animation:fl.6s ease}
+@keyframes fl{0%{box-shadow:0 0 0 2px var(--cyan)}100%{box-shadow:none}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>正在布设监测断面…</p></div>
+<div class="wrap">
+<span class="kicker">ENVLAB · DEMO</span>
+<h1>河流健康<span class="dim">实验室</span></h1>
+<div class="sub">RIVER HEALTH LAB · HOW TO JUDGE A RIVER</div>
+<div class="hook">一条河健不健康，不看它美不美，看四个数字：<b>水量、水质、水生态、栖息地</b>。亲手调一调，看这条河怎么"生病"、怎么"好起来"。</div>
+
+<div class="stage">
+<div class="card">
+<h3>河段剖面 · 上游 → 下游</h3>
+<svg id="river" viewBox="0 0 520 400" role="img" aria-label="river profile scene"></svg>
+<div class="formula" style="margin-top:12px">水深 = 生态流量保障程度；水色 = 水质优劣；鱼的数量 = 水生态；
+岸绿/岸灰 = 岸带自然状况 vs 开发强度。大坝无鱼道时，鱼过不去。</div>
+</div>
+
+<div class="card">
+<h3>健康评价 · RHI 综合指数</h3>
+<div class="rhi">
+<div class="num" id="rhiNum">–</div>
+<div>
+<div class="badge" id="rhiBadge">–</div>
+<div class="sub2" id="rhiSub">–</div>
+</div>
+</div>
+<div class="dims" id="dims"></div>
+<div id="narrate">…</div>
+<div class="ctl">
+<div class="row"><span class="name">排污强度 POLLUTION<kbd class="kbd">Q</kbd><kbd class="kbd">A</kbd></span><span class="val" id="polVal">15%</span></div>
+<input type="range" id="polRange" min="0" max="100" step="1" value="15">
+<div class="ticks"><span>0 清洁</span><span>50</span><span>100 黑臭</span></div>
+</div>
+<div class="ctl">
+<div class="row"><span class="name">取水强度 WITHDRAWAL<kbd class="kbd">W</kbd><kbd class="kbd">S</kbd></span><span class="val" id="watVal">10%</span></div>
+<input type="range" id="watRange" min="0" max="100" step="1" value="10">
+<div class="ticks"><span>0 自然径流</span><span>50</span><span>100 断流</span></div>
+</div>
+<div class="ctl">
+<div class="row"><span class="name">拦河建筑物 DAM<kbd class="kbd">1</kbd><kbd class="kbd">2</kbd><kbd class="kbd">3</kbd></span><span class="val" id="damVal">无坝</span></div>
+<div class="seg" id="damSeg">
+<button data-v="none" class="on">无坝<small>纵向连通</small></button>
+<button data-v="nofish">有坝·无鱼道<small>鱼过不去</small></button>
+<button data-v="fish">有坝·有鱼道<small>部分连通</small></button>
+</div>
+</div>
+<div class="ctl">
+<div class="row"><span class="name">岸带开发 RIPARIAN<kbd class="kbd">E</kbd><kbd class="kbd">D</kbd></span><span class="val" id="devVal">20%</span></div>
+<input type="range" id="devRange" min="0" max="100" step="1" value="20">
+<div class="ticks"><span>0 自然岸带</span><span>50</span><span>100 硬化全覆盖</span></div>
+</div>
+<div class="ctl">
+<div class="row"><span class="name">场景 SCENE<kbd class="kbd">空格</kbd></span><span class="val" id="scenVal">健康山溪</span></div>
+</div>
+<div class="ctl">
+<div class="row"><span class="name">运行<kbd class="kbd">P</kbd></span><span class="val" id="runVal">运行中</span></div>
+</div>
+</div>
+</div>
+
+<div class="redlines">
+<div class="rl" id="rlFlow"><div class="t"><span class="dot"></span>红线一 · 生态流量</div><div class="d">断流=死亡。水质可以治理，没水一切归零。生态流量满足程度是所有评估的第一块板。</div></div>
+<div class="rl" id="rlShort"><div class="t"><span class="dot"></span>红线二 · 短板效应</div><div class="d">RHI 是平均分，但治河要盯着最低分那块板。水质、水量、生态、栖息地——哪个崩了，河就病了。</div></div>
+<div class="rl" id="rlConn"><div class="t"><span class="dot"></span>红线三 · 纵向连通</div><div class="d">一座没有鱼道的坝，把一条河切成两条河。洄游鱼类先消失，鱼类保有指数直接腰斩。</div></div>
+</div>
+
+<div class="formula">模型：RHI =（水量+水质+水生态+栖息地）/4（演示采用等权合成；实际评估按 SL/T 793-2020 准则层逐层加权）。
+健康等级：一类 ≥90 非常健康 / 二类 ≥75 健康 / 三类 ≥60 亚健康 / 四类 ≥40 不健康 / 五类 &lt;40 劣态。
+氨氮类别阈值按 GB 3838-2002（Ⅰ 0.15 / Ⅱ 0.5 / Ⅲ 1.0 / Ⅳ 1.5 / Ⅴ 2.0 mg/L，超Ⅴ为劣Ⅴ类）。
+教学演示模型，非评估依据。</div>
+
+<div class="foot">
+<span>Also check out: <a href="#">旋风除尘器实验室</a> · <a href="#">五气分析仪实验室</a></span>
+<span>DEMO · 环保数字化 · jinghao.song@gmail.com</span>
+</div>
+</div>
+
+<script>
+"use strict";
+/* ================= 模型 ================= */
+const S = { pol:15, wat:10, dam:"none", dev:20, running:true};
+const DAMN = {none:"无坝", nofish:"有坝·无鱼道", fish:"有坝·有鱼道"};
+
+function assess(){
+const nh3 = 0.1 + S.pol/100*3.0;
+const cls = nh3<=0.15?"Ⅰ类":nh3<=0.5?"Ⅱ类":nh3<=1.0?"Ⅲ类":nh3<=1.5?"Ⅳ类":nh3<=2.0?"Ⅴ类":"劣Ⅴ类";
+const wq = Math.max(0, 100 - S.pol*1.05); // 水质优劣程度
+const wq2 = Math.max(0, 100 - S.wat*1.05); // 生态流量满足程度
+const conn= S.dam==="none"?100: S.dam==="fish"?55: 15; // 纵向连通
+const rip = Math.max(0, 100 - S.dev*1.0); // 岸带状况
+const eco = 0.5*Math.min(wq,wq2) + 0.3*(wq+wq2)/2 + 0.2*conn; // 水生态（短板敏感）
+const hab = 0.6*rip + 0.4*conn; // 栖息地
+const RHI = (wq+wq2+eco+hab)/4;
+const grade = RHI>=90? ["一类","非常健康","#00b4ff"]
+: RHI>=75? ["二类","健康","#96c850"]
+: RHI>=60? ["三类","亚健康","#ffe600"]
+: RHI>=40? ["四类","不健康","#ffa500"]
+: ["五类","劣态","#ff3333"];
+return {nh3, cls, wq, wq2, conn, rip, eco, hab, RHI, grade};
+}
+
+/* ================= 场景 ================= */
+const SCEN=[
+{pol:10, wat:10, dam:"none", dev:15, name:"健康山溪"},
+{pol:92, wat:30, dam:"none", dev:75, name:"城市黑臭河"},
+{pol:20, wat:95, dam:"none", dev:40, name:"断流之河"},
+{pol:25, wat:35, dam:"nofish", dev:45, name:"大坝锁江"},
+{pol:30, wat:25, dam:"fish", dev:35, name:"治理之后"},
+];
+let scenIdx=0;
+
+/* ================= 基础 ================= */
+const $=id=>document.getElementById(id);
+const NS="http://www.w3.org/2000/svg";
+function el(n,at,parent){const e=document.createElementNS(NS,n);for(const k in at)e.setAttribute(k,at[k]);parent.appendChild(e);return e;}
+function flash(id){const n=$(id);if(!n)return;n.classList.remove("flash");void n.offsetWidth;n.classList.add("flash");}
+function segWire(id, fn){
+const seg=$(id);
+seg.querySelectorAll("button").forEach(b=>{
+b.addEventListener("click",()=>{
+seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+b.classList.add("on"); fn(b.dataset.v);
+});
+});
+return v=>{
+seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.v==String(v)));
+};
+}
+function lerpC(c1,c2,f){
+return "rgb("+c1.map((v,i)=>Math.round(v+(c2[i]-v)*f)).join(",")+")";
+}
+
+/* ================= 河段场景 ================= */
+const svg=$("river");
+const RV={x0:20,x1:500,bed:330};
+let fish=[], dots=[], waterTop=220;
+function waterColor(wq){
+return lerpC([74,64,56],[58,196,230],Math.max(0,Math.min(1,wq/100)));
+}
+function buildRiver(a){
+svg.innerHTML=""; fish=[]; dots=[];
+const depth = 8 + (a.wq2/100)*110;
+waterTop = RV.bed - depth;
+const dry = a.wq2<25;
+// 天空/岸背景
+el("rect",{x:0,y:0,width:520,height:400,fill:"#0A0E14"},svg);
+// 岸带植被 / 开发建筑（沿 y=186）
+const vegN=Math.round(a.rip/100*14), bldN=Math.round(S.dev/100*6);
+const vegX=[40,70,150,185,220,255,290,360,395,430,460,480,110,325];
+for(let i=0;i<vegN && i<vegX.length;i++){
+const x=vegX[i];
+el("path",{d:`M${x} 188 L${x-4} 174 L${x+4} 174 Z`,fill:"#2f8f5b",opacity:.9},svg);
+el("line",{x1:x,y1:188,x2:x,y2:172,stroke:"#43B968","stroke-width":2},svg);
+}
+const bldX=[55,200,270,400,455,90];
+for(let i=0;i<bldN && i<bldX.length;i++){
+el("rect",{x:bldX[i],y:150,width:18,height:38,fill:"#26303f",stroke:"#3a465a"},svg);
+}
+// 河床
+el("rect",{x:RV.x0,y:RV.bed,width:RV.x1-RV.x0,height:34,fill:dry?"#6b5a43":"#232a35"},svg);
+if(dry){
+[[60,336,90,352],[150,338,180,354],[260,336,290,352],[380,338,410,354],[450,336,475,350]]
+.forEach(p=>el("polyline",{points:`${p[0]},${p[1]} ${p[2]},${p[3]}`,stroke:"#4a3d2c","stroke-width":1.5,fill:"none"},svg));
+}
+// 水体
+if(depth>4){
+el("rect",{x:RV.x0,y:waterTop.toFixed(1),width:RV.x1-RV.x0,height:depth.toFixed(1),
+fill:waterColor(a.wq),opacity:.92},svg);
+// 水流粒子
+for(let i=0;i<18;i++){
+const c=el("circle",{r:2.4,fill:"#ffffff",opacity:.22},svg);
+dots.push({c,x:RV.x0+Math.random()*(RV.x1-RV.x0),y:waterTop+6+Math.random()*(depth-12)});
+}
+}
+// 排污口
+const px=110, ptop=120;
+el("rect",{x:px-6,y:ptop,width:12,height:Math.max(10,waterTop+8-ptop),fill:"#3a465a"},svg);
+el("rect",{x:px-10,y:ptop,width:20,height:8,fill:"#4a5872"},svg);
+if(S.pol>3){
+el("ellipse",{cx:px,cy:waterTop+14,rx:10+S.pol*0.35,ry:8+S.pol*0.18,
+fill:"#6b5a2a",opacity:(S.pol/100*0.7).toFixed(2)},svg);
+}
+el("text",{x:px,y:ptop-8,fill:"#93A0B4","font-size":10,"text-anchor":"middle"},svg).textContent="排污口";
+// 大坝
+if(S.dam!=="none"){
+const dx=330;
+el("rect",{x:dx-6,y:178,width:12,height:RV.bed-178,fill:"#3a465a",stroke:"#4a5872"},svg);
+if(S.dam==="fish"){
+for(let i=0;i<3;i++)
+el("rect",{x:dx+6,y:300-i*26,width:16,height:10,fill:"#2c3546",stroke:"#4a5872"},svg);
+el("text",{x:dx+14,y:168,fill:"#43B968","font-size":10,"text-anchor":"middle"},svg).textContent="鱼道";
+}else{
+el("text",{x:dx,y:168,fill:"#ff5252","font-size":14,"text-anchor":"middle","font-weight":"bold"},svg).textContent="✗";
+el("text",{x:dx,y:152,fill:"#ff5252","font-size":10,"text-anchor":"middle"},svg).textContent="无鱼道";
+}
+el("text",{x:dx,y:378,fill:"#667180","font-size":10,"text-anchor":"middle"},svg).textContent="大坝";
+}
+// 鱼
+const nFish=Math.round(a.eco/100*8);
+const xMin = S.dam==="nofish"? 360: 40;
+for(let i=0;i<nFish;i++){
+const x=xMin+Math.random()*(470-xMin), y=waterTop+14+Math.random()*Math.max(4,depth-28);
+const g=el("g",{},svg);
+el("ellipse",{cx:0,cy:0,rx:10,ry:5,fill:"#cfe8ff",opacity:.9},g);
+el("polygon",{points:"-10,0 -17,-5 -17,5",fill:"#cfe8ff",opacity:.9},g);
+fish.push({g,x,y,ph:Math.random()*6.28,sp:.5+Math.random()*.7,dir:Math.random()<.5?1:-1,x0:xMin,x1:470});
+}
+// 标注
+el("text",{x:34,y:206,fill:"#667180","font-size":11,"font-family":"monospace"},svg).textContent="上游";
+el("text",{x:472,y:206,fill:"#667180","font-size":11,"font-family":"monospace"},svg).textContent="下游";
+el("text",{x:RV.x0,y:waterTop-8,fill:"#93A0B4","font-size":10,"font-family":"monospace"},svg)
+.textContent=`水深示意 · 生态流量${a.wq2.toFixed(0)}分`;
+}
+function tickRiver(dt,a){
+const spd=(0.3+a.wq2/100);
+dots.forEach(d=>{
+d.x+= (18+55*spd)*dt;
+if(d.x>RV.x1){d.x=RV.x0; d.y=waterTop+6+Math.random()*Math.max(4,(RV.bed-waterTop)-12);}
+d.c.setAttribute("cx",d.x.toFixed(1)); d.c.setAttribute("cy",d.y.toFixed(1));
+});
+const t=performance.now()/1000;
+fish.forEach(f=>{
+f.x+=f.dir*f.sp*spd*22*dt;
+if(f.x>f.x1){f.x=f.x1;f.dir=-1;} if(f.x<f.x0){f.x=f.x0;f.dir=1;}
+const y=f.y+Math.sin(t*2+f.ph)*4;
+f.g.setAttribute("transform",`translate(${f.x.toFixed(1)} ${y.toFixed(1)}) scale(${f.dir} 1)`);
+});
+}
+
+/* ================= 维度条 ================= */
+const DIMS=[
+{k:"wq2", name:"水量", color:"#3FE3E8", note:()=>"生态流量满足程度"},
+{k:"wq", name:"水质", color:"#43B968", note:a=>`氨氮 ${a.nh3.toFixed(2)}mg/L · ${a.cls}（GB3838)`},
+{k:"eco", name:"水生态", color:"#F0A832", note:()=>"鱼类·底栖完整性（示意）"},
+{k:"hab", name:"栖息地", color:"#2E7CF6", note:()=>"岸带+纵向连通"},
+];
+const dimEls=[];
+(function buildDims(){
+const box=$("dims");
+DIMS.forEach(d=>{
+const elx=document.createElement("div"); elx.className="dimc";
+elx.innerHTML=`<div class="t"><span>${d.name}</span><span class="v">–</span></div>
+<div class="bar"><div class="fill" style="background:${d.color};width:0%;box-shadow:0 0 8px ${d.color}"></div></div>
+<div class="note">–</div>`;
+box.appendChild(elx);
+dimEls.push({d, box:elx, v:elx.querySelector(".v"), fill:elx.querySelector(".fill"), note:elx.querySelector(".note")});
+});
+})();
+
+/* ================= 刷新 ================= */
+function refresh(){
+const a=assess();
+// RHI
+$("rhiNum").textContent=a.RHI.toFixed(0);
+$("rhiNum").style.color=a.grade[2];
+const b=$("rhiBadge");
+b.textContent=`${a.grade[0]} · ${a.grade[1]}`;
+b.style.color=a.grade[2]; b.style.borderColor=a.grade[2];
+b.style.background=a.grade[2]+"1a";
+$("rhiSub").textContent=`RHI 综合赋分（0–100 · SL/T 793-2020 五级划分）`;
+// 维度
+let worst=null;
+dimEls.forEach(o=>{
+const v=a[o.d.k];
+o.v.textContent=v.toFixed(0)+"分";
+o.fill.style.width=v.toFixed(0)+"%";
+o.note.textContent=o.d.note(a);
+o.box.classList.toggle("short", v<40);
+if(!worst||v<worst.v)worst={k:o.d.k,name:o.d.name,v};
+});
+// 红线
+$("rlFlow").classList.toggle("bad", a.wq2<30);
+$("rlShort").classList.toggle("bad", worst.v<40);
+$("rlConn").classList.toggle("bad", S.dam==="nofish");
+// 控件
+$("polVal").textContent=S.pol+"%";
+$("watVal").textContent=S.wat+"%";
+$("devVal").textContent=S.dev+"%";
+$("damVal").textContent=DAMN[S.dam];
+$("runVal").textContent=S.running?"运行中":"已暂停";
+matchScen();
+buildRiver(a);
+narrate(a, worst);
+}
+function matchScen(){
+const i=SCEN.findIndex(s=>s.pol===S.pol&&s.wat===S.wat&&s.dam===S.dam&&s.dev===S.dev);
+if(i>=0){scenIdx=i;$("scenVal").textContent=SCEN[i].name;}
+else $("scenVal").textContent="手动组合";
+}
+function applyScen(i){
+scenIdx=(i+SCEN.length)%SCEN.length;
+const s=SCEN[scenIdx];
+S.pol=s.pol; S.wat=s.wat; S.dam=s.dam; S.dev=s.dev;
+$("polRange").value=s.pol; $("watRange").value=s.wat; $("devRange").value=s.dev;
+syncDam(s.dam);
+$("scenVal").textContent=s.name;
+refresh(); flash("rhiNum");
+}
+function narrate(a, worst){
+const box=$("narrate"); let html="";
+if(a.wq2<20){
+html=`<span class="warn">断流警告</span>：生态流量满足程度仅 <b>${a.wq2.toFixed(0)}分</b>，河床已经见底。<span class="warn">没有水，再好的水质也长不出鱼——水是河的命。</span>`;
+}else if(worst.v<40){
+const adv={wq:"削减入河排污，盯住氨氮这个单因子",wq2:"保障生态流量，先让河活起来",
+eco:"水质水量双恢复，给鱼留出生存空间",hab:"拆除违建、恢复岸带植被，重建栖息地"}[worst.k];
+html=`短板在<span class="warn"></span>：${adv}。`;
+if(S.dam==="nofish")html+=`大坝无鱼道把河切成两段，<b>鱼类保有先腰斩</b>。`;
+}else if(S.dam==="nofish"&&a.eco<70){
+html=`大坝无鱼道：洄游通道被切断，<b>上下游成了两条河</b>。鱼道不是摆设，是鱼的命。`;
+}else if(a.RHI>=75){
+html=`<span class="ok">这条河很健康</span>：四项均衡，RHI <b>${a.RHI.toFixed(0)}分</b>（${a.grade[1]}）。水量、水质、生态、栖息地——一个都不能少。`;
+}else{
+html=`亚健康：RHI <b>${a.RHI.toFixed(0)}分</b>，${worst.name}（${worst.v.toFixed(0)}分）是下一步治理的抓手。`;
+}
+box.style.opacity=0;
+setTimeout(()=>{box.innerHTML=html;box.style.opacity=1;},160);
+}
+
+/* ================= 控件 ================= */
+const syncDam=segWire("damSeg",v=>{S.dam=v;refresh();flash("rhiNum");});
+function bindRange(id, key){
+$(id).addEventListener("input",e=>{S[key]=parseInt(e.target.value,10);refresh();});
+}
+bindRange("polRange","pol"); bindRange("watRange","wat"); bindRange("devRange","dev");
+function stepRange(id,key,d){
+const r=$(id); let v=Math.max(0,Math.min(100,parseInt(r.value,10)+d));
+r.value=v; S[key]=v; refresh();
+}
+document.addEventListener("keydown",e=>{
+if(e.target.tagName==="INPUT"&&e.target.type!=="range")return;
+const k=e.key.toLowerCase();
+const damMap={"1":"none","2":"nofish","3":"fish"};
+if(damMap[k]){S.dam=damMap[k];syncDam(S.dam);refresh();flash("rhiNum");}
+else if(k==="q")stepRange("polRange","pol",-5);
+else if(k==="a")stepRange("polRange","pol",5);
+else if(k==="w")stepRange("watRange","wat",-5);
+else if(k==="s")stepRange("watRange","wat",5);
+else if(k==="e")stepRange("devRange","dev",-5);
+else if(k==="d")stepRange("devRange","dev",5);
+else if(k===" "){ if(e.target.tagName==="BUTTON")return; e.preventDefault(); applyScen(scenIdx+1);}
+else if(k==="p"){S.running=!S.running;refresh();}
+});
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(reduced)S.running=false;
+
+/* ================= 主循环 ================= */
+let lastT=0;
+function tick(now){
+const rawDt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+const dt=S.running?rawDt:0;
+if(dt>0)tickRiver(dt,assess());
+requestAnimationFrame(tick);
+}
+
+/* ================= 启动 ================= */
+refresh();
+requestAnimationFrame(t=>{lastT=t;tick(t);});
+setTimeout(()=>document.getElementById("loader").classList.add("done"), 900);
+</script>
+</body>
+</html>
