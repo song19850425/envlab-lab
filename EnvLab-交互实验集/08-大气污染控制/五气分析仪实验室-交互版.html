@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>五气分析仪实验室 · FIVE-GAS LAB</title>
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#10151d; --panel2:#141b26; --line:#232b38;
+    --txt:#e8edf4; --dim:#9aa7b8; --faint:#6b7688;
+    --amber:#ffb020; --amber-dim:#7a5410; --cyan:#59d6ff; --red:#ff5252;
+    --green:#4ade80; --purple:#b388ff; --orange:#ff7043;
+    --mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--bg);color:var(--txt);font-family:-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+  #loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;
+    align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .5s}
+  #loader.done{opacity:0;pointer-events:none}
+  #loader .spin{width:46px;height:46px;border-radius:50%;
+    border:3px solid var(--line);border-top-color:var(--amber);animation:sp 1s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  #loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+  .kicker{display:inline-block;font-size:11px;letter-spacing:.3em;color:var(--faint);
+    border:1px solid var(--line);border-radius:20px;padding:5px 14px;margin-bottom:14px;font-family:var(--mono)}
+  h1{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.06em;margin-bottom:8px}
+  h1 .dim{color:var(--faint);font-weight:300}
+  .sub{color:var(--amber);font-family:var(--mono);font-size:13px;letter-spacing:.35em;margin-bottom:14px}
+  .hook{border-left:3px solid var(--amber);padding-left:14px;max-width:680px;
+    font-size:15px;line-height:1.8;color:var(--dim);margin-bottom:6px}
+  .hook b{color:var(--amber)}
+  .stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+  @media (max-width:900px){.stage{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .card h3{font-size:12px;color:var(--faint);letter-spacing:.2em;margin-bottom:12px;font-weight:600}
+  .card h3 .kbd{margin-left:6px}
+  #chart{width:100%;height:auto;display:block}
+  .legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:8px;font-size:12px;color:var(--dim)}
+  .legend i{display:inline-block;width:18px;height:3px;border-radius:2px;margin-right:5px;vertical-align:middle}
+  .gauges{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:14px}
+  @media (max-width:560px){.gauges{grid-template-columns:repeat(5,1fr);gap:6px}}
+  .gauge{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center;position:relative}
+  .gauge .gk{font-size:12px;font-weight:700;margin-bottom:2px}
+  .gauge .gv{font-family:var(--mono);font-size:19px;font-weight:700;margin:2px 0}
+  .gauge .gu{font-size:10px;color:var(--faint)}
+  .gauge .bar{height:74px;background:#0d1117;border:1px solid var(--line);border-radius:6px;
+    margin:8px auto 4px;position:relative;overflow:hidden;width:26px}
+  .gauge .fill{position:absolute;bottom:0;left:0;right:0;transition:height .25s ease}
+  .gauge .rl{position:absolute;left:0;right:0;border-top:2px dashed var(--red);opacity:.9}
+  .gauge .rl span{position:absolute;right:1px;top:-14px;font-size:9px;color:var(--red);font-family:var(--mono);white-space:nowrap}
+  .gauge.bad{border-color:var(--red)}
+  .gauge.bad .gv{color:var(--red)}
+  .gauge.warn .gv{color:var(--amber)}
+  .verdict{border-radius:10px;padding:12px 14px;margin-bottom:14px;text-align:center;
+    font-size:22px;font-weight:800;letter-spacing:.2em;transition:all .3s}
+  .verdict.ok{background:rgba(74,222,128,.08);border:1px solid var(--green);color:var(--green)}
+  .verdict.ng{background:rgba(255,82,82,.08);border:1px solid var(--red);color:var(--red)}
+  .verdict small{display:block;font-size:12px;font-weight:400;letter-spacing:.05em;margin-top:6px;color:var(--dim)}
+  #narrate{min-height:86px;background:var(--panel2);border:1px solid var(--line);
+    border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;
+    font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px;transition:opacity .3s}
+  #narrate .warn{color:var(--red);font-weight:700}
+  #narrate .ok{color:var(--green);font-weight:700}
+  .ctl{margin-bottom:14px}
+  .ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .ctl .name{font-size:13px;color:var(--dim);letter-spacing:.08em}
+  .ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+  .kbd{display:inline-block;min-width:20px;text-align:center;font-family:var(--mono);font-size:11px;
+    color:var(--faint);border:1px solid var(--line);border-radius:5px;padding:2px 6px;margin-left:6px;background:#0d1117}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button{flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;
+    background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;transition:all .2s}
+  .seg button small{display:block;font-size:10px;color:var(--faint);margin-top:3px;font-weight:400}
+  .seg button.on{background:rgba(255,176,32,.12);border-color:var(--amber);color:var(--amber)}
+  .seg button.on small{color:var(--amber)}
+  input[type=range]{width:100%;accent-color:var(--amber);margin:4px 0}
+  .ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);
+    font-family:var(--mono);margin-top:2px}
+  .redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+  @media (max-width:700px){.redlines{grid-template-columns:1fr}}
+  .rl{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .rl.bad{border-color:var(--red)}
+  .rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .rl .t .dot{width:8px;height:8px;border-radius:50%;background:var(--green)}
+  .rl.bad .t .dot{background:var(--red)}
+  .rl .d{font-size:12.5px;line-height:1.7;color:var(--dim)}
+  .formula{margin-top:18px;background:#0d1117;border:1px dashed var(--line);border-radius:12px;
+    padding:14px 16px;font-family:var(--mono);font-size:12px;line-height:2;color:var(--faint);white-space:pre-wrap}
+  .foot{margin-top:22px;padding-top:16px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    font-size:12px;color:var(--faint)}
+  .foot a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--faint)}
+  .miniSeg{display:inline-flex;gap:6px;align-items:center}
+  .miniSeg button{padding:5px 12px;font-size:12px;background:var(--panel2);color:var(--dim);
+    border:1px solid var(--line);border-radius:7px;cursor:pointer}
+  .miniSeg button.on{color:var(--amber);border-color:var(--amber);background:rgba(255,176,32,.1)}
+  #dyno{width:100%;height:auto;display:block}
+  .flash{animation:fl .6s ease}
+  @keyframes fl{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:none}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>正在预热发动机…</p></div>
+<div class="wrap">
+  <span class="kicker">ENVLAB · DEMO</span>
+  <h1>五气分析仪<span class="dim">实验室</span></h1>
+  <div class="sub">FIVE-GAS LAB · READ THE EXHAUST</div>
+  <div class="hook">尾气里的五个数字，能听出发动机的哪儿病了。<b>HC、CO、CO₂、O₂、NOx</b>——亲手调一调，看数据怎么说话。</div>
+
+  <div class="stage">
+    <div class="card">
+      <h3 style="display:flex;justify-content:space-between;align-items:center">
+        <span id="leftTitle">检测场景 · 转鼓试验台</span>
+        <span class="miniSeg"><button id="viewScene" class="on">场景</button><button id="viewChart">曲线</button><kbd class="kbd">V</kbd></span>
+      </h3>
+      <div id="sceneView">
+      <svg id="dyno" viewBox="0 0 520 360" role="img" aria-label="chassis dynamometer scene">
+        <text id="rpmNum" x="20" y="54" fill="#e8edf4" font-size="36" font-family="monospace" font-weight="700">800</text>
+        <text x="20" y="74" fill="#6b7688" font-size="12" font-family="monospace">rpm · <tspan id="dynoMode">怠速</tspan></text>
+        <line x1="0" y1="300" x2="238" y2="300" stroke="#232b38" stroke-width="2"/>
+        <line x1="362" y1="300" x2="520" y2="300" stroke="#232b38" stroke-width="2"/>
+        <rect x="238" y="300" width="124" height="38" fill="#0d1117" stroke="#232b38"/>
+        <text x="300" y="354" fill="#6b7688" font-size="11" text-anchor="middle" font-family="monospace">底盘测功机</text>
+        <circle cx="268" cy="314" r="22" fill="#1a2230" stroke="#3a465a" stroke-width="2"/>
+        <g id="rollerASpokes" stroke="#59d6ff" stroke-width="2" opacity="0.7">
+          <line x1="268" y1="295" x2="268" y2="333"/>
+          <line x1="278" y1="331" x2="258" y2="298"/>
+          <line x1="258" y1="331" x2="278" y2="298"/>
+        </g>
+        <circle cx="332" cy="314" r="22" fill="#1a2230" stroke="#3a465a" stroke-width="2"/>
+        <g id="rollerBSpokes" stroke="#59d6ff" stroke-width="2" opacity="0.7">
+          <line x1="332" y1="295" x2="332" y2="333"/>
+          <line x1="342" y1="331" x2="322" y2="298"/>
+          <line x1="322" y1="331" x2="342" y2="298"/>
+        </g>
+        <circle cx="140" cy="276" r="32" fill="#0a0d12"/>
+        <circle cx="300" cy="276" r="32" fill="#0a0d12"/>
+        <rect x="88" y="238" width="310" height="34" rx="10" fill="#1c2534" stroke="#2c3a50" stroke-width="1.5"/>
+        <path d="M170 238 L195 205 Q197 200 203 200 L290 200 Q296 200 298 205 L320 238 Z" fill="#1c2534" stroke="#2c3a50" stroke-width="1.5"/>
+        <path d="M206 208 L218 208 L218 230 L184 230 Z" fill="#59d6ff" opacity="0.25"/>
+        <path d="M226 208 L284 208 L302 230 L226 230 Z" fill="#59d6ff" opacity="0.25"/>
+        <rect x="88" y="246" width="8" height="8" fill="#ffd76a" opacity="0.85"/>
+        <rect x="390" y="246" width="8" height="8" fill="#ff5252" opacity="0.9"/>
+        <g>
+          <circle cx="140" cy="276" r="27" fill="#0d1117" stroke="#3a465a" stroke-width="6"/>
+          <g id="wheelFSpokes" stroke="#6b7688" stroke-width="3">
+            <line x1="140" y1="257" x2="140" y2="295"/>
+            <line x1="158" y1="282" x2="122" y2="270"/>
+            <line x1="151" y1="291" x2="129" y2="261"/>
+            <line x1="129" y1="291" x2="151" y2="261"/>
+            <line x1="122" y1="282" x2="158" y2="270"/>
+          </g>
+          <circle cx="140" cy="276" r="8" fill="#232b38"/>
+        </g>
+        <g>
+          <circle cx="300" cy="276" r="27" fill="#0d1117" stroke="#3a465a" stroke-width="6"/>
+          <g id="wheelRSpokes" stroke="#6b7688" stroke-width="3">
+            <line x1="300" y1="257" x2="300" y2="295"/>
+            <line x1="318" y1="282" x2="282" y2="270"/>
+            <line x1="311" y1="291" x2="289" y2="261"/>
+            <line x1="289" y1="291" x2="311" y2="261"/>
+            <line x1="282" y1="282" x2="318" y2="270"/>
+          </g>
+          <circle cx="300" cy="276" r="8" fill="#232b38"/>
+        </g>
+        <rect x="398" y="260" width="34" height="9" fill="#3a465a"/>
+        <rect x="428" y="258" width="6" height="13" fill="#4a5872"/>
+        <rect x="420" y="255" width="18" height="4" fill="#ffb020" opacity="0.9"/>
+        <text x="429" y="249" fill="#ffb020" font-size="9" text-anchor="middle">采样探头</text>
+        <path d="M436 264 L444 264 Q452 264 452 256 L452 236" fill="none" stroke="#232b38" stroke-width="5"/>
+        <path id="exhaustPath" d="M436 264 L444 264 Q452 264 452 256 L452 236" fill="none"/>
+        <rect x="430" y="196" width="66" height="40" rx="6" fill="#141b26" stroke="#232b38" stroke-width="1.5"/>
+        <text x="463" y="213" fill="#e8edf4" font-size="12" text-anchor="middle">五气分析仪</text>
+        <text x="463" y="229" fill="#6b7688" font-size="9" text-anchor="middle" font-family="monospace">FIVE-GAS</text>
+        <g id="dotLayer"></g>
+      </svg>
+      </div>
+      <div id="chartView" style="display:none">
+      <svg id="chart" viewBox="0 0 520 340" role="img" aria-label="lambda characteristic curves"></svg>
+      <div class="legend">
+        <span><i style="background:#ff7043"></i>CO %</span>
+        <span><i style="background:#ffb020"></i>HC ÷100 ppm</span>
+        <span><i style="background:#b388ff"></i>NOx ÷400 ppm</span>
+        <span><i style="background:#59d6ff"></i>O₂ %</span>
+        <span><i style="background:#4ade80"></i>CO₂ %</span>
+        <span><i style="background:rgba(74,222,128,.35)"></i>三元催化窗口 λ 0.97–1.03</span>
+      </div>
+      <div class="formula" style="margin-top:12px">λ：过量空气系数。λ=1 为理论空燃比，&lt;1 过浓，&gt;1 过稀。
+竖线为当前 λ，拖动下方滑杆看五气如何此消彼长。</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3>实时读数 · 双怠速法口径</h3>
+      <div class="gauges" id="gauges"></div>
+      <div class="verdict ok" id="verdict">合 格<small id="verdictSub">–</small></div>
+      <div id="narrate">…</div>
+      <div class="ctl">
+        <div class="row"><span class="name">工况 MODE<kbd class="kbd">1</kbd><kbd class="kbd">2</kbd></span><span class="val" id="modeVal">怠速</span></div>
+        <div class="seg" id="modeSeg">
+          <button data-v="idle" class="on">怠速<small>800 rpm</small></button>
+          <button data-v="high">高怠速<small>2500 rpm</small></button>
+        </div>
+      </div>
+      <div class="ctl">
+        <div class="row"><span class="name">混合气 λ（过量空气系数）</span><span class="val" id="lambdaVal">1.00</span></div>
+        <input type="range" id="lambdaRange" min="0.85" max="1.15" step="0.005" value="1.0">
+        <div class="ticks"><span>0.85 过浓</span><span>1.00 理论空燃比</span><span>1.15 过稀</span></div>
+      </div>
+      <div class="ctl">
+        <div class="row"><span class="name">故障注入 FAULT<kbd class="kbd">3</kbd>–<kbd class="kbd">7</kbd></span><span class="val" id="faultVal">正常</span></div>
+        <div class="seg" id="faultSeg">
+          <button data-v="none" class="on">正常<small>健康车</small></button>
+          <button data-v="misfire">单缸缺火<small>点火不良</small></button>
+          <button data-v="cat">三元催化失效<small>转化归零</small></button>
+          <button data-v="egr">EGR故障<small>NOx爆表</small></button>
+          <button data-v="leak">排气泄漏<small>数据作废</small></button>
+        </div>
+      </div>
+      <div class="ctl">
+        <div class="row"><span class="name">场景 SCENE<kbd class="kbd">空格</kbd></span><span class="val" id="scenVal">正常年检</span></div>
+      </div>
+      <div class="ctl">
+        <div class="row"><span class="name">运行<kbd class="kbd">P</kbd></span><span class="val" id="runVal">运行中</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl" id="rlLambda"><div class="t"><span class="dot"></span>红线一 · λ 窗口</div><div class="d">高怠速 λ 必须落在 1.00±0.03。三元催化只认这个窗口——偏出半步，转化效率雪崩，CO、HC、NOx 全线失守。</div></div>
+    <div class="rl" id="rlDilute"><div class="t"><span class="dot"></span>红线二 · 稀释校验</div><div class="d">正常燃烧 CO+CO₂ 应在 13–16%。O₂ 飙高、两者偏低=排气漏气或采样稀释——数据作废，先查管路再谈超标。</div></div>
+    <div class="rl" id="rlNox"><div class="t"><span class="dot"></span>红线三 · NOx 之眼</div><div class="d">双怠速法不限 NOx，但它是 EGR 和燃烧温度的眼睛。NOx 爆表先查 EGR，再查混合气是否偏稀。</div></div>
+  </div>
+
+  <div class="formula">模型：λ-CO/HC/NOx/O₂/CO₂ 特征曲线（简化教学模型，三元催化窗口按 λ 高斯衰减）。
+限值：GB18285-2018 双怠速法（第一类轻型汽车）——CO 怠速 0.8% / 高怠速 0.3%，HC 怠速 150 / 高怠速 100ppm，高怠速 λ 1.00±0.03。
+教学演示模型，参数标定自典型工况。仅用于原理演示，不作为检测依据。</div>
+
+  <div class="foot">
+    <span>Also check out: <a href="#">旋风除尘器实验室</a></span>
+    <span>DEMO · 环保数字化 · jinghao.song@gmail.com</span>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= 模型 ================= */
+const S = { mode:"idle", lambda:1.0, fault:"none", running:true };
+const FAULTS = {none:"正常", misfire:"单缸缺火", cat:"三元催化失效", egr:"EGR故障", leak:"排气泄漏"};
+const high = () => S.mode==="high";
+
+function engineOut(lam, hi){
+  const rich=Math.max(0,1-lam), lean=Math.max(0,lam-1);
+  let CO  = 0.03 + 55*Math.pow(rich,1.6);
+  let HC  = 25 + 2200*Math.pow(lam-1.02,2) + 2500*Math.pow(Math.max(0,lam-1.1),2);
+  let NOx = 60 + 2600*Math.exp(-Math.pow((lam-1.06)/0.10,2));
+  let O2  = 0.25 + 30*Math.pow(lean,1.7);
+  let CO2 = 15.2 - 10*Math.pow(Math.abs(lam-1),1.15);
+  if(hi) NOx*=1.25;
+  return {CO,HC,NOx,O2,CO2};
+}
+function tailpipe(lam, hi, fault){
+  const e = engineOut(lam, hi);
+  let catEff = 0;
+  if(fault!=="cat"){
+    const win = Math.exp(-Math.pow((lam-1.0)/0.06,2));
+    catEff = Math.min(0.98, 0.95*win + (hi?0.02:0));
+  }
+  if(fault==="misfire"){ e.HC*=8; e.O2+=2.0; e.CO2-=1.0; catEff=Math.min(catEff,0.45); }
+  let {CO,HC,NOx,O2,CO2} = e;
+  HC*=(1-catEff); CO*=(1-catEff); NOx*=(1-catEff*0.97);
+  if(fault==="misfire") HC+=80;
+  if(fault==="egr") NOx*=2.8;
+  if(fault==="leak"){ const d=0.45; HC*=(1-d); CO*=(1-d); CO2*=(1-d); NOx*=(1-d); O2=O2*(1-d)+20.9*d; }
+  return { HC:Math.max(0,HC), CO:Math.max(0,CO), NOx:Math.max(0,NOx),
+           O2:Math.max(0,Math.min(20.9,O2)), CO2:Math.max(0,CO2), catEff };
+}
+const cur = () => tailpipe(S.lambda, high(), S.fault);
+const LIM = () => high() ? {CO:0.3, HC:100} : {CO:0.8, HC:150};
+
+/* ================= 场景 ================= */
+const SCEN=[
+  {mode:"idle", lambda:1.00, fault:"none",    name:"正常年检"},
+  {mode:"idle", lambda:0.90, fault:"none",    name:"混合气过浓"},
+  {mode:"idle", lambda:1.00, fault:"misfire", name:"单缸缺火"},
+  {mode:"high", lambda:0.96, fault:"cat",     name:"三元催化失效"},
+  {mode:"high", lambda:1.02, fault:"egr",     name:"EGR故障"},
+  {mode:"idle", lambda:1.00, fault:"leak",    name:"排气泄漏"},
+];
+let scenIdx=0;
+
+/* ================= 基础 ================= */
+const $=id=>document.getElementById(id);
+const NS="http://www.w3.org/2000/svg";
+function el(n,at,parent){const e=document.createElementNS(NS,n);for(const k in at)e.setAttribute(k,at[k]);parent.appendChild(e);return e;}
+function flash(id){const n=$(id);if(!n)return;n.classList.remove("flash");void n.offsetWidth;n.classList.add("flash");}
+function segWire(id, fn){
+  const seg=$(id);
+  seg.querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click",()=>{
+      seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on"); fn(b.dataset.v);
+    });
+  });
+  return v=>{
+    seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.v==String(v)));
+  };
+}
+
+/* ================= λ 曲线图 ================= */
+const chart=$("chart");
+const CH={x0:46,x1:496,y0:16,y1:292};
+const lamX = l => CH.x0 + (l-0.85)/(1.15-0.85)*(CH.x1-CH.x0);
+const valY = v => CH.y1 - Math.min(4,Math.max(0,v))/4*(CH.y1-CH.y0);
+const CURVES=[
+  {k:"CO",  c:"#ff7043", f:g=>g.CO},
+  {k:"HC",  c:"#ffb020", f:g=>g.HC/100},
+  {k:"NOx", c:"#b388ff", f:g=>g.NOx/400},
+  {k:"O2",  c:"#59d6ff", f:g=>g.O2},
+  {k:"CO2", c:"#4ade80", f:g=>g.CO2},
+];
+let markerLine=null;
+function buildChart(){
+  chart.innerHTML="";
+  // 三元催化窗口
+  el("rect",{x:lamX(0.97),y:CH.y0,width:lamX(1.03)-lamX(0.97),height:CH.y1-CH.y0,
+    fill:"rgba(74,222,128,.10)"},chart);
+  el("text",{x:(lamX(0.97)+lamX(1.03))/2,y:CH.y0+14,fill:"#4ade80","font-size":10,
+    "text-anchor":"middle","font-family":"monospace"},chart).textContent="催化窗口";
+  // 网格
+  for(let l=0.85;l<=1.151;l+=0.05){
+    const x=lamX(l).toFixed(1);
+    el("line",{x1:x,y1:CH.y0,x2:x,y2:CH.y1,stroke:"#1a2230","stroke-width":1},chart);
+    if(Math.abs(l-1.0)<0.001||Math.abs(l-0.9)<0.001||Math.abs(l-1.1)<0.001)
+      el("text",{x,y:CH.y1+16,fill:"#6b7688","font-size":10,"text-anchor":"middle",
+        "font-family":"monospace"},chart).textContent=l.toFixed(2).replace("1.00","λ=1");
+  }
+  for(let v=0;v<=4;v+=1){
+    const y=valY(v).toFixed(1);
+    el("line",{x1:CH.x0,y1:y,x2:CH.x1,y2:y,stroke:"#1a2230","stroke-width":1},chart);
+  }
+  // 曲线（健康机，当前工况）
+  CURVES.forEach(cv=>{
+    let d="";
+    for(let l=0.85;l<=1.1501;l+=0.005){
+      const g=tailpipe(l, high(), "none");
+      const x=lamX(l).toFixed(1), y=valY(cv.f(g)).toFixed(1);
+      d+=(d?" L ":"M ")+x+" "+y;
+    }
+    el("path",{d,fill:"none",stroke:cv.c,"stroke-width":2},chart);
+  });
+  // λ 标记线
+  markerLine=el("line",{x1:lamX(S.lambda),y1:CH.y0,x2:lamX(S.lambda),y2:CH.y1,
+    stroke:"#e8edf4","stroke-width":1.5,"stroke-dasharray":"5 4"},chart);
+  el("text",{x:CH.x0-6,y:CH.y0+2,fill:"#6b7688","font-size":9,"text-anchor":"end",
+    "font-family":"monospace"},chart).textContent="4单位";
+  el("text",{x:CH.x0-6,y:CH.y1,fill:"#6b7688","font-size":9,"text-anchor":"end",
+    "font-family":"monospace"},chart).textContent="0";
+}
+
+/* ================= 仪表 ================= */
+const GASES=[
+  {k:"HC", dk:"HC", unit:"ppm", max:600, color:"#ffb020", get:g=>g.HC, fmt:v=>v.toFixed(0), lim:()=>LIM().HC},
+  {k:"CO", dk:"CO", unit:"%",   max:4,   color:"#ff7043", get:g=>g.CO, fmt:v=>v.toFixed(2), lim:()=>LIM().CO},
+  {k:"CO₂",dk:"CO2",unit:"%",   max:16,  color:"#4ade80", get:g=>g.CO2,fmt:v=>v.toFixed(1), lim:()=>null, warn:g=>g.CO2<12},
+  {k:"O₂", dk:"O2", unit:"%",   max:10,  color:"#59d6ff", get:g=>g.O2, fmt:v=>v.toFixed(1), lim:()=>null, warn:g=>g.O2>2},
+  {k:"NOx",dk:"NOx",unit:"ppm", max:2000,color:"#b388ff", get:g=>g.NOx,fmt:v=>v.toFixed(0), lim:()=>null, warn:g=>g.NOx>700},
+];
+const gEls=[];
+(function buildGauges(){
+  const box=$("gauges");
+  GASES.forEach(gs=>{
+    const d=document.createElement("div"); d.className="gauge";
+    d.innerHTML=`<div class="gk" style="color:${gs.color}">${gs.k}</div>
+      <div class="bar"><div class="fill" style="background:${gs.color}"></div></div>
+      <div class="gv">–</div><div class="gu">${gs.unit}</div>`;
+    box.appendChild(d);
+    gEls.push({gs, el:d, fill:d.querySelector(".fill"), val:d.querySelector(".gv"), shown:0});
+  });
+})();
+function layoutGauges(g){
+  // 红线刻度与超标状态（工况/故障变化时调用）
+  gEls.forEach(o=>{
+    const {gs}=o, v=gs.get(g), L=gs.lim();
+    o.el.classList.remove("bad","warn");
+    const rl=o.el.querySelector(".rl"); if(rl)rl.remove();
+    if(L!==null&&L!==undefined){
+      const bar=o.el.querySelector(".bar");
+      const t=document.createElement("div"); t.className="rl";
+      t.style.bottom=(L/gs.max*100).toFixed(1)+"%";
+      t.innerHTML=`<span>${L}</span>`; bar.appendChild(t);
+      if(v>L)o.el.classList.add("bad");
+    }else if(gs.warn&&gs.warn(g)){o.el.classList.add("warn");}
+  });
+}
+function paintGauges(g){
+  // 每帧：只更新柱高与数字
+  gEls.forEach(o=>{
+    const {gs}=o, v=gs.get(g);
+    o.fill.style.height=Math.min(100,v/gs.max*100).toFixed(1)+"%";
+    o.val.textContent=gs.fmt(v);
+  });
+}
+
+/* ================= 判定与诊断 ================= */
+function judge(g){
+  const lim=LIM(), bad=[];
+  if(g.CO>lim.CO)bad.push(`CO ${g.CO.toFixed(2)}%（限值 ${lim.CO}%）`);
+  if(g.HC>lim.HC)bad.push(`HC ${g.HC.toFixed(0)}ppm（限值 ${lim.HC}ppm）`);
+  if(high()&&(S.lambda<0.97||S.lambda>1.03))bad.push(`λ ${S.lambda.toFixed(2)}（要求 1.00±0.03）`);
+  return bad;
+}
+function narrate(g, bad){
+  const box=$("narrate"); let html="";
+  const sumCO2=g.CO+g.CO2;
+  if(S.fault==="leak"||(g.O2>3&&sumCO2<12)){
+    html=`<span class="warn">数据无效警告</span>：O₂ 高达 <b>${g.O2.toFixed(1)}%</b>，CO+CO₂ 只有 <b>${sumCO2.toFixed(1)}%</b>（正常 13–16%）——排气管路漏气，空气稀释了样品。<span class="warn">先查管路密封，再谈超标。</span>`;
+  }else if(bad.length){
+    html=`<span class="warn">判定不合格</span>：${bad.join("；")}。`;
+    if(S.fault==="misfire"||(g.HC>250&&g.O2>1.2))
+      html+=`HC 与 O₂ 双高是缺火的指纹——未燃混合气直排，<b>查点火线圈/火花塞</b>。`;
+    else if(S.fault==="cat")
+      html+=`三元催化失效，转化效率归零：这点偏浓在好车上本会被吃掉大半，现在原样排出。<b>λ 偏浓+坏猫=双重打击。</b>`;
+    else if(g.CO>limCO()&&S.lambda<0.98)
+      html+=`CO 冒头且 λ 偏浓：混合气过浓，<b>查喷油/碳罐/进气</b>。`;
+    else if(g.NOx>700)
+      html+=`NOx 偏高：燃烧温度过高，<b>先查 EGR，再看混合气是否偏稀</b>。`;
+  }else{
+    html=`<span class="ok">五气正常</span>：CO₂ <b>${g.CO2.toFixed(1)}%</b> 说明燃烧充分，HC、CO 远低于限值${high()?"，λ 在窗口内":""}。`;
+    if(S.lambda<0.98)html+=`注意 λ 偏浓，长期如此油耗和积碳都会找上门。`;
+    else if(S.lambda>1.02)html+=`注意 λ 偏稀，NOx 正在爬坡。`;
+  }
+  box.style.opacity=0;
+  setTimeout(()=>{box.innerHTML=html;box.style.opacity=1;},160);
+}
+const limCO=()=>LIM().CO;
+
+/* ================= 刷新 ================= */
+const disp={HC:0,CO:0,CO2:0,O2:0,NOx:0};
+function refresh(){
+  const g=cur(), bad=judge(g);
+  // 判定牌
+  const v=$("verdict");
+  v.className="verdict "+(bad.length?"ng":"ok");
+  v.childNodes[0].textContent=bad.length?"不 合 格":"合 格";
+  $("verdictSub").textContent=bad.length?bad.join("；"):`CO/HC${high()?" / λ":""}均达标`;
+  // 红线
+  $("rlLambda").classList.toggle("bad",high()&&(S.lambda<0.97||S.lambda>1.03));
+  $("rlDilute").classList.toggle("bad",g.O2>3&&(g.CO+g.CO2)<12);
+  $("rlNox").classList.toggle("bad",g.NOx>700);
+  // 控件
+  $("modeVal").textContent=high()?"高怠速":"怠速";
+  $("lambdaVal").textContent=S.lambda.toFixed(2);
+  $("faultVal").textContent=FAULTS[S.fault];
+  $("runVal").textContent=S.running?"运行中":"已暂停";
+  $("rpmNum").textContent=high()?"2500":"800";
+  $("dynoMode").textContent=high()?"高怠速":"怠速";
+  matchScen();
+  layoutGauges(g);
+  paintGauges(g);
+  narrate(g,bad);
+}
+function matchScen(){
+  const i=SCEN.findIndex(s=>s.mode===S.mode&&Math.abs(s.lambda-S.lambda)<1e-9&&s.fault===S.fault);
+  if(i>=0){scenIdx=i;$("scenVal").textContent=SCEN[i].name;}
+  else $("scenVal").textContent="手动组合";
+}
+function applyScen(i){
+  scenIdx=(i+SCEN.length)%SCEN.length;
+  const s=SCEN[scenIdx];
+  S.mode=s.mode; S.lambda=s.lambda; S.fault=s.fault;
+  $("lambdaRange").value=s.lambda;
+  syncMode(s.mode); syncFault(s.fault);
+  $("scenVal").textContent=s.name;
+  buildChart(); refresh(); flash("verdict");
+}
+
+/* ================= 控件 ================= */
+const syncMode=segWire("modeSeg",v=>{S.mode=v;buildChart();refresh();});
+const syncFault=segWire("faultSeg",v=>{S.fault=v;refresh();flash("verdict");});
+$("lambdaRange").addEventListener("input",e=>{S.lambda=parseFloat(e.target.value);refresh();});
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="INPUT"&&e.target.type!=="range")return;
+  const k=e.key;
+  const modeMap={"1":"idle","2":"high"};
+  const faultMap={"3":"none","4":"misfire","5":"cat","6":"egr","7":"leak"};
+  if(modeMap[k]){S.mode=modeMap[k];syncMode(S.mode);buildChart();refresh();}
+  else if(faultMap[k]){S.fault=faultMap[k];syncFault(S.fault);refresh();flash("verdict");}
+  else if(k===" "){ if(e.target.tagName==="BUTTON")return; e.preventDefault(); applyScen(scenIdx+1); }
+  else if(k==="v"||k==="V"){setView(view==="scene"?"chart":"scene");}
+  else if(k==="p"||k==="P"){S.running=!S.running;refresh();}
+});
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(reduced)S.running=false;
+
+/* ================= 主循环（读数平滑） ================= */
+let lastT=0;
+function tick(now){
+  const rawDt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+  const dt=S.running?rawDt:0;
+  if(dt>0){
+    const g=cur(), k=Math.min(1,rawDt*4);
+    GASES.forEach(gs=>{ disp[gs.dk]+=(gs.get(g)-disp[gs.dk])*k; });
+    paintGauges(disp);
+    tickDyno(dt, g);
+    if(markerLine){
+      const x=lamX(S.lambda);
+      markerLine.setAttribute("x1",x); markerLine.setAttribute("x2",x);
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+/* ================= 场景/曲线视图 ================= */
+let view="scene";
+function setView(v){
+  view=v;
+  $("sceneView").style.display=v==="scene"?"":"none";
+  $("chartView").style.display=v==="chart"?"":"none";
+  $("viewScene").classList.toggle("on",v==="scene");
+  $("viewChart").classList.toggle("on",v==="chart");
+  $("leftTitle").textContent=v==="scene"?"检测场景 · 转鼓试验台":"λ 特性曲线 · 混合气与排放的关系";
+}
+$("viewScene").addEventListener("click",()=>setView("scene"));
+$("viewChart").addEventListener("click",()=>setView("chart"));
+
+/* ================= 转鼓场景动画 ================= */
+const dyno={ang:0, dots:[], path:null, len:0};
+function gasColor(co){
+  const f=Math.min(1,co/1.5), a=[143,163,191], b=[255,112,67];
+  return "rgb("+a.map((v,i)=>Math.round(v+(b[i]-v)*f)).join(",")+")";
+}
+function initDyno(){
+  dyno.path=$("exhaustPath");
+  dyno.len=dyno.path.getTotalLength();
+  const layer=$("dotLayer");
+  for(let i=0;i<12;i++){
+    const c=document.createElementNS(NS,"circle");
+    c.setAttribute("r",3); layer.appendChild(c);
+    dyno.dots.push({c, t:i/12});
+  }
+}
+function tickDyno(dt, g){
+  const w=high()?4.5:1.2;
+  dyno.ang=(dyno.ang+w*dt*57.3)%360;
+  const a=dyno.ang.toFixed(1);
+  $("rollerASpokes").setAttribute("transform",`rotate(${a} 268 314)`);
+  $("rollerBSpokes").setAttribute("transform",`rotate(${a} 332 314)`);
+  $("wheelFSpokes").setAttribute("transform",`rotate(${a} 140 276)`);
+  $("wheelRSpokes").setAttribute("transform",`rotate(${a} 300 276)`);
+  const col=gasColor(g.CO);
+  dyno.dots.forEach(d=>{
+    d.t=(d.t+dt*0.4)%1;
+    const p=dyno.path.getPointAtLength(d.t*dyno.len);
+    d.c.setAttribute("cx",p.x.toFixed(1)); d.c.setAttribute("cy",p.y.toFixed(1));
+    d.c.setAttribute("fill",col);
+    d.c.setAttribute("opacity",(d.t>0.85?Math.max(0,(1-d.t)/0.15):Math.min(1,d.t/0.08)).toFixed(2));
+  });
+}
+
+/* ================= 启动 ================= */
+buildChart(); initDyno(); refresh();
+requestAnimationFrame(t=>{lastT=t;tick(t);});
+setTimeout(()=>document.getElementById("loader").classList.add("done"), 900);
+</script>
+</body>
+</html>
