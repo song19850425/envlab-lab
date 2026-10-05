@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>电除尘器实验室 · ESP LAB</title>
+<style>
+:root{
+  --bg:#0a0f16; --panel:#111a26; --panel2:#0d1420; --line:rgba(148,184,218,.16);
+  --text:#e8f1fa; --muted:#93a9bf; --dim:#5f7488;
+  --amber:#fbbf24; --green:#34d399; --red:#fb7185; --accent:#f59e0b; --cyan:#7cc4f2; --volt:#c084fc;
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(1200px 700px at 20% -10%, rgba(192,132,252,.07), transparent 60%),
+             radial-gradient(900px 600px at 95% 110%, rgba(245,158,11,.05), transparent 60%), var(--bg);
+  color:var(--text); font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+  min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:22px 16px 30px;
+}
+#loader{position:fixed; inset:0; background:var(--bg); z-index:50; display:flex; flex-direction:column; gap:14px;
+  align-items:center; justify-content:center; transition:opacity .6s}
+#loader.done{opacity:0; pointer-events:none}
+#loader .t{font-size:15px; letter-spacing:.35em; color:var(--muted)}
+#loader .bar{width:180px; height:3px; background:#1c2940; border-radius:99px; overflow:hidden}
+#loader .bar i{display:block; height:100%; width:40%; border-radius:inherit;
+  background:linear-gradient(90deg,var(--volt),#7c3aed); animation:ld 1s ease-in-out infinite alternate}
+@keyframes ld{from{transform:translateX(-60%)}to{transform:translateX(280%)}}
+header{width:100%; max-width:1180px; margin-bottom:16px}
+.kicker{font-size:11px; letter-spacing:.3em; color:var(--volt); margin-bottom:6px}
+h1{font-size:clamp(22px,3.4vw,32px); letter-spacing:.02em; margin-bottom:6px}
+h1 .en{color:var(--dim); font-weight:400; font-size:.62em; letter-spacing:.14em; margin-left:10px}
+.sub{color:var(--muted); font-size:13px; line-height:1.7; max-width:920px}
+.sub b{color:#e3c8ff; font-weight:600}
+.stage{width:100%; max-width:1180px; display:grid; grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr); gap:16px}
+@media(max-width:900px){.stage{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+  border-radius:16px; padding:16px; box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.card h2{font-size:12px; letter-spacing:.25em; color:var(--dim); margin-bottom:12px; font-weight:600}
+#scene{position:relative; border-radius:12px; overflow:hidden; background:#0b1220; border:1px solid var(--line)}
+#scene svg{display:block; width:100%; height:auto}
+#chartView{display:none}
+#chartView.on{display:block}
+#sceneView.hidden{display:none}
+/* 效率仪表 */
+.eff-card{position:absolute; right:12px; bottom:12px; background:rgba(8,13,22,.9); border:1px solid var(--line);
+  border-radius:12px; padding:11px 14px; backdrop-filter:blur(3px); text-align:center; min-width:150px}
+.eff-card .ec-t{font-size:11.5px; color:var(--muted); letter-spacing:.12em; margin-bottom:4px}
+.eff-card .ec-v{font-size:30px; font-weight:800; font-variant-numeric:tabular-nums; color:#e3c8ff}
+.eff-card .ec-v small{font-size:12px; color:var(--dim); font-weight:400}
+.eff-card .ec-cap{font-size:10px; color:var(--dim); margin-top:4px}
+.scen-row{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px}
+.scen{border:1px solid var(--line); background:rgba(148,184,218,.05); color:var(--text); border-radius:10px;
+  padding:10px 8px; font-size:12px; cursor:pointer; text-align:center; transition:.15s; line-height:1.5}
+.scen small{display:block; color:var(--dim); font-size:10px; margin-top:2px}
+.scen:hover{border-color:var(--volt)}
+.scen.on{border-color:var(--volt); background:rgba(192,132,252,.1); box-shadow:0 0 0 1px var(--volt) inset}
+.ctl{margin-bottom:13px}
+.ctl .lab{font-size:11px; color:var(--muted); letter-spacing:.1em; margin-bottom:7px; display:flex; justify-content:space-between}
+.ctl .lab .key{color:var(--dim)}
+.btns{display:flex; gap:7px; flex-wrap:wrap}
+.pbtn{flex:1; min-width:70px; border:1px solid var(--line); background:rgba(148,184,218,.05); color:var(--text);
+  border-radius:8px; padding:8px 4px; font-size:12px; cursor:pointer; transition:.15s; white-space:nowrap}
+.pbtn:hover{border-color:var(--volt)}
+.pbtn.on{border-color:var(--volt); background:rgba(192,132,252,.12); color:#e9d5ff; font-weight:700}
+.reads{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:14px 0}
+.read{background:rgba(7,12,20,.6); border:1px solid var(--line); border-radius:10px; padding:9px 6px; text-align:center}
+.read .v{font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; color:#e3c8ff}
+.read .v small{font-size:11px; color:var(--dim); font-weight:400}
+.read .k{font-size:10px; color:var(--dim); margin-top:3px}
+.judge{border-radius:10px; padding:11px 12px; font-size:13px; font-weight:700; text-align:center; margin-bottom:12px;
+  border:1px solid var(--line); background:rgba(148,184,218,.06); color:var(--muted); transition:.25s}
+.judge.ok{border-color:rgba(52,211,153,.6); background:rgba(52,211,153,.1); color:#9eeacb}
+.judge.bad{border-color:rgba(251,113,133,.6); background:rgba(251,113,133,.1); color:#ffc1cb}
+#narrate{background:rgba(7,12,20,.6); border:1px solid var(--line); border-left:3px solid var(--volt);
+  border-radius:8px; padding:11px 12px; font-size:12.5px; line-height:1.75; color:#d7e3f0; min-height:86px; transition:opacity .18s}
+#narrate .who{color:var(--volt); font-weight:700; margin-right:6px}
+.legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; font-size:10.5px; color:var(--dim)}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:-1px}
+.keys{margin-top:12px; font-size:10.5px; color:var(--dim); line-height:2}
+.keys b{display:inline-block; min-width:52px; color:var(--muted); font-weight:600}
+.keys code{background:#1a2740; border:1px solid var(--line); border-radius:4px; padding:1px 6px; font-size:10px; color:#cfe0f2}
+.method-note{margin-top:10px; font-size:13px; color:#a9bed2; line-height:1.8;
+  border-top:1px solid var(--line); padding-top:9px}
+.method-note b{color:var(--muted)}
+footer{width:100%; max-width:1180px; margin-top:16px; color:var(--dim); font-size:11px; line-height:1.9;
+  border-top:1px solid var(--line); padding-top:12px}
+footer b{color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="loader"><div class="t">电场升压中…</div><div class="bar"><i></i></div></div>
+
+<header>
+  <div class="kicker">ESP LAB · 除尘设备</div>
+  <h1>电除尘器实验室<span class="en">ESP LAB</span></h1>
+  <p class="sub">电晕让粉尘带上电，电场把它们"按"到极板上：除尘效率 <b>η = 1 − e^(−Aω/Q)</b>（德意希公式）。
+  看四个场景里，是什么悄悄偷走了你的效率——高比电阻的反电晕、停运的电场、还有振打过频扬起的二次尘。</p>
+</header>
+
+<div class="stage">
+  <div class="card">
+    <h2>电除尘器 · FIELD</h2>
+    <div id="scene">
+      <div id="sceneView">
+        <svg id="field" viewBox="0 0 640 430" role="img" aria-label="电除尘器现场">
+          <defs>
+            <linearGradient id="plateG" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#7c8894"/><stop offset=".5" stop-color="#aeb9c4"/><stop offset="1" stop-color="#6b7683"/>
+            </linearGradient>
+            <radialGradient id="coronaG" cx=".5" cy=".5" r=".5">
+              <stop offset="0" stop-color="#c084fc" stop-opacity=".8"/>
+              <stop offset="1" stop-color="#c084fc" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="caseG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#131e30"/><stop offset="1" stop-color="#0d1524"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="640" height="430" fill="#0b1220"/>
+          <!-- 高压供电 -->
+          <g id="hvRow"></g>
+          <!-- 壳体 -->
+          <rect x="60" y="110" width="520" height="200" fill="url(#caseG)" stroke="#2c4258" stroke-width="2"/>
+          <text x="70" y="102" fill="#5f7488" font-size="11">烟气 →</text>
+          <text x="540" y="102" fill="#5f7488" font-size="11">净气 →</text>
+          <!-- 电场分隔线 -->
+          <line x1="233" y1="110" x2="233" y2="310" stroke="#2c4258" stroke-width="1" stroke-dasharray="5 4" opacity=".6"/>
+          <line x1="407" y1="110" x2="407" y2="310" stroke="#2c4258" stroke-width="1" stroke-dasharray="5 4" opacity=".6"/>
+          <text x="146" y="326" text-anchor="middle" fill="#5f7488" font-size="10">一电场</text>
+          <text x="320" y="326" text-anchor="middle" fill="#5f7488" font-size="10">二电场</text>
+          <text x="493" y="326" text-anchor="middle" fill="#5f7488" font-size="10">三电场</text>
+          <!-- 极板/电晕线/灰尘层 -->
+          <g id="plates"></g>
+          <g id="coronas"></g>
+          <g id="dustLayer"></g>
+          <g id="parts"></g>
+          <!-- 灰斗 -->
+          <polygon points="200,310 440,310 395,395 245,395" fill="#101a2c" stroke="#2c4258" stroke-width="2"/>
+          <text x="320" y="360" text-anchor="middle" fill="#5f7488" font-size="11">灰斗</text>
+          <rect id="ashLevel" x="252" y="385" width="136" height="4" fill="#8a6f4d" opacity=".8"/>
+        </svg>
+        <div class="eff-card">
+          <div class="ec-t">除尘效率 η</div>
+          <div class="ec-v" id="effV">–<small>%</small></div>
+          <div class="ec-cap" id="effCap">德意希公式实时计算</div>
+        </div>
+      </div>
+      <div id="chartView">
+        <svg id="chart" viewBox="0 0 640 430" role="img" aria-label="出口浓度-时间曲线"></svg>
+      </div>
+    </div>
+    <div class="method-note"><b>方法依据：</b>德意希公式 η = 1 − e<sup>−Aω/Q</sup>（A 集尘面积，Q 烟气量，ω 驱进速度）；超低排放烟尘限值 10 mg/m³。</div>
+  </div>
+
+  <div class="card">
+    <h2>运行控制台 · CONSOLE</h2>
+    <div class="scen-row" id="scenRow"></div>
+    <div class="ctl">
+      <div class="lab"><span>二次电压</span><span class="key">1 / 2 / 3</span></div>
+      <div class="btns" id="voltRow"></div>
+    </div>
+    <div class="ctl">
+      <div class="lab"><span>粉尘比电阻</span><span class="key">4 / 5 / 6</span></div>
+      <div class="btns" id="rhoRow"></div>
+    </div>
+    <div class="ctl">
+      <div class="lab"><span>投运电场</span><span class="key">7 / 8</span></div>
+      <div class="btns" id="fldRow"></div>
+    </div>
+    <div class="ctl">
+      <div class="lab"><span>振打制度</span><span class="key">9 / 0</span></div>
+      <div class="btns" id="rapRow"></div>
+    </div>
+    <div class="reads">
+      <div class="read"><div class="v" id="rVolt">–<small> kV</small></div><div class="k">二次电压</div></div>
+      <div class="read"><div class="v" id="rOmega">–<small> cm/s</small></div><div class="k">驱进速度 ω</div></div>
+      <div class="read"><div class="v" id="rEta">–<small> %</small></div><div class="k">除尘效率</div></div>
+      <div class="read"><div class="v" id="rCin">800<small> mg/m³</small></div><div class="k">入口浓度</div></div>
+      <div class="read"><div class="v" id="rCout">–<small> mg/m³</small></div><div class="k">出口浓度</div></div>
+      <div class="read"><div class="v" id="rAsh">0<small> kg</small></div><div class="k">灰斗收尘</div></div>
+    </div>
+    <div class="judge" id="judge">运行中…</div>
+    <div id="narrate"><span class="who">记录员</span><span id="narrTxt">选择场景，开始 20 分钟运行。</span></div>
+    <div class="legend">
+      <span><i style="background:#8fa3b8"></i>未荷电粉尘</span>
+      <span><i style="background:#c084fc"></i>已荷电粉尘</span>
+      <span><i style="background:#8a6f4d"></i>极板积灰</span>
+    </div>
+    <div class="keys">
+      <div><b>空格</b><code>Space</code> 切换场景</div>
+      <div><b>曲线</b><code>V</code> 出口浓度曲线 <b style="min-width:34px">暂停</b><code>P</code></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <b>教学简化模型</b>：驱进速度、反电晕与二次飞扬均为示意（真实工况与煤种、烟气条件强相关），不直接用于合规判定。
+</footer>
+
+<script>
+"use strict";
+/* ================= 基础 ================= */
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const FAST=/[?&]fast=1/.test(location.search);
+let seed=20261007;
+const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+const NS="http://www.w3.org/2000/svg";
+/* ================= 场景与参数 ================= */
+const SCENS=[
+  {name:"基准运行", sub:"60kV · 3电场全投", volt:1, rho:0, fld:0, rap:0},
+  {name:"高比电阻", sub:"反电晕 · 效率跳水", volt:1, rho:2, fld:0, rap:0},
+  {name:"一电场停运", sub:"SCA 骤降三分之一", volt:1, rho:0, fld:1, rap:0},
+  {name:"振打过频", sub:"二次飞扬 · 出口脉冲", volt:1, rho:0, fld:0, rap:1},
+];
+const VOLT=[45,60,72];
+const RHO=[{f:1.0,n:"10¹⁰ 正常"},{f:0.8,n:"10¹¹ 偏高"},{f:0.55,n:"10¹² 过高"}];
+const FLD=[3,2], RAPN=["正常周期","过频"];
+const C_IN=800, TMIN=20, REC_INT=1;   // 入口800mg/m³，运行20分钟
+
+let S={scen:0, volt:1, rho:0, fld:0, rap:0};
+let run=null, paused=false;
+
+/* 德意希模型（教学示意） */
+function omega(){return 0.08*Math.pow(VOLT[S.volt]/60,2)*RHO[S.rho].f;}
+function etaD(){const sca=20*FLD[S.fld];return 1-Math.exp(-sca*omega());}
+function reentr(){return S.rap===1?2.5:1.0;}
+function cOut(){return C_IN*(1-etaD())*reentr();}
+function rapInt(){return S.rap===1?1.5:4;} // 振打周期 sim-min
+
+/* ================= 电场结构 ================= */
+const PLATES=[95,195,268,368,442,542];       // 极板 x
+const WIRES=[145,318,492];                    // 电晕线 x（对应一/二/三电场）
+const plateDust=[[],[],[],[],[],[]];          // 每块极板的积灰点
+function fieldActive(i){return !(S.fld===1&&i===0);} // 一电场停运时第0电场不投运
+function buildESP(){
+  const pg=$("plates"), cg=$("coronas"), hv=$("hvRow");
+  pg.innerHTML=""; cg.innerHTML=""; hv.innerHTML="";
+  PLATES.forEach((x,i)=>{
+    const r=document.createElementNS(NS,"rect");
+    r.setAttribute("x",x-5); r.setAttribute("y",130); r.setAttribute("width",10); r.setAttribute("height",160);
+    r.setAttribute("fill","url(#plateG)"); r.setAttribute("rx",2);
+    pg.appendChild(r);
+  });
+  WIRES.forEach((x,i)=>{
+    const on=fieldActive(i);
+    const halo=document.createElementNS(NS,"circle");
+    halo.setAttribute("cx",x); halo.setAttribute("cy",210); halo.setAttribute("r",34);
+    halo.setAttribute("fill","url(#coronaG)"); halo.setAttribute("opacity",on?"0.85":"0");
+    halo.dataset.wire=i; cg.appendChild(halo);
+    const ln=document.createElementNS(NS,"line");
+    ln.setAttribute("x1",x); ln.setAttribute("y1",130); ln.setAttribute("x2",x); ln.setAttribute("y2",290);
+    ln.setAttribute("stroke",on?"#d8b4fe":"#4b5563"); ln.setAttribute("stroke-width",2.5);
+    cg.appendChild(ln);
+    // 高压供电盒
+    const bx=[120,295,467][i];
+    const box=document.createElementNS(NS,"rect");
+    box.setAttribute("x",bx); box.setAttribute("y",58); box.setAttribute("width",56); box.setAttribute("height",36);
+    box.setAttribute("rx",6); box.setAttribute("fill","#16273c"); box.setAttribute("stroke",on?"#c084fc":"#4b5563");
+    hv.appendChild(box);
+    const dot=document.createElementNS(NS,"circle");
+    dot.setAttribute("cx",bx+14); dot.setAttribute("cy",76); dot.setAttribute("r",6);
+    dot.setAttribute("fill",on?"#34d399":"#fb7185");
+    hv.appendChild(dot);
+    const tx=document.createElementNS(NS,"text");
+    tx.setAttribute("x",bx+40); tx.setAttribute("y",81); tx.setAttribute("text-anchor","middle");
+    tx.setAttribute("fill",on?"#e3c8ff":"#5f7488"); tx.setAttribute("font-size","11");
+    tx.textContent=on?VOLT[S.volt]+"kV":"停运";
+    hv.appendChild(tx);
+    const feed=document.createElementNS(NS,"line");
+    feed.setAttribute("x1",bx+28); feed.setAttribute("y1",94); feed.setAttribute("x2",x); feed.setAttribute("y2",130);
+    feed.setAttribute("stroke",on?"#c084fc":"#374151"); feed.setAttribute("stroke-width",2);
+    hv.appendChild(feed);
+  });
+}
+function addDustDot(pi){
+  const dl=$("dustLayer");
+  const dots=plateDust[pi];
+  if(dots.length>=34)return;
+  const c=document.createElementNS(NS,"circle");
+  const x=PLATES[pi]+(rnd()<0.5?-1:1)*(5+rnd()*2);
+  const y=135+rnd()*150;
+  c.setAttribute("cx",x.toFixed(1)); c.setAttribute("cy",y.toFixed(1)); c.setAttribute("r",(1.6+rnd()*1.6).toFixed(1));
+  c.setAttribute("fill","#8a6f4d"); c.setAttribute("opacity",".9");
+  dl.appendChild(c); dots.push(c);
+}
+function clearDust(){
+  $("dustLayer").innerHTML="";
+  plateDust.forEach(a=>a.length=0);
+}
+
+/* ================= 颗粒系统 ================= */
+const partsG=$("parts");
+const parts=[];
+function spawnP(x0,y0,re){
+  const p={x:x0??60, y:y0??(140+rnd()*140), vx:150, charged:false, vy:0, re:!!re};
+  const c=document.createElementNS(NS,"circle");
+  c.setAttribute("r",(2.4+rnd()*1.8).toFixed(1));
+  c.setAttribute("fill","#8fa3b8"); c.setAttribute("opacity",".85");
+  partsG.appendChild(c); p.el=c; parts.push(p);
+  return p;
+}
+function nearestPlate(x){
+  let best=PLATES[0], bd=1e9;
+  for(const px of PLATES){const d=Math.abs(px-x); if(d<bd){bd=d; best=px;}}
+  return {x:best, d:bd};
+}
+function stepParts(dt){
+  const om=omega();
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i];
+    p.x+=p.vx*dt;
+    // 经过电晕线即荷电
+    if(!p.charged){
+      for(let f=0;f<3;f++){
+        if(fieldActive(f)&&p.x>=WIRES[f]-2&&p.x<WIRES[f]+6){
+          p.charged=true; p.el.setAttribute("fill","#c084fc"); break;
+        }
+      }
+    }
+    if(p.charged&&!p.re){
+      const np=nearestPlate(p.x);
+      const dir=np.x>p.x?1:-1;
+      p.y+=dir*(25+om*500)*dt*0.55;
+      if(np.d<7){ // 被极板捕获
+        const pi=PLATES.indexOf(np.x);
+        addDustDot(pi); run.cap++;
+        p.el.remove(); parts.splice(i,1); continue;
+      }
+    }
+    if(p.x>580){run.esc++; p.el.remove(); parts.splice(i,1); continue;}
+    p.el.setAttribute("cx",p.x.toFixed(1)); p.el.setAttribute("cy",clamp(p.y,132,288).toFixed(1));
+  }
+  while(parts.length>240){parts[0].el.remove(); parts.shift();}
+}
+/* 振打：极板抖动 + 灰落入灰斗；（过频时）二次飞扬 */
+let shakeT=0;
+function doRapping(){
+  shakeT=0.45;
+  // 每块板掉一部分灰
+  plateDust.forEach(dots=>{
+    const n=Math.min(dots.length, S.rap===1?10:5);
+    for(let k=0;k<n;k++){
+      const dEl=dots.pop(); if(dEl)dEl.remove();
+    }
+    run.ash+=n*0.4;
+  });
+  if(S.rap===1){ // 过频：部分粉尘重返气流
+    for(let k=0;k<4;k++){
+      const px=PLATES[Math.floor(rnd()*6)];
+      const p=spawnP(px+8, 150+rnd()*120, true);
+      p.charged=true; p.el.setAttribute("fill","#c084fc");
+    }
+    run.pulse=0.4; // 出口脉冲 sim-min
+  }
+}
+
+/* ================= 运行控制 ================= */
+function startRun(){
+  const sc=SCENS[S.scen];
+  S.volt=sc.volt; S.rho=sc.rho; S.fld=sc.fld; S.rap=sc.rap;
+  run={t:0, readings:[], done:false, nextRec:REC_INT, rate:TMIN/(FAST?4:25),
+       cap:0, esc:0, ash:0, pulse:0, nextRap:rapInt()};
+  seed=20261007;
+  parts.forEach(p=>p.el.remove()); parts.length=0;
+  clearDust(); buildESP(); syncUI();
+  narr("运行开始："+NARR[S.scen].run);
+}
+function applyScen(i){S.scen=i; paused=false; startRun();}
+function applyParam(k,v){S[k]=v; paused=false; startRun();}
+function narr(t){const n=$("narrate"); n.style.opacity=0;
+  setTimeout(()=>{$("narrTxt").textContent=t; n.style.opacity=1;},160);}
+const fmtT=m=>`${String(Math.floor(m)).padStart(2,"0")}:${String(Math.floor(m%1*60)).padStart(2,"0")}`;
+
+/* ================= 控制台渲染 ================= */
+function syncUI(){
+  $("scenRow").innerHTML=SCENS.map((s,i)=>
+    `<button class="scen${i===S.scen?" on":""}" data-s="${i}">${s.name}<small>${s.sub}</small></button>`).join("");
+  $("voltRow").innerHTML=VOLT.map((v,i)=>
+    `<button class="pbtn${i===S.volt?" on":""}" data-v="${i}">${v} kV</button>`).join("");
+  $("rhoRow").innerHTML=RHO.map((r,i)=>
+    `<button class="pbtn${i===S.rho?" on":""}" data-r="${i}">${r.n}</button>`).join("");
+  $("fldRow").innerHTML=["3电场全投","一电场停运"].map((t,i)=>
+    `<button class="pbtn${i===S.fld?" on":""}" data-f="${i}">${t}</button>`).join("");
+  $("rapRow").innerHTML=RAPN.map((t,i)=>
+    `<button class="pbtn${i===S.rap?" on":""}" data-rp="${i}">${t}</button>`).join("");
+  document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>applyScen(+b.dataset.s));
+  document.querySelectorAll("[data-v]").forEach(b=>b.onclick=()=>applyParam("volt",+b.dataset.v));
+  document.querySelectorAll("[data-r]").forEach(b=>b.onclick=()=>applyParam("rho",+b.dataset.r));
+  document.querySelectorAll("[data-f]").forEach(b=>b.onclick=()=>applyParam("fld",+b.dataset.f));
+  document.querySelectorAll("[data-rp]").forEach(b=>b.onclick=()=>applyParam("rap",+b.dataset.rp));
+}
+/* ================= 判定与解说 ================= */
+const NARR={
+  0:{run:"三电场全投，二次电压 60kV。看颜色变化：灰色颗粒经过电晕线变成紫色——荷电了，随后横向“走”向极板。",
+      end:"除尘效率 99.2%，出口约 6.6mg/m³。结论：达标（超低排放限值 10mg/m³）。"},
+  1:{run:"粉尘比电阻 10¹²Ω·cm，极板灰层不导电——反电晕发生了：有效电场被削弱，紫色颗粒驱进变慢，大量逃逸。",
+      end:"驱进速度掉到 4.4cm/s，效率 92.9%，出口约 57mg/m³。结论：超标。低硫煤、干灰，高比电阻是电除尘的天敌。"},
+  2:{run:"一电场停运——它本是收尘的主力。集尘面积少了三分之一，看出口读数怎么爬。",
+      end:"效率 95.9%，出口约 33mg/m³。结论：超标。电场停运不是小事，尽快恢复。"},
+  3:{run:"振打过频：每次振打都扬起一阵二次尘。盯住出口浓度——脉冲来了。",
+      end:"平均出口约 16mg/m³，且伴随脉冲式超标。结论：超标。振打不是越勤越好，制度要优化。"},
+};
+function finalJudge(){
+  const rs=run.readings;
+  const avg=rs.reduce((a,b)=>a+b,0)/Math.max(1,rs.length);
+  const ok=avg<=10;
+  const scenEnd={0:NARR[0].end,1:NARR[1].end,2:NARR[2].end,3:NARR[3].end}[S.scen];
+  return{k:ok?"ok":"bad",
+    title:ok?`达标 · 出口 ${avg.toFixed(1)}mg/m³`:`超标 · 出口 ${avg.toFixed(1)}mg/m³`,
+    body:scenEnd};
+}
+
+/* ================= 主循环 ================= */
+let lastTs=0, chartTick=0;
+function tick(ts){
+  requestAnimationFrame(tick);
+  if(!run)return;
+  const dt=Math.min(0.06,(ts-lastTs)/1000||0); lastTs=ts;
+  if(!paused){
+    if(!run.done){
+      const dtMin=dt*run.rate;
+      run.t+=dtMin;
+      while(run.t>=run.nextRap&&run.nextRap<=TMIN){doRapping(); run.nextRap+=rapInt();}
+      if(run.pulse>0)run.pulse-=dtMin;
+      while(run.t>=run.nextRec&&run.nextRec<=TMIN){
+        const inst=cOut()*(run.pulse>0?4:1);
+        run.readings.push(+inst.toFixed(1));
+        run.nextRec+=REC_INT;
+      }
+      if(run.t>=TMIN){run.t=TMIN; run.done=true; onDone();}
+    }
+    if(rnd()<0.7)spawnP();
+    stepParts(dt);
+    // 振打抖动
+    if(shakeT>0){shakeT-=dt;
+      $("plates").setAttribute("transform",`translate(${(Math.sin(shakeT*60)*4).toFixed(1)},0)`);
+      if(shakeT<=0)$("plates").setAttribute("transform","");
+    }
+    // 电晕辉光闪烁
+    document.querySelectorAll("[data-wire]").forEach(h=>{
+      h.setAttribute("opacity",(0.7+0.25*Math.sin(ts/130+ +h.dataset.wire)).toFixed(2));
+    });
+    if($("chartView").classList.contains("on")&&(chartTick++%20===0))drawChart();
+  }
+  updateReads();
+}
+function updateReads(){
+  $("rVolt").innerHTML=VOLT[S.volt]+"<small> kV</small>";
+  $("rOmega").innerHTML=(omega()*100).toFixed(1)+"<small> cm/s</small>";
+  const eta=etaD()*100;
+  $("rEta").innerHTML=eta.toFixed(1)+"<small> %</small>";
+  const co=cOut()*(run.pulse>0?4:1);
+  $("rCout").innerHTML=co.toFixed(1)+"<small> mg/m³</small>";
+  $("rAsh").innerHTML=run.ash.toFixed(1)+"<small> kg</small>";
+  $("effV").innerHTML=eta.toFixed(1)+"<small>%</small>";
+  $("effCap").textContent=eta>=99?"德意希公式实时计算":"η 偏低，注意出口浓度";
+  const lvl=$("ashLevel");
+  const w=clamp(20+run.ash*8,20,136);
+  lvl.setAttribute("width",w.toFixed(0));
+  lvl.setAttribute("x",(320-w/2).toFixed(0));
+}
+function onDone(){
+  const j=finalJudge();
+  const el=$("judge");
+  el.className="judge "+j.k; el.textContent=j.title+" —— "+j.body;
+  narr(j.body);
+  drawChart();
+}
+
+/* ================= 曲线视图 ================= */
+function toggleChart(){
+  const cv=$("chartView"), sv=$("sceneView");
+  const on=!cv.classList.contains("on");
+  cv.classList.toggle("on",on); sv.classList.toggle("hidden",on);
+  if(on)drawChart();
+}
+function drawChart(){
+  const svg=$("chart"), W=640, H=430, L=56, R=18, T=30, B=44;
+  const X=t=>L+(t/TMIN)*(W-L-R), Y=v=>T+(1-v/90)*(H-T-B);
+  let s=`<rect x="0" y="0" width="${W}" height="${H}" fill="#0b1220"/>`;
+  s+=`<text x="${L}" y="20" fill="#93a9bf" font-size="12">出口浓度-时间曲线 · 超低排放限值 10 mg/m³</text>`;
+  for(let v=0;v<=80;v+=20){
+    s+=`<line x1="${L}" y1="${Y(v)}" x2="${W-R}" y2="${Y(v)}" stroke="rgba(148,184,218,.14)"/>`;
+    s+=`<text x="${L-8}" y="${Y(v)+4}" text-anchor="end" fill="#5f7488" font-size="10">${v}</text>`;
+  }
+  for(let t=0;t<=20;t+=5)s+=`<text x="${X(t)}" y="${H-B+18}" text-anchor="middle" fill="#5f7488" font-size="10">${t}min</text>`;
+  s+=`<line x1="${L}" y1="${Y(10)}" x2="${W-R}" y2="${Y(10)}" stroke="#34d399" stroke-width="1.6" stroke-dasharray="7 4"/>`;
+  s+=`<text x="${W-R}" y="${Y(10)-7}" text-anchor="end" fill="#34d399" font-size="11">限值 10 mg/m³</text>`;
+  const rs=run?run.readings:[];
+  if(rs.length){
+    let d=`M${X(0)},${Y(Math.min(rs[0],90))}`;
+    for(let i=1;i<rs.length;i++){d+=` L${X(i*REC_INT)},${Y(Math.min(rs[i-1],90))} L${X(i*REC_INT)},${Y(Math.min(rs[i],90))}`;}
+    s+=`<path d="${d}" fill="none" stroke="#c084fc" stroke-width="1.8"/>`;
+    const avg=rs.reduce((a,b)=>a+b,0)/rs.length;
+    s+=`<text x="${L+6}" y="${H-12}" fill="#93a9bf" font-size="11">平均出口 ${avg.toFixed(1)} mg/m³ · ${avg<=10?"达标":"超标"}</text>`;
+  }else s+=`<text x="${W/2}" y="${H/2}" text-anchor="middle" fill="#5f7488" font-size="12">运行中…</text>`;
+  svg.innerHTML=s;
+}
+
+/* ================= 键盘 ================= */
+addEventListener("keydown",e=>{
+  if(e.key===" "){e.preventDefault(); applyScen((S.scen+1)%SCENS.length);}
+  else if(e.key>="1"&&e.key<="3")applyParam("volt",+e.key-1);
+  else if(e.key>="4"&&e.key<="6")applyParam("rho",+e.key-4);
+  else if(e.key==="7"||e.key==="8")applyParam("fld",+e.key-7);
+  else if(e.key==="9")applyParam("rap",0);
+  else if(e.key==="0")applyParam("rap",1);
+  else if(e.key==="v"||e.key==="V")toggleChart();
+  else if(e.key==="p"||e.key==="P"){paused=!paused; narr(paused?"已暂停，再按 P 继续。":"继续运行。");}
+});
+
+/* ================= 启动 ================= */
+addEventListener("load",()=>{
+  setTimeout(()=>$("loader").classList.add("done"),900);
+  startRun();
+  requestAnimationFrame(tick);
+});
+</script>
+</body>
+</html>
