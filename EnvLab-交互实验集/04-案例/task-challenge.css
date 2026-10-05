@@ -115,3 +115,27 @@ h1{font-size:clamp(28px,5vw,48px);line-height:1.15;letter-spacing:-.04em;margin:
 @media(max-width:800px){.workspace{grid-template-columns:1fr}.rail{position:static}.rail ol{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px}.rail li{grid-template-columns:1fr;text-align:center;justify-items:center;padding:7px 3px;font-size:10px}.rail-foot{display:none}.task-card{padding:18px}.evidence-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:520px){.topnav,.hero,.wrap{padding-left:15px;padding-right:15px}.hero{padding-top:30px}.mode{display:none}.rail ol{grid-template-columns:repeat(2,minmax(0,1fr))}.evidence-grid{grid-template-columns:1fr}.step-title{font-size:21px}.choice{padding:12px}.review-item{grid-template-columns:1fr}.review-item .mini-btn{justify-self:start}.mode-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;transition-duration:.01ms!important;animation-duration:.01ms!important}}
+
+/* ---- 交互点选（动手题） ---- */
+.pick-hint{color:#9fc3dd;font-size:12px;margin:0 0 10px}
+.map-wrap{border:1px solid rgba(148,184,218,.2);border-radius:12px;background:rgba(7,17,31,.5);padding:10px;margin-bottom:6px}
+.map-wrap svg{width:100%;height:auto;display:block}
+.map-wrap [data-pick]{cursor:pointer}
+.map-wrap [data-pick] .pick-dot{transition:stroke .15s,filter .15s}
+.map-wrap [data-pick]:hover .pick-dot{filter:brightness(1.4)}
+.map-wrap [data-pick].picked .pick-dot{stroke:#34d399;stroke-width:3.5;filter:drop-shadow(0 0 7px rgba(52,211,153,.8))}
+.map-wrap [data-pick].picked .pick-label{fill:#9eeacb}
+/* ---- 能力画像成绩单 ---- */
+.scorecard{padding:16px;border:1px solid rgba(148,184,218,.2);border-radius:12px;background:rgba(7,17,31,.46);margin-bottom:18px}
+.skill-badges{display:flex;flex-wrap:wrap;gap:8px}
+.skill-badge{display:inline-flex;align-items:center;gap:6px;padding:6px 11px;border-radius:999px;font-size:11px;font-weight:700;border:1px solid}
+.skill-badge i{font-style:normal;font-weight:900}
+.skill-badge.ok{color:#9eeacb;border-color:rgba(52,211,153,.4);background:rgba(52,211,153,.1)}
+.skill-badge.miss{color:#ffc1cb;border-color:rgba(251,113,133,.45);background:rgba(251,113,133,.1)}
+/* ---- 分层 CTA ---- */
+.cta-box{padding:16px 17px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 40%,transparent);background:var(--accent-soft);margin-bottom:18px}
+.cta-box.good{border-color:rgba(52,211,153,.5);background:rgba(52,211,153,.09)}
+.cta-title{font-weight:800;font-size:14px;margin-bottom:5px;color:#f0f8ff}
+.cta-box.good .cta-title{color:#9eeacb}
+.cta-body{font-size:12px;color:#c6d6e4;margin-bottom:4px}
+.cta-box .btn-row{margin-top:10px}
