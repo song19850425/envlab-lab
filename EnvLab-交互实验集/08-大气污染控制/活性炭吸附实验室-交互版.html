@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>活性炭吸附实验室 · AC LAB</title>
+<style>
+:root{
+  --bg:#0a0f16; --panel:#111a26; --panel2:#0d1420; --line:rgba(148,184,218,.16);
+  --text:#e8f1fa; --muted:#93a9bf; --dim:#5f7488;
+  --amber:#fbbf24; --green:#34d399; --red:#fb7185; --accent:#fb923c; --char:#d9a05a;
+}
+*{box-sizing:border-box; margin:0; padding:0}
+html,body{height:100%}
+body{
+  background:radial-gradient(1200px 700px at 20% -10%, rgba(251,146,60,.07), transparent 60%),
+             radial-gradient(900px 600px at 95% 110%, rgba(217,160,90,.05), transparent 60%), var(--bg);
+  color:var(--text); font-family:-apple-system,"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Segoe UI",sans-serif;
+  min-height:100vh; display:flex; flex-direction:column; align-items:center; padding:22px 16px 30px;
+}
+#loader{position:fixed; inset:0; background:var(--bg); z-index:50; display:flex; flex-direction:column; gap:14px;
+  align-items:center; justify-content:center; transition:opacity .6s}
+#loader.done{opacity:0; pointer-events:none}
+#loader .t{font-size:15px; letter-spacing:.35em; color:var(--muted)}
+#loader .bar{width:180px; height:3px; background:#1c2940; border-radius:99px; overflow:hidden}
+#loader .bar i{display:block; height:100%; width:40%; border-radius:inherit;
+  background:linear-gradient(90deg,var(--accent),#f97316); animation:ld 1s ease-in-out infinite alternate}
+@keyframes ld{from{transform:translateX(-60%)}to{transform:translateX(280%)}}
+header{width:100%; max-width:1180px; margin-bottom:16px}
+.kicker{font-size:11px; letter-spacing:.3em; color:var(--accent); margin-bottom:6px}
+h1{font-size:clamp(22px,3.4vw,32px); letter-spacing:.02em; margin-bottom:6px}
+h1 .en{color:var(--dim); font-weight:400; font-size:.62em; letter-spacing:.14em; margin-left:10px}
+.sub{color:var(--muted); font-size:13px; line-height:1.7; max-width:920px}
+.sub b{color:#ffd9a0; font-weight:600}
+.stage{width:100%; max-width:1180px; display:grid; grid-template-columns:minmax(0,1.55fr) minmax(300px,1fr); gap:16px}
+@media(max-width:900px){.stage{grid-template-columns:1fr}}
+.card{background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+  border-radius:16px; padding:16px; box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.card h2{font-size:12px; letter-spacing:.25em; color:var(--dim); margin-bottom:12px; font-weight:600}
+#scene{position:relative; border-radius:12px; overflow:hidden; background:#0b1220; border:1px solid var(--line)}
+#scene svg{display:block; width:100%; height:auto}
+#chartView{display:none}
+#chartView.on{display:block}
+#sceneView.hidden{display:none}
+/* 穿透率仪表 */
+.cc-card{position:absolute; right:12px; bottom:12px; background:rgba(8,13,22,.9); border:1px solid var(--line);
+  border-radius:12px; padding:11px 14px; backdrop-filter:blur(3px); text-align:center; min-width:170px}
+.cc-card .cc-t{font-size:11.5px; color:var(--muted); letter-spacing:.12em; margin-bottom:4px}
+.cc-card .cc-v{font-size:30px; font-weight:800; font-variant-numeric:tabular-nums; color:#ffd9a0}
+.cc-card .cc-v small{font-size:12px; color:var(--dim); font-weight:400}
+.cc-card .cc-bar{width:150px; height:7px; background:#1c2940; border-radius:99px; margin:8px auto 4px; position:relative; overflow:visible}
+.cc-card .cc-bar i{position:absolute; top:0; bottom:0; left:0; width:0%; background:linear-gradient(90deg,#34d399,#fbbf24,#fb7185); border-radius:99px}
+.cc-card .cc-bar .mk{position:absolute; top:-3px; bottom:-3px; width:2px; background:#e8f1fa; opacity:.7}
+.cc-card .cc-cap{font-size:10px; color:var(--dim)}
+.scen-row{display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-bottom:14px}
+.scen{border:1px solid var(--line); background:rgba(148,184,218,.05); color:var(--text); border-radius:10px;
+  padding:10px 8px; font-size:12px; cursor:pointer; text-align:center; transition:.15s; line-height:1.5}
+.scen small{display:block; color:var(--dim); font-size:10px; margin-top:2px}
+.scen:hover{border-color:var(--accent)}
+.scen.on{border-color:var(--accent); background:rgba(251,146,60,.1); box-shadow:0 0 0 1px var(--accent) inset}
+.ctl{margin-bottom:13px}
+.ctl .lab{font-size:11px; color:var(--muted); letter-spacing:.1em; margin-bottom:7px; display:flex; justify-content:space-between}
+.ctl .lab .key{color:var(--dim)}
+.btns{display:flex; gap:7px; flex-wrap:wrap}
+.pbtn{flex:1; min-width:70px; border:1px solid var(--line); background:rgba(148,184,218,.05); color:var(--text);
+  border-radius:8px; padding:8px 4px; font-size:12px; cursor:pointer; transition:.15s; white-space:nowrap}
+.pbtn:hover{border-color:var(--accent)}
+.pbtn.on{border-color:var(--accent); background:rgba(251,146,60,.12); color:#ffe1a8; font-weight:700}
+.reads{display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin:14px 0}
+.read{background:rgba(7,12,20,.6); border:1px solid var(--line); border-radius:10px; padding:9px 6px; text-align:center}
+.read .v{font-size:19px; font-weight:800; font-variant-numeric:tabular-nums; color:#ffd9a0}
+.read .v small{font-size:11px; color:var(--dim); font-weight:400}
+.read .k{font-size:10px; color:var(--dim); margin-top:3px}
+.judge{border-radius:10px; padding:11px 12px; font-size:13px; font-weight:700; text-align:center; margin-bottom:12px;
+  border:1px solid var(--line); background:rgba(148,184,218,.06); color:var(--muted); transition:.25s}
+.judge.ok{border-color:rgba(52,211,153,.6); background:rgba(52,211,153,.1); color:#9eeacb}
+.judge.bad{border-color:rgba(251,113,133,.6); background:rgba(251,113,133,.1); color:#ffc1cb}
+.judge.warn{border-color:rgba(251,191,36,.6); background:rgba(251,191,36,.1); color:#ffe18a}
+#narrate{background:rgba(7,12,20,.6); border:1px solid var(--line); border-left:3px solid var(--accent);
+  border-radius:8px; padding:11px 12px; font-size:12.5px; line-height:1.75; color:#d7e3f0; min-height:86px; transition:opacity .18s}
+#narrate .who{color:var(--accent); font-weight:700; margin-right:6px}
+.legend{display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; font-size:10.5px; color:var(--dim)}
+.legend i{display:inline-block; width:10px; height:10px; border-radius:50%; margin-right:4px; vertical-align:-1px}
+.keys{margin-top:12px; font-size:10.5px; color:var(--dim); line-height:2}
+.keys b{display:inline-block; min-width:52px; color:var(--muted); font-weight:600}
+.keys code{background:#1a2740; border:1px solid var(--line); border-radius:4px; padding:1px 6px; font-size:10px; color:#cfe0f2}
+.method-note{margin-top:10px; font-size:13px; color:#a9bed2; line-height:1.8;
+  border-top:1px solid var(--line); padding-top:9px}
+.method-note b{color:var(--muted)}
+footer{width:100%; max-width:1180px; margin-top:16px; color:var(--dim); font-size:11px; line-height:1.9;
+  border-top:1px solid var(--line); padding-top:12px}
+footer b{color:var(--muted)}
+</style>
+</head>
+<body>
+<div id="loader"><div class="t">装填活性炭…</div><div class="bar"><i></i></div></div>
+
+<header>
+  <div class="kicker">AC LAB · VOCs 末端治理</div>
+  <h1>活性炭吸附实验室<span class="en">AC LAB</span></h1>
+  <p class="sub">一柜活性炭什么时候该换？<b>换早了浪费钱，换晚了等于直排</b>——答案全在一条穿透曲线里。
+  看传质区在床层里往前爬：穿透点 5%、饱和点 95%，四个场景，分清炭的问题、工况的问题和设计的问题。</p>
+</header>
+
+<div class="stage">
+  <div class="card">
+    <h2>吸附床 · FIELD</h2>
+    <div id="scene">
+      <div id="sceneView">
+        <svg id="field" viewBox="0 0 640 430" role="img" aria-label="活性炭吸附床">
+          <defs>
+            <linearGradient id="mtzG" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0" stop-color="#7c2d12" stop-opacity=".75"/>
+              <stop offset="1" stop-color="#fb923c" stop-opacity=".15"/>
+            </linearGradient>
+            <linearGradient id="ductG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0" stop-color="#141f30"/><stop offset=".5" stop-color="#0e1727"/><stop offset="1" stop-color="#141f30"/>
+            </linearGradient>
+          </defs>
+          <rect x="0" y="0" width="640" height="430" fill="#0b1220"/>
+          <!-- 进气管 -->
+          <rect x="16" y="196" width="104" height="48" fill="url(#ductG)" stroke="#2c4258" stroke-width="2"/>
+          <text x="68" y="186" text-anchor="middle" fill="#93a9bf" font-size="11">废气进口</text>
+          <text id="inletC" x="68" y="262" text-anchor="middle" fill="#d9a05a" font-size="11">C₀ 2000mg/m³</text>
+          <!-- 吸附床 -->
+          <rect x="120" y="170" width="400" height="100" fill="#101a2c" stroke="#2c4258" stroke-width="2"/>
+          <g id="charBed"></g>
+          <g id="zones"></g>
+          <text x="320" y="158" text-anchor="middle" fill="#93a9bf" font-size="11">活性炭床层</text>
+          <text x="150" y="290" fill="#7c5a3a" font-size="10">已饱和区</text>
+          <text x="300" y="290" fill="#fb923c" font-size="10">传质区 →</text>
+          <text x="470" y="290" fill="#5f7488" font-size="10">干净区</text>
+          <!-- 出气管 -->
+          <rect x="520" y="196" width="104" height="48" fill="url(#ductG)" stroke="#2c4258" stroke-width="2"/>
+          <text x="572" y="186" text-anchor="middle" fill="#93a9bf" font-size="11">净气出口</text>
+          <text id="outletC" x="572" y="262" text-anchor="middle" fill="#34d399" font-size="11">C ≈ 0</text>
+          <!-- VOC 颗粒层 -->
+          <g id="parts"></g>
+        </svg>
+        <div class="cc-card">
+          <div class="cc-t">穿透率 C/C₀</div>
+          <div class="cc-v" id="ccV">0<small>%</small></div>
+          <div class="cc-bar"><i id="ccBar"></i><span class="mk" style="left:5%"></span><span class="mk" style="left:95%"></span></div>
+          <div class="cc-cap">白线：穿透点 5% · 饱和点 95%</div>
+        </div>
+      </div>
+      <div id="chartView">
+        <svg id="chart" viewBox="0 0 640 430" role="img" aria-label="穿透曲线"></svg>
+      </div>
+    </div>
+    <div class="method-note"><b>方法依据：</b>穿透曲线 C/C₀(t)=1/(1+e<sup>−2.944(t−τ)/Δ</sup>），τ=q₀M/(C₀Q)（半穿透时间），穿透点 5%、饱和点 95%。</div>
+  </div>
+
+  <div class="card">
+    <h2>实验控制台 · CONSOLE</h2>
+    <div class="scen-row" id="scenRow"></div>
+    <div class="ctl">
+      <div class="lab"><span>装填量 M</span><span class="key">1 / 2 / 3</span></div>
+      <div class="btns" id="mRow"></div>
+    </div>
+    <div class="ctl">
+      <div class="lab"><span>气体流量 Q</span><span class="key">4 / 5 / 6</span></div>
+      <div class="btns" id="qRow"></div>
+    </div>
+    <div class="ctl">
+      <div class="lab"><span>进口浓度 C₀</span><span class="key">7 / 8</span></div>
+      <div class="btns" id="cRow"></div>
+    </div>
+    <div class="ctl">
+      <div class="lab"><span>炭品质 q₀</span><span class="key">9 / 0</span></div>
+      <div class="btns" id="q0Row"></div>
+    </div>
+    <div class="reads">
+      <div class="read"><div class="v" id="rT">0<small> min</small></div><div class="k">运行时间</div></div>
+      <div class="read"><div class="v" id="rCC">0<small> %</small></div><div class="k">穿透率 C/C₀</div></div>
+      <div class="read"><div class="v" id="rCout">0<small> mg/m³</small></div><div class="k">出口浓度</div></div>
+      <div class="read"><div class="v" id="rQ">0<small> mg/g</small></div><div class="k">已吸附量 q</div></div>
+      <div class="read"><div class="v" id="rTb">–<small> min</small></div><div class="k">穿透点 (5%)</div></div>
+      <div class="read"><div class="v" id="rTs">–<small> min</small></div><div class="k">饱和点 (95%)</div></div>
+    </div>
+    <div class="judge" id="judge">吸附进行中…</div>
+    <div id="narrate"><span class="who">记录员</span><span id="narrTxt">选择场景，开始吸附实验。</span></div>
+    <div class="legend">
+      <span><i style="background:#d9a05a"></i>VOCs 分子</span>
+      <span><i style="background:#7c2d12"></i>已饱和区</span>
+      <span><i style="background:#fb923c"></i>传质区</span>
+    </div>
+    <div class="keys">
+      <div><b>空格</b><code>Space</code> 切换场景</div>
+      <div><b>曲线</b><code>V</code> 穿透曲线 <b style="min-width:34px">暂停</b><code>P</code></div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <b>教学简化模型</b>：穿透曲线采用 Thomas 型 S 形函数，传质区宽度用经验幂函数近似（Δ≈0.29·τ·(Q/8)^0.3，Q 单位 L/min）；温度、湿度、共存组分恒定。不作为工程设计依据。
+</footer>
+
+<script>
+"use strict";
+/* ================= 基础 ================= */
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const FAST=/[?&]fast=1/.test(location.search);
+let seed=20261008;
+const rnd=()=>{seed=(seed*1664525+1013904223)>>>0;return seed/4294967296;};
+const NS="http://www.w3.org/2000/svg";
+/* ================= 场景与参数 ================= */
+const SCENS=[
+  {name:"基准运行", sub:"正常工况", M:1, Q:1, C0:0, q0:0},
+  {name:"风量超标", sub:"Q 50→80 L/min", M:1, Q:2, C0:0, q0:0},
+  {name:"浓度翻倍", sub:"C₀ 2000→4000", M:1, Q:1, C0:1, q0:0},
+  {name:"劣质炭", sub:"q₀ 220→130", M:1, Q:1, C0:0, q0:1},
+];
+const MM=[60,100,140], QQ=[30,50,80], C0C=[2000,4000], Q0Q=[220,130];
+const M_=()=>MM[S.M], QL_=()=>QQ[S.Q], C0_=()=>C0C[S.C0], q0_=()=>Q0Q[S.q0];
+
+/* 穿透曲线模型（Thomas 型 S 曲线，源自原测定页） */
+function tau(){return q0_()*M_()/(C0_()*(QL_()/1000));}            // 半穿透时间 min
+function delta(){return 0.29*tau()*Math.pow(QL_()/8,0.3);}         // 传质区宽度 min
+function ccAt(t){const T=tau(),D=delta();return 1/(1+Math.exp(-2.944*(t-T)/D));}
+function tBreak(){return tau()-delta();}   // 穿透点 5%
+function tSat(){return tau()+delta();}     // 饱和点 95%
+
+let S={scen:0, M:1, Q:1, C0:0, q0:0};
+let run=null, paused=false;
+
+/* ================= 床层与颗粒 ================= */
+const partsG=$("parts"), zonesG=$("zones");
+const parts=[];
+function buildBed(){
+  const bed=$("charBed"); bed.innerHTML="";
+  for(let i=0;i<150;i++){
+    const c=document.createElementNS(NS,"circle");
+    c.setAttribute("cx",(128+rnd()*384).toFixed(1)); c.setAttribute("cy",(178+rnd()*84).toFixed(1));
+    c.setAttribute("r",(2+rnd()*2.4).toFixed(1)); c.setAttribute("fill","#2a3547"); c.setAttribute("opacity",".9");
+    bed.appendChild(c);
+  }
+}
+function drawZones(t){
+  const T=tau(), D=delta();
+  const f=clamp(t/(T+D),0,1.02), mw=D/(T+D);
+  const x0=120+400*clamp(f-mw/2,0,1), x1=120+400*clamp(f+mw/2,0,1);
+  zonesG.innerHTML=
+    `<rect x="120" y="170" width="${(x0-120).toFixed(1)}" height="100" fill="rgba(124,45,18,.55)"/>`+
+    `<rect x="${x0.toFixed(1)}" y="170" width="${(x1-x0).toFixed(1)}" height="100" fill="url(#mtzG)"/>`;
+}
+function spawnP(){
+  const p={x:16, y:202+rnd()*36, vx:170, caught:false};
+  const c=document.createElementNS(NS,"circle");
+  c.setAttribute("r",(2.2+rnd()*1.6).toFixed(1)); c.setAttribute("fill","#d9a05a"); c.setAttribute("opacity",".9");
+  partsG.appendChild(c); p.el=c; parts.push(p);
+}
+function stepParts(dt,cc){
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i];
+    p.x+=p.vx*dt;
+    if(p.x>120&&p.x<520&&!p.caught){
+      if(rnd()<(1-cc)*3.2*dt){ // 被吸附
+        p.caught=true; p.el.setAttribute("opacity","0");
+        run.ads+=1;
+      }
+    }
+    if(p.caught||p.x>624){p.el.remove(); parts.splice(i,1); continue;}
+    p.el.setAttribute("cx",p.x.toFixed(1)); p.el.setAttribute("cy",p.y.toFixed(1));
+  }
+  while(parts.length>220){parts[0].el.remove(); parts.shift();}
+}
+
+/* ================= 运行控制 ================= */
+function startRun(){
+  const sc=SCENS[S.scen];
+  S.M=sc.M; S.Q=sc.Q; S.C0=sc.C0; S.q0=sc.q0;
+  const TMIN=tau()+1.5*delta();
+  run={t:0, readings:[], done:false, nextRec:TMIN/40, TMIN, rate:TMIN/(FAST?4:25),
+       q:0, ads:0};
+  seed=20261008;
+  parts.forEach(p=>p.el.remove()); parts.length=0;
+  buildBed(); syncUI();
+  $("inletC").textContent=`C₀ ${C0_()}mg/m³`;
+  narr("吸附开始："+NARR[S.scen].run);
+}
+function applyScen(i){S.scen=i; paused=false; startRun();}
+function applyParam(k,v){S[k]=v; paused=false; startRun();}
+function narr(t){const n=$("narrate"); n.style.opacity=0;
+  setTimeout(()=>{$("narrTxt").textContent=t; n.style.opacity=1;},160);}
+const fmtT=m=>`${String(Math.floor(m)).padStart(2,"0")}:${String(Math.floor(m%1*60)).padStart(2,"0")}`;
+
+/* ================= 控制台渲染 ================= */
+function syncUI(){
+  $("scenRow").innerHTML=SCENS.map((s,i)=>
+    `<button class="scen${i===S.scen?" on":""}" data-s="${i}">${s.name}<small>${s.sub}</small></button>`).join("");
+  $("mRow").innerHTML=MM.map((m,i)=>
+    `<button class="pbtn${i===S.M?" on":""}" data-m="${i}">${m} g</button>`).join("");
+  $("qRow").innerHTML=QQ.map((q,i)=>
+    `<button class="pbtn${i===S.Q?" on":""}" data-q="${i}">${q} L/min</button>`).join("");
+  $("cRow").innerHTML=C0C.map((c,i)=>
+    `<button class="pbtn${i===S.C0?" on":""}" data-c="${i}">${c} mg/m³</button>`).join("");
+  $("q0Row").innerHTML=Q0Q.map((q,i)=>
+    `<button class="pbtn${i===S.q0?" on":""}" data-q0="${i}">${q}${i===0?" 优质":" 受潮"}</button>`).join("");
+  document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>applyScen(+b.dataset.s));
+  document.querySelectorAll("[data-m]").forEach(b=>b.onclick=()=>applyParam("M",+b.dataset.m));
+  document.querySelectorAll("[data-q]").forEach(b=>b.onclick=()=>applyParam("Q",+b.dataset.q));
+  document.querySelectorAll("[data-c]").forEach(b=>b.onclick=()=>applyParam("C0",+b.dataset.c));
+  document.querySelectorAll("[data-q0]").forEach(b=>b.onclick=()=>applyParam("q0",+b.dataset.q0));
+}
+/* ================= 判定与解说 ================= */
+const NARR={
+  0:{run:"床层里，传质区正在往前爬。穿透点之前出口几乎零排放——看黄色分子的命运：全被床层“吃”掉了。",
+      end:"穿透点 110min，饱和点 330min。结论：工况正常，把换炭周期卡在穿透点附近。"},
+  1:{run:"风量从 50 拉到 80 L/min：注意两件事——穿透时间砍半，传质区还被拉宽了。这就是加大风量的隐性代价。",
+      end:"穿透点 58min（基准 110min）。结论：工况问题。降风量或增设备，别拿炭的质量背锅。"},
+  2:{run:"进口浓度翻倍：床层吃料速度翻倍，穿透点提前一半。先查前端工艺，别急着怪炭。",
+      end:"穿透点 55min。结论：前端问题。浓度超设计值，换再贵的炭也撑不久。"},
+  3:{run:"炭的品质掉了（q₀ 只剩 130）：同样的床、同样的风，穿透提前 40%。",
+      end:"穿透点 65min。结论：炭的问题。受潮或劣质炭，这才是真该换炭。"},
+};
+function finalJudge(){
+  const tb=tBreak(), ts=tSat();
+  const title=`换炭提醒 · 穿透点 ${tb.toFixed(0)}min`;
+  const body=`穿透点 ${tb.toFixed(0)}min（C/C₀=5%），饱和点 ${ts.toFixed(0)}min。`+
+    {0:NARR[0].end,1:NARR[1].end,2:NARR[2].end,3:NARR[3].end}[S.scen];
+  return{k:S.scen===0?"ok":"warn",title,body};
+}
+
+/* ================= 主循环 ================= */
+let lastTs=0, chartTick=0;
+function tick(ts){
+  requestAnimationFrame(tick);
+  if(!run)return;
+  const dt=Math.min(0.06,(ts-lastTs)/1000||0); lastTs=ts;
+  if(!paused){
+    if(!run.done){
+      const dtMin=dt*run.rate;
+      run.t+=dtMin;
+      const cc=ccAt(run.t);
+      run.q+=C0_()*(QL_()/1000)*(1-cc)*dtMin/M_();
+      while(run.t>=run.nextRec&&run.nextRec<=run.TMIN){
+        run.readings.push(+(ccAt(run.nextRec)*100).toFixed(1));
+        run.nextRec+=run.TMIN/40;
+      }
+      if(run.t>=run.TMIN){run.t=run.TMIN; run.done=true; onDone();}
+    }
+    const cc=ccAt(run.t);
+    if(rnd()<0.65)spawnP();
+    stepParts(dt,cc);
+    drawZones(run.t);
+    if($("chartView").classList.contains("on")&&(chartTick++%20===0))drawChart();
+  }
+  updateReads();
+}
+function updateReads(){
+  const cc=ccAt(run.t), cout=C0_()*cc;
+  $("rT").innerHTML=fmtT(run.t)+"<small> min</small>";
+  $("rCC").innerHTML=(cc*100).toFixed(1)+"<small> %</small>";
+  $("rCout").innerHTML=cout.toFixed(0)+"<small> mg/m³</small>";
+  $("rQ").innerHTML=run.q.toFixed(0)+"<small> mg/g</small>";
+  $("rTb").innerHTML=tBreak().toFixed(0)+"<small> min</small>";
+  $("rTs").innerHTML=tSat().toFixed(0)+"<small> min</small>";
+  $("ccV").innerHTML=(cc*100).toFixed(1)+"<small>%</small>";
+  $("ccBar").style.width=(cc*100).toFixed(1)+"%";
+  const oc=$("outletC");
+  oc.textContent=`C ${(cout).toFixed(0)}mg/m³`;
+  oc.setAttribute("fill",cc<0.05?"#34d399":cc<0.5?"#fbbf24":"#fb7185");
+}
+function onDone(){
+  const j=finalJudge();
+  const el=$("judge");
+  el.className="judge "+j.k; el.textContent=j.title+" —— "+j.body;
+  narr(j.body);
+  drawChart();
+}
+
+/* ================= 曲线视图 ================= */
+function toggleChart(){
+  const cv=$("chartView"), sv=$("sceneView");
+  const on=!cv.classList.contains("on");
+  cv.classList.toggle("on",on); sv.classList.toggle("hidden",on);
+  if(on)drawChart();
+}
+function drawChart(){
+  const svg=$("chart"), W=640, H=430, L=56, R=18, T=30, B=44, TM=run?run.TMIN:400;
+  const X=t=>L+(t/TM)*(W-L-R), Y=v=>T+(1-v/105)*(H-T-B);
+  let s=`<rect x="0" y="0" width="${W}" height="${H}" fill="#0b1220"/>`;
+  s+=`<text x="${L}" y="20" fill="#93a9bf" font-size="12">穿透曲线 C/C₀(t) · S 形</text>`;
+  for(let v=0;v<=100;v+=20){
+    s+=`<line x1="${L}" y1="${Y(v)}" x2="${W-R}" y2="${Y(v)}" stroke="rgba(148,184,218,.14)"/>`;
+    s+=`<text x="${L-8}" y="${Y(v)+4}" text-anchor="end" fill="#5f7488" font-size="10">${v}%</text>`;
+  }
+  for(let t=0;t<=TM;t+=Math.ceil(TM/6/10)*10)
+    s+=`<text x="${X(t)}" y="${H-B+18}" text-anchor="middle" fill="#5f7488" font-size="10">${t}min</text>`;
+  // 穿透点/饱和点线
+  const tb=tBreak(), ts=tSat();
+  for(const[tt,col,lab]of[[tb,"#fbbf24","穿透点 5%"],[ts,"#fb7185","饱和点 95%"]]){
+    s+=`<line x1="${X(tt)}" y1="${T}" x2="${X(tt)}" y2="${H-B}" stroke="${col}" stroke-width="1.4" stroke-dasharray="6 4"/>`;
+    s+=`<text x="${X(tt)}" y="${T-6}" text-anchor="middle" fill="${col}" font-size="10">${lab} ${tt.toFixed(0)}min</text>`;
+  }
+  s+=`<line x1="${L}" y1="${Y(5)}" x2="${W-R}" y2="${Y(5)}" stroke="rgba(232,241,250,.25)" stroke-dasharray="3 4"/>`;
+  s+=`<line x1="${L}" y1="${Y(95)}" x2="${W-R}" y2="${Y(95)}" stroke="rgba(232,241,250,.25)" stroke-dasharray="3 4"/>`;
+  let d="";
+  for(let i=0;i<=100;i++){const t=TM*i/100;d+=(i?"L":"M")+X(t).toFixed(1)+","+Y(ccAt(t)*100).toFixed(1);}
+  s+=`<path d="${d}" fill="none" stroke="#fb923c" stroke-width="2"/>`;
+  svg.innerHTML=s;
+}
+
+/* ================= 键盘 ================= */
+addEventListener("keydown",e=>{
+  if(e.key===" "){e.preventDefault(); applyScen((S.scen+1)%SCENS.length);}
+  else if(e.key>="1"&&e.key<="3")applyParam("M",+e.key-1);
+  else if(e.key>="4"&&e.key<="6")applyParam("Q",+e.key-4);
+  else if(e.key==="7"||e.key==="8")applyParam("C0",+e.key-7);
+  else if(e.key==="9")applyParam("q0",0);
+  else if(e.key==="0")applyParam("q0",1);
+  else if(e.key==="v"||e.key==="V")toggleChart();
+  else if(e.key==="p"||e.key==="P"){paused=!paused; narr(paused?"已暂停，再按 P 继续。":"继续吸附。");}
+});
+
+/* ================= 启动 ================= */
+addEventListener("load",()=>{
+  setTimeout(()=>$("loader").classList.add("done"),900);
+  startRun();
+  requestAnimationFrame(tick);
+});
+</script>
+</body>
+</html>
