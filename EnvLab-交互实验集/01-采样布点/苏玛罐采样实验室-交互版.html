@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>苏玛罐采样实验室 · SUMMA LAB</title>
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+    --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+    --amber:#ffb020; --amber-dim:#8a5c10;
+    --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    overflow-x:hidden;
+  }
+  #loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;
+    align-items:center;justify-content:center;flex-direction:column;gap:14px;
+    transition:opacity .6s ease;}
+  #loader.done{opacity:0;pointer-events:none}
+  #loader .spin{width:46px;height:46px;border-radius:50%;
+    border:3px solid var(--line);border-top-color:var(--amber);
+    animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+  header.lab-head{padding:26px 4px 6px}
+  .kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+  h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+  h1.title .thin{color:var(--dim);font-weight:300}
+  .sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+  .oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;
+    border-left:3px solid var(--amber);padding-left:14px;max-width:660px}
+  .oneliner b{color:var(--amber)}
+  .stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+  @media (max-width:900px){.stage{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:16px;position:relative;overflow:hidden}
+  .card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+  svg.scene{width:100%;height:auto;display:block;background:
+    radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+  .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+  .metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+  .metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+  .metric.warn .v{color:var(--danger)}
+  .metric.good .v{color:var(--ok)}
+  .metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+  .metric.flash{animation:mflash .9s ease}
+  @keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+  #fateBar{height:8px;background:#0d1117;border:1px solid var(--line);border-radius:5px;overflow:hidden;margin:2px 0 6px}
+  #fateFill{height:100%;background:linear-gradient(90deg,var(--amber-dim),var(--amber));width:0%;transition:width .3s ease}
+  #fateTxt{font-size:11px;color:var(--faint);font-family:var(--mono);margin-bottom:12px}
+  #narrate{min-height:78px;background:var(--panel2);border:1px solid var(--line);
+    border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;
+    font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px;transition:opacity .3s}
+  #narrate b{color:var(--cyan);font-family:var(--mono)}
+  #narrate .warn{color:var(--danger);font-weight:700}
+  #narrate .ok{color:var(--ok);font-weight:700}
+  .ctl{margin-bottom:14px}
+  .ctl:last-child{margin-bottom:2px}
+  .ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+  .ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button{
+    flex:1 1 0;min-width:62px;padding:10px 6px;font-size:14px;cursor:pointer;
+    background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;
+    font-family:var(--mono);transition:all .15s;
+  }
+  .seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+  .seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);
+    box-shadow:0 0 0 1px var(--amber-dim) inset}
+  .seg button.on small{color:var(--amber)}
+  .seg button:active{transform:scale(.97)}
+  kbd.kbd{font-family:var(--mono);font-size:10px;color:var(--faint);
+    border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+    padding:1px 5px;margin-left:6px;background:#0d1117;white-space:nowrap}
+  input[type=range]{width:100%;accent-color:var(--amber);height:28px;cursor:pointer}
+  .ticks{display:flex;justify-content:space-between;font-size:10px;color:var(--faint);
+    font-family:var(--mono);margin-top:-4px}
+  .redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+  @media (max-width:700px){.redlines{grid-template-columns:1fr}}
+  .rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+  .rl.bad .t .dot{background:var(--danger);box-shadow:0 0 8px var(--danger)}
+  .rl .d{font-size:12px;color:var(--dim);line-height:1.6}
+  .rl.bad{border-color:#5a2323}
+  details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+  details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+  details.how summary::-webkit-details-marker{display:none}
+  details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;
+    padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+  footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    font-size:12px;color:var(--faint)}
+  footer a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--faint)}
+  .tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);
+    border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>正在抽真空…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">ENVLAB · DEMO</div>
+    <div class="kicker">采样实验室 · 真空采样台</div>
+    <h1 class="title">苏玛罐采样<span class="thin">实验室</span></h1>
+    <div class="sub">SUMMA LAB · CATCH THE AIR</div>
+    <p class="oneliner">24小时的采样，罐子几分钟就满了——<b>采满之后的时间，都是白采的</b>。采样采的不是气，是时间代表性。</p>
+  </header>
+
+  <div class="stage">
+    <div class="card">
+      <h3>采样现场 · 装置 <span style="float:right"><kbd class="kbd">V</kbd> 切换视图</span></h3>
+      <svg class="scene" id="scene" viewBox="0 0 420 560" role="img" aria-label="苏玛罐采样装置动画"></svg>
+      <svg class="scene" id="chart" viewBox="0 0 420 560" role="img" aria-label="真空度-时间曲线" style="display:none"></svg>
+    </div>
+    <div>
+      <div class="card" style="margin-bottom:18px">
+        <h3>实时仪表</h3>
+        <div class="metrics">
+          <div class="metric" id="mVac"><div class="k">真空度 VAC</div><div class="v">–<small>"Hg</small></div><div class="sub2" id="mVacSub"></div></div>
+          <div class="metric" id="mTime"><div class="k">有效采样时长</div><div class="v">–<small></small></div><div class="sub2" id="mTimeSub"></div></div>
+          <div class="metric" id="mVol"><div class="k">采集气量 VOL</div><div class="v">–<small>L</small></div><div class="sub2" id="mVolSub"></div></div>
+        </div>
+        <div id="fateBar"><div id="fateFill"></div></div>
+        <div id="fateTxt">–</div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">采样时长 DURATION<kbd class="kbd">1</kbd><kbd class="kbd">2</kbd><kbd class="kbd">3</kbd></span><span class="val" id="durVal">24小时</span></div>
+          <div class="seg" id="durSeg">
+            <button data-v="grab">瞬时<small>grab样</small></button>
+            <button data-v="8h">8小时<small>工作日</small></button>
+            <button data-v="24h" class="on">24小时<small>TO-15常规</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">流量控制 FLOW<kbd class="kbd">4</kbd><kbd class="kbd">5</kbd><kbd class="kbd">6</kbd></span><span class="val" id="flowVal">正常恒流</span></div>
+          <div class="seg" id="flowSeg">
+            <button data-v="ok" class="on">正常<small>恒流</small></button>
+            <button data-v="clog">堵塞<small>流量减半</small></button>
+            <button data-v="open">失效<small>全开直采</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">罐体气密 LEAK<kbd class="kbd">7</kbd><kbd class="kbd">8</kbd><kbd class="kbd">9</kbd></span><span class="val" id="leakVal">完好 0%</span></div>
+          <div class="seg" id="leakSeg">
+            <button data-v="0" class="on">0%<small>完好</small></button>
+            <button data-v="0.05">5%<small>轻微泄漏</small></button>
+            <button data-v="0.15">15%<small>阀门泄漏</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">初真空 VACUUM<kbd class="kbd">Q</kbd><kbd class="kbd">A</kbd></span><span class="val" id="vacVal">-29.0 "Hg</span></div>
+          <input type="range" id="vacRange" min="-30" max="-15" step="0.5" value="-29" aria-label="初真空微调">
+          <div class="ticks"><span>-30</span><span>-22.5</span><span>-15 "Hg</span></div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">场景 SCENE<kbd class="kbd">空格</kbd></span><span class="val" id="scenVal">基准采样</span></div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">运行<kbd class="kbd">P</kbd></span><span class="val" id="runVal">运行中</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl" id="rlVac"><div class="t"><span class="dot"></span>红线一 · 残余真空</div><div class="d">结束时罐里必须还剩真空。采到 0（常压）才停，等于提前交卷——后面的时间白采了，样品只代表前半段。</div></div>
+    <div class="rl" id="rlFlow"><div class="t"><span class="dot"></span>红线二 · 恒流</div><div class="d">流量控制器靠压差恒流，只在真空充足时成立。失效全开，几分钟采满，剩下二十几小时采了个寂寞。</div></div>
+    <div class="rl" id="rlLeak"><div class="t"><span class="dot"></span>红线三 · 气密</div><div class="d">采样前后各读一次真空表，对不上先怀疑漏。曲线前陡后平、终真空偏高，是泄漏的指纹。</div></div>
+  </div>
+
+  <details class="how">
+    <summary>▸ 模型与公式（确定性模型，无随机数凑结果）</summary>
+    <div class="f">Q_set = V·(Pf − P0)/T        控制器设定流量（T=目标时长；按初真空−29"Hg标定）
+P(t)  = P0 + Q·t/V             恒流段罐内绝对压力（理想气体）
+临界压比 0.53：下游/上游＞0.53 后小孔恒流衰减（演示中正常控制器视为已补偿）
+Q_leak = k·泄漏率·(Pamb − P罐)   泄漏量 ∝ 罐内外压差
+判定（演示标准）：终真空≥−2"Hg→提前采满；≤−15"Hg→采集不足；泄漏占比＞20%→可疑</div>
+    <p>苏玛罐用于采集环境空气中的 VOC 全空气样品（EPA TO-15 方法）。教学演示模型：6L电抛光不锈钢罐，初真空−29"Hg 时 P0≈0.03 atm；24小时目标残余真空 −5"Hg 对应设定流量约 3.3 mL/min。仅用于原理演示，不作为采样依据。</p>
+  </details>
+
+  <footer>
+    <span>Also check out: <a href="#">旋风除尘器实验室</a> · <a href="#">五气分析仪实验室</a></span>
+    <span>DEMO · 环保数字化 · jinghao.song@gmail.com</span>
+  </footer>
+</div>
+<script>
+"use strict";
+/* ================= 模型（确定性） ================= */
+const INHG = 29.92, V = 6, PAMB = 1;      // "Hg/atm，常压；6L罐
+const S = { dur:"24h", flow:"ok", leak:0, rv0:-29, running:true, view:"scene" };
+const DURN = {grab:"瞬时", "8h":"8小时", "24h":"24小时"};
+const FLOWN = {ok:"正常恒流", clog:"堵塞半流", open:"失效全开"};
+
+const vacOf = P => (P - PAMB) * INHG;      // 绝对压力 → 真空度 "Hg
+const FAST = /[?&]fast=1/.test(location.search); // 录制加速：全程约3.5秒播完，留1.5秒给判定
+let run = null;
+
+function startRun(){
+  const Tmin = S.dur==="grab" ? 5 : S.dur==="8h" ? 480 : 1440;
+  const P0 = 1 + S.rv0 / INHG;
+  const P0ref = 1 - 29/INHG;   // 控制器按标准初真空 −29"Hg 标定流量（出厂/实验室标定）
+  let Pf, Qset;
+  if(S.dur==="grab"){ Pf = 0.97; Qset = 0; }          // 瞬时样：开阀直采
+  else { Pf = 1 - 5/INHG; Qset = V*(Pf-P0ref)/(Tmin/60); } // 定时样：目标残余真空 −5"Hg
+  run = { t:0, Tmin, P0, P0ref, Pf, Qset, P:P0, col:0, leakVol:0,
+          tFull:-1, done:false, curve:[[0, S.rv0]], rate:Tmin/(FAST?3.5:25) };
+  if(typeof seedInside==="function")seedInside();
+}
+const TAU_OPEN = 0.0025; // 开阀指数充填时间常数（h），约3分钟采满
+function stepRun(dtWall){
+  if(!run || run.done || !S.running || dtWall<=0) return;
+  const simMin = dtWall * run.rate, sub = 24, h = simMin/60/sub;
+  for(let i=0;i<sub;i++){
+    if(run.t >= run.Tmin) break;
+    const P = run.P;
+    let Qc;
+    if(S.dur==="grab" || S.flow==="open") Qc = Math.max(0,(PAMB-P))/TAU_OPEN;
+    else Qc = run.Qset * (S.flow==="clog" ? 0.5 : 1);
+    const Ql = S.leak * 6.0 * Math.max(0, PAMB - P);   // 泄漏 ∝ 压差
+    run.P = Math.min(1.02, P + (Qc+Ql)/V*h);
+    run.col += Qc*h; run.leakVol += Ql*h;
+    run.t += h*60;
+    if(run.tFull<0 && run.P>=0.97) run.tFull = run.t;
+  }
+  if(run.t>=run.Tmin) run.done = true;
+  const last = run.curve[run.curve.length-1];
+  if(run.t - last[0] > run.Tmin/240) run.curve.push([run.t, vacOf(run.P)]);
+}
+const fillFrac = () => !run ? 0 : Math.max(0, Math.min(1, (run.P-run.P0)/(0.97-run.P0)));
+const targetVol = () => !run ? 0 : V*(run.Pf-run.P0ref);          // 目标采集气量 L（按标定）
+const leakShare = () => !run ? 0 : run.leakVol/Math.max(1e-9, run.col+run.leakVol);
+function fmtT(min){
+  if(min < 90) return min.toFixed(min<10?1:0)+" min";
+  return (min/60).toFixed(1)+" h";
+}
+/* 判定（演示标准，非法规限值） */
+function judge(){
+  if(!run) return {k:"run", html:"…" };
+  const Rv = vacOf(run.P), ls = leakShare();
+  if(S.dur==="grab"){
+    if(!run.done) return {k:"run", html:`瞬时采样进行中… <b>${fmtT(run.t)}</b> / 5 min`};
+    const tf = run.tFull>0 ? run.tFull : run.Tmin;
+    return {k:"ok", html:`<span class="ok">瞬时样 ${fmtT(tf)} 采满</span>——它只代表这一两分钟的空气，这是正常的，别拿它当 24 小时平均。`};
+  }
+  if(!run.done) return {k:"run", html:`采样进行中… <b>${fmtT(run.t)}</b> / ${fmtT(run.Tmin)}，当前真空 <b>${Rv.toFixed(1)}"Hg</b>`};
+  if(ls > 0.2) return {k:"warn", html:`<span class="warn">泄漏可疑</span>：泄漏占比 <b>${(ls*100).toFixed(0)}%</b>，真空掉得比理论快，终真空 <b>${Rv.toFixed(1)}"Hg</b> 对不上——这罐样品先打个问号。`};
+  if(run.tFull > 0 && run.tFull < run.Tmin*0.9)
+    return {k:"warn", html:`<span class="warn">提前采满</span>：${fmtT(run.tFull)} 真空就到 0 了，后面 <b>${fmtT(run.Tmin-run.tFull)}</b> 采了个寂寞——样品只代表前 ${fmtT(run.tFull)}。`};
+  if(Rv <= -15 || run.col < targetVol()*0.6)
+    return {k:"warn", html:`<span class="warn">采集不足</span>：终真空 <b>${Rv.toFixed(1)}"Hg</b>，只采了目标气量的 <b>${(run.col/Math.max(1e-9,targetVol())*100).toFixed(0)}%</b>，检出限要打折扣。`};
+  return {k:"ok", html:`<span class="ok">采样有效</span>：终真空 <b>${Rv.toFixed(1)}"Hg</b>，有效采样 <b>${fmtT(Math.min(run.t, run.tFull>0?run.tFull:run.Tmin))}</b>，采集 <b>${run.col.toFixed(2)} L</b>。`};
+}
+
+/* 确定性伪随机 */
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+const rnd = mulberry32(20261005);
+
+/* ================= 采样现场 SVG ================= */
+const NS="http://www.w3.org/2000/svg";
+const scene=document.getElementById("scene"), chart=document.getElementById("chart");
+function el(n,at,parent){const e=document.createElementNS(NS,n);for(const k in at)e.setAttribute(k,at[k]);parent.appendChild(e);return e;}
+
+const leakJets=[];
+let gaugeNeedle, gaugeTxt, clockTxt, speedTxt, clogLbl, openLbl, clogG;
+(function buildScene(){
+  const g=el("g",{},scene);
+  // 不锈钢渐变（罐体金属质感）
+  const defs=el("defs",{},g);
+  const steel=el("linearGradient",{id:"steel",x1:"0",y1:"0",x2:"1",y2:"0"},defs);
+  el("stop",{offset:"0","stop-color":"#141a24"},steel);
+  el("stop",{offset:"0.45","stop-color":"#2c3547"},steel);
+  el("stop",{offset:"0.6","stop-color":"#232c3d"},steel);
+  el("stop",{offset:"1","stop-color":"#12161e"},steel);
+  // 环境空气区
+  el("text",{x:60,y:102,fill:"#8b95a3","font-size":11,"text-anchor":"middle","font-family":"monospace"},g).textContent="环境空气 →";
+  // 进气管
+  el("rect",{x:18,y:110,width:140,height:22,fill:"#1a2230",stroke:"#334052","stroke-width":1.5,rx:4},g);
+  // 过滤器
+  el("rect",{x:64,y:104,width:34,height:34,fill:"#232c3d",stroke:"#3a4a61","stroke-width":1.5},g);
+  el("line",{x1:70,y1:104,x2:70,y2:138,stroke:"#3a4a61","stroke-width":1},g);
+  el("line",{x1:76,y1:104,x2:76,y2:138,stroke:"#3a4a61","stroke-width":1},g);
+  el("line",{x1:82,y1:104,x2:82,y2:138,stroke:"#3a4a61","stroke-width":1},g);
+  el("line",{x1:88,y1:104,x2:88,y2:138,stroke:"#3a4a61","stroke-width":1},g);
+  el("text",{x:81,y:152,fill:"#5b6572","font-size":10,"text-anchor":"middle"},g).textContent="过滤器";
+  // 流量控制器
+  el("rect",{x:108,y:100,width:64,height:42,fill:"#1a2230",stroke:"#ffb020","stroke-width":1.5,rx:6},g);
+  el("text",{x:140,y:118,fill:"#ffb020","font-size":10,"text-anchor":"middle","font-family":"monospace"},g).textContent="流量";
+  el("text",{x:140,y:132,fill:"#ffb020","font-size":10,"text-anchor":"middle","font-family":"monospace"},g).textContent="控制器";
+  clogG=el("g",{id:"clogG",opacity:0},g); // 堵塞示意：孔板收窄
+  el("rect",{x:136,y:100,width:8,height:42,fill:"#ff5252",opacity:.55},clogG);
+  clogLbl=el("text",{x:140,y:92,fill:"#ff5252","font-size":10,"text-anchor":"middle",opacity:0},g);
+  clogLbl.textContent="堵塞·流量减半";
+  openLbl=el("text",{x:140,y:92,fill:"#ff5252","font-size":10,"text-anchor":"middle",opacity:0},g);
+  openLbl.textContent="失效·全开直采";
+  // 管道：控制器 → 右 → 下 → 阀门
+  el("polyline",{points:"172,121 210,121 210,192",fill:"none",stroke:"#334052","stroke-width":8},g);
+  el("polyline",{points:"172,121 210,121 210,192",fill:"none",stroke:"#0d1117","stroke-width":4},g);
+  // 阀门（罐颈顶部）
+  el("rect",{x:202,y:192,width:16,height:24,fill:"#2c3546",stroke:"#3a4a61","stroke-width":1.5},g);
+  el("line",{x1:210,y1:192,x2:210,y2:182,stroke:"#3a4a61","stroke-width":3},g);
+  el("circle",{cx:210,cy:177,r:6,fill:"none",stroke:"#8b95a3","stroke-width":2},g);
+  el("text",{x:236,y:202,fill:"#5b6572","font-size":10},g).textContent="阀门";
+  // 吊牌（实物罐上挂的绿/黄标签）
+  el("rect",{x:222,y:196,width:9,height:15,fill:"#3ddc84",opacity:.8,transform:"rotate(8 226 203)"},g);
+  el("rect",{x:233,y:198,width:9,height:15,fill:"#ffb020",opacity:.8,transform:"rotate(-6 237 205)"},g);
+  // 泄漏射流（默认隐藏）
+  const leakG=el("g",{id:"leakG",opacity:0},g);
+  [[202],[210],[218]].forEach(([x])=>{
+    leakJets.push(el("line",{x1:x,y1:192,x2:x+(x-210)*2.2,y2:164,stroke:"#ff5252","stroke-width":3,"stroke-dasharray":"6 5"},leakG));
+  });
+  const ll=el("text",{x:250,y:150,fill:"#ff5252","font-size":11,"font-family":"monospace",id:"leakLabel",opacity:0},g);
+  ll.textContent="泄漏 ↑ 样品稀释";
+  // 苏玛罐体（参照实物照片：鼓形罐体＋底部支撑裙＋顶部阀门）
+  const canG=el("g",{},g);
+  el("rect",{x:174,y:444,width:72,height:36,fill:"#141a24",stroke:"#3a4a61","stroke-width":2},canG);
+  el("ellipse",{cx:210,cy:340,rx:64,ry:108,fill:"url(#steel)",stroke:"#3a4a61","stroke-width":2.5},canG);
+  el("ellipse",{cx:188,cy:300,rx:13,ry:58,fill:"#ffffff",opacity:.05},canG);
+  el("rect",{x:198,y:214,width:24,height:26,fill:"#232c3d",stroke:"#3a4a61","stroke-width":1.5},canG);
+  el("text",{x:210,y:494,fill:"#8b95a3","font-size":11,"text-anchor":"middle","font-family":"monospace"},canG).textContent="6L 苏玛罐";
+  el("text",{x:210,y:510,fill:"#5b6572","font-size":9,"text-anchor":"middle"},canG).textContent="内壁电抛光钝化 · 采气态VOC";
+  // 真空表（表管连到罐体）
+  el("line",{x1:274,y1:250,x2:294,y2:250,stroke:"#334052","stroke-width":6},g);
+  const gg=el("g",{},g);
+  el("circle",{cx:328,cy:250,r:34,fill:"#0d1117",stroke:"#3a4a61","stroke-width":2},gg);
+  for(let v=-30;v<=0;v+=10){
+    const a=(-120+(v+30)/30*240)*Math.PI/180;
+    const x1=328+26*Math.sin(a), y1=250-26*Math.cos(a);
+    const x2=328+31*Math.sin(a), y2=250-31*Math.cos(a);
+    el("line",{x1:x1.toFixed(1),y1:y1.toFixed(1),x2:x2.toFixed(1),y2:y2.toFixed(1),stroke:"#8b95a3","stroke-width":1.5},gg);
+    const t=el("text",{x:(328+19*Math.sin(a)).toFixed(1),y:(250-19*Math.cos(a)+3).toFixed(1),
+      fill:"#5b6572","font-size":8,"text-anchor":"middle","font-family":"monospace"},gg);
+    t.textContent=v;
+  }
+  gaugeNeedle=el("line",{x1:328,y1:250,x2:328,y2:226,stroke:"#ffb020","stroke-width":2.5},gg);
+  el("circle",{cx:328,cy:250,r:4,fill:"#ffb020"},gg);
+  el("text",{x:328,y:296,fill:"#5b6572","font-size":9,"text-anchor":"middle"},gg).textContent="真空表";
+  gaugeTxt=el("text",{x:328,y:312,fill:"#ffb020","font-size":12,"text-anchor":"middle","font-family":"monospace"},gg);
+  gaugeTxt.textContent='-29.0"Hg';
+  // 采样时钟
+  el("text",{x:328,y:120,fill:"#5b6572","font-size":10,"text-anchor":"middle","font-family":"monospace"},g).textContent="采样时钟";
+  clockTxt=el("text",{x:328,y:142,fill:"#e8eef4","font-size":16,"text-anchor":"middle","font-family":"monospace"},g);
+  clockTxt.textContent="00:00 / 24:00";
+  speedTxt=el("text",{x:328,y:160,fill:"#5b6572","font-size":10,"text-anchor":"middle","font-family":"monospace"},g);
+  speedTxt.textContent="加速 ×3456 演示";
+  // 图例：三种颗粒各代表什么
+  const lgd=el("g",{},g);
+  el("circle",{cx:26,cy:542,r:3,fill:"#59d6ff"},lgd);
+  el("text",{x:34,y:545,fill:"#5b6572","font-size":10},lgd).textContent="环境空气分子（示意）";
+  el("circle",{cx:158,cy:542,r:3,fill:"#ffb020"},lgd);
+  el("text",{x:166,y:545,fill:"#5b6572","font-size":10},lgd).textContent="采样气流";
+  el("circle",{cx:238,cy:542,r:3,fill:"#ff5252"},lgd);
+  el("text",{x:246,y:545,fill:"#5b6572","font-size":10},lgd).textContent="泄漏渗入空气";
+})();
+
+/* 粒子：环境空气恒定漂移（永不停） */
+const NAM=40, ams=[];
+for(let i=0;i<NAM;i++)ams.push({x:8+rnd()*132,y:200+rnd()*330,ph:rnd()*6.28,sp:.4+rnd()*.8});
+const amG=el("g",{},scene);
+const amEls=ams.map(()=>el("circle",{r:1.8,fill:"#59d6ff",opacity:.4},amG));
+
+/* 进气流：沿管路进入罐体，速率∝实际流量 */
+const NIN=24, ins=[];
+const PATH=[[18,121],[172,121],[210,121],[210,192]];
+const SEGLEN=[];let PLEN=0;
+for(let i=0;i<PATH.length-1;i++){const L=Math.hypot(PATH[i+1][0]-PATH[i][0],PATH[i+1][1]-PATH[i][1]);SEGLEN.push(L);PLEN+=L;}
+function pathPos(s){
+  let d=s*PLEN;
+  for(let i=0;i<SEGLEN.length;i++){
+    if(d<=SEGLEN[i]){const f=d/SEGLEN[i];
+      return [PATH[i][0]+(PATH[i+1][0]-PATH[i][0])*f, PATH[i][1]+(PATH[i+1][1]-PATH[i][1])*f];}
+    d-=SEGLEN[i];
+  }
+  return PATH[PATH.length-1].slice();
+}
+for(let i=0;i<NIN;i++)ins.push({s:rnd(),ph:rnd()*6.28});
+const inG=el("g",{},scene);
+const inEls=ins.map(()=>el("circle",{r:2,fill:"#ffb020",opacity:.8},inG));
+function curQc(){ // 当前控制器流量 L/h（用于粒子速度）
+  if(!run)return 0;
+  if(S.dur==="grab"||S.flow==="open")return Math.max(0,(PAMB-run.P))/TAU_OPEN;
+  return run.Qset*(S.flow==="clog"?0.5:1);
+}
+
+/* 罐内气体分子：气体充满整个罐体，数量∝已采集气量（无液面） */
+const NIN2=90, cps=[];
+function seedInside(){
+  cps.length=0;
+  for(let i=0;i<NIN2;i++)cps.push({x:154+rnd()*112,y:244+rnd()*192,ph:rnd()*6.28});
+}
+const cpG=el("g",{},scene);
+const cpEls=[];
+for(let i=0;i<NIN2;i++)cpEls.push(el("circle",{r:2,fill:"#ffb020",opacity:0},cpG));
+
+/* 泄漏红粒子：从阀门处渗入 */
+const NLK=10, lks=[];
+for(let i=0;i<NLK;i++)lks.push({x:210,y:180,ph:rnd()*6.28,sp:.5+rnd()});
+const lkG=el("g",{},scene);
+const lkEls=lks.map(()=>el("circle",{r:2,fill:"#ff5252",opacity:0},lkG));
+
+let simT=0, lastT=performance.now(), frame=0;
+function tick(now){
+  const rawDt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+  const dt=S.running?rawDt:0; simT+=dt; frame++;
+  if(dt>0)stepRun(dt);
+  // 环境粒子：恒定漂移
+  for(let i=0;i<NAM;i++){
+    const p=ams[i],c=amEls[i];
+    p.x+=p.sp*dt*8; if(p.x>142){p.x=8;p.y=200+rnd()*330;}
+    const y=p.y+Math.sin(simT*1.4+p.ph)*6;
+    c.setAttribute("cx",p.x.toFixed(1));c.setAttribute("cy",y.toFixed(1));
+  }
+  // 进气流粒子
+  const q=curQc(), qref=0.6, spd=Math.min(6,q/qref+0.04);
+  for(let i=0;i<NIN;i++){
+    const p=ins[i],c=inEls[i];
+    p.s+=dt*spd*0.35; if(p.s>1)p.s-=1;
+    const [x,y]=pathPos(p.s);
+    c.setAttribute("cx",x.toFixed(1));c.setAttribute("cy",(y+Math.sin(simT*3+p.ph)*2).toFixed(1));
+    let op=.85*Math.min(1,spd);
+    if(p.s<0.04)op*=p.s/0.04; if(p.s>0.94)op*=Math.max(0,(1-p.s)/0.06);
+    c.setAttribute("opacity",Math.max(0,op).toFixed(2));
+  }
+  // 罐内累积
+  const ff=fillFrac(), nShow=Math.round(NIN2*ff);
+  for(let i=0;i<NIN2;i++){
+    const p=cps[i],c=cpEls[i];
+    if(!p||!c)continue;
+    const y=p.y+Math.sin(simT*1.1+p.ph)*3;
+    c.setAttribute("cx",p.x.toFixed(1));c.setAttribute("cy",y.toFixed(1));
+    c.setAttribute("opacity",i<nShow?"0.75":"0");
+  }
+  // 泄漏粒子
+  const lkOn=S.leak>0&&run&&!run.done;
+  for(let i=0;i<NLK;i++){
+    const p=lks[i],c=lkEls[i];
+    if(lkOn&&dt>0){p.y+=p.sp*dt*40;p.x+=Math.sin(simT*2+p.ph)*dt*12;
+      if(p.y>300){p.y=180;p.x=200+rnd()*20;}}
+    c.setAttribute("cx",p.x.toFixed(1));c.setAttribute("cy",p.y.toFixed(1));
+    c.setAttribute("opacity",lkOn?"0.8":"0");
+  }
+  // 泄漏射流闪烁
+  const lg=document.getElementById("leakG"), ll=document.getElementById("leakLabel");
+  const lo=S.leak>0?(0.55+0.35*Math.sin(now/240)):0;
+  if(lg){lg.setAttribute("opacity",lo.toFixed(2));ll.setAttribute("opacity",lo.toFixed(2));}
+  if(S.leak>0)leakJets.forEach(l=>l.setAttribute("stroke-dashoffset",String(-((now/36)%11).toFixed(1))));
+  // 堵塞/失效标识
+  if(clogG){clogG.setAttribute("opacity",S.flow==="clog"?"1":"0");
+    clogLbl.setAttribute("opacity",S.flow==="clog"?"1":"0");
+    openLbl.setAttribute("opacity",S.flow==="open"?"1":"0");}
+  // 表针 + 时钟（气体无液面，罐内气量用分子点数表示）
+  if(run){
+    const vac=vacOf(run.P);
+    const ang=(-120+(vac+30)/30*240)*Math.PI/180;
+    gaugeNeedle.setAttribute("x2",(328+24*Math.sin(ang)).toFixed(1));
+    gaugeNeedle.setAttribute("y2",(250-24*Math.cos(ang)).toFixed(1));
+    gaugeNeedle.setAttribute("stroke",vac>=-2?"#ff5252":"#ffb020");
+    gaugeTxt.textContent=vac.toFixed(1)+'"Hg';
+    const mm=Math.floor(run.t), hh=Math.floor(mm/60);
+    const Tm=run.Tmin, TH=Math.floor(Tm/60);
+    clockTxt.textContent=S.dur==="grab"
+      ? `${mm}:${String(Math.floor(run.t%1*60)).padStart(2,"0")} / 5:00`
+      : `${String(hh).padStart(2,"0")}:${String(mm%60).padStart(2,"0")} / ${String(TH).padStart(2,"0")}:00`;
+    speedTxt.textContent="加速 ×"+Math.round(run.rate*60)+" 演示";
+  }
+  if(frame%6===0)refreshLive();
+  if(S.view==="chart"&&frame%20===0)drawChart();
+  requestAnimationFrame(tick);
+}
+
+/* ================= 真空度-时间曲线视图 ================= */
+function drawChart(){
+  if(!run)return;
+  chart.innerHTML="";
+  const W=420,H=560,pl=46,pr=16,pt=30,pb=46;
+  const X=t=>pl+t/run.Tmin*(W-pl-pr);
+  const Y=v=>pt+(1-(v-2)/(-32-2))*(H-pt-pb); // 真空 2(上)…-32(下) "Hg
+  el("rect",{x:0,y:0,width:W,height:H,fill:"none"},chart);
+  // 目标残余真空带
+  el("rect",{x:pl,y:Y(-2),width:W-pl-pr,height:Y(-12)-Y(-2),fill:"#3ddc84",opacity:.08},chart);
+  const bt=el("text",{x:W-pr-4,y:Y(-2)-6,fill:"#3ddc84","font-size":10,"text-anchor":"end","font-family":"monospace"},chart);
+  bt.textContent="目标残余真空带";
+  // 网格
+  [0,-10,-20,-30].forEach(v=>{
+    el("line",{x1:pl,y1:Y(v),x2:W-pr,y2:Y(v),stroke:"#1c2330","stroke-width":1},chart);
+    const t=el("text",{x:pl-6,y:Y(v)+3,fill:"#5b6572","font-size":10,"text-anchor":"end","font-family":"monospace"},chart);
+    t.textContent=v+'"Hg';
+  });
+  const xUnit=S.dur==="grab"?"min":"h", xMax=S.dur==="grab"?run.Tmin:run.Tmin/60;
+  [0,0.25,0.5,0.75,1].forEach(f=>{
+    const t=el("text",{x:X(f*run.Tmin),y:H-pb+16,fill:"#5b6572","font-size":10,"text-anchor":"middle","font-family":"monospace"},chart);
+    t.textContent=(f*xMax).toFixed(f===0?0:1);
+  });
+  const xl=el("text",{x:W/2,y:H-8,fill:"#8b95a3","font-size":11,"text-anchor":"middle"},chart);
+  xl.textContent=`采样时间 (${xUnit})`;
+  const yl=el("text",{x:14,y:H/2,fill:"#8b95a3","font-size":11,"text-anchor":"middle",transform:`rotate(-90 14 ${H/2})`},chart);
+  yl.textContent="真空度";
+  // 常压线
+  el("line",{x1:pl,y1:Y(0),x2:W-pr,y2:Y(0),stroke:"#ff5252","stroke-width":1.5,"stroke-dasharray":"6 4"},chart);
+  const zt=el("text",{x:W-pr-4,y:Y(0)-6,fill:"#ff5252","font-size":10,"text-anchor":"end","font-family":"monospace"},chart);
+  zt.textContent="常压=采满";
+  // 理论线（无泄漏恒流）
+  let th=`M ${X(0)} ${Y(run.P0? vacOf(run.P0):S.rv0)}`;
+  const pts=[];
+  const N=120;
+  for(let i=0;i<=N;i++){
+    const t=run.Tmin*i/N;
+    let P;
+    if(S.dur==="grab"||S.flow==="open")P=PAMB-(PAMB-run.P0)*Math.exp(-(t/60)/TAU_OPEN);
+    else{const Qe=run.Qset*(S.flow==="clog"?0.5:1);P=Math.min(1.02,run.P0+Qe*(t/60)/V);}
+    const v=vacOf(P);
+    pts.push([X(t),Y(v)]);th+=` L ${X(t).toFixed(1)} ${Y(v).toFixed(1)}`;
+  }
+  el("path",{d:th,fill:"none",stroke:"#5b6572","stroke-width":1.5,"stroke-dasharray":"6 4"},chart);
+  const lt=el("text",{x:X(run.Tmin*0.62),y:Y(vacOf(Math.min(1.02,run.P0+run.Qset*(run.Tmin/60)/V)))-8,
+    fill:"#5b6572","font-size":10,"font-family":"monospace"},chart);
+  lt.textContent="理论线（无泄漏）";
+  // 实际线
+  if(run.curve.length>1){
+    const ap=run.curve.map(([t,v])=>`${X(t).toFixed(1)},${Y(v).toFixed(1)}`).join(" ");
+    el("polyline",{points:ap,fill:"none",stroke:"#ffb020","stroke-width":2.5},chart);
+  }
+}
+
+/* ================= UI 更新 ================= */
+const $=id=>document.getElementById(id);
+function flash(id){const m=$(id);if(!m||!m.classList)return;
+  m.classList.remove("flash");void m.offsetWidth;m.classList.add("flash");}
+const fmt=(n,d=1)=>n.toFixed(d);
+function refreshLive(){
+  if(!run)return;
+  const vac=vacOf(run.P), j=judge();
+  $("mVac").querySelector(".v").innerHTML=`${fmt(vac)}<small>"Hg</small>`;
+  $("mVacSub").textContent=run.done?(j.k==="ok"?"残余真空正常":"终真空异常"):"采样中…";
+  $("mVac").className="metric "+(run.done?(j.k==="ok"?"good":"warn"):"");
+  const effMin=Math.min(run.t, run.tFull>0?run.tFull:run.Tmin);
+  const tEl=$("mTime").querySelector(".v");
+  if(S.dur==="grab"){tEl.innerHTML=`${fmt(effMin,0)}<small>min</small>`;$("mTimeSub").textContent="目标 瞬时";}
+  else{tEl.innerHTML=`${fmt(effMin/60)}<small>h</small>`;$("mTimeSub").textContent=`目标 ${run.Tmin/60} h`;}
+  $("mTime").className="metric "+(run.done&&S.dur!=="grab"&&effMin<run.Tmin*0.9?"warn":run.done?"good":"");
+  $("mVol").querySelector(".v").innerHTML=`${fmt(run.col,2)}<small>L</small>`;
+  $("mVolSub").textContent=`目标 ${fmt(targetVol(),2)} L`;
+  $("mVol").className="metric "+(run.done&&run.col<targetVol()*0.6?"warn":run.done?"good":"");
+  $("fateFill").style.width=(fillFrac()*100).toFixed(1)+"%";
+  $("fateTxt").textContent=`充填度 ${(fillFrac()*100).toFixed(0)}% · 真空 ${fmt(vac)}"Hg · 泄漏占比 ${(leakShare()*100).toFixed(0)}%`;
+  $("durVal").textContent=DURN[S.dur];
+  $("flowVal").textContent=FLOWN[S.flow];
+  $("leakVal").textContent=`${S.leak===0?"完好":Math.round(S.leak*100)+"%泄漏"}`;
+  $("vacVal").textContent=`${S.rv0.toFixed(1)} "Hg`;
+  $("runVal").textContent=S.running?"运行中":"已暂停";
+  matchScen();
+  const box=$("narrate");
+  const html=j.html;
+  if(box.dataset.h!==html){box.dataset.h=html;box.style.opacity=0;
+    setTimeout(()=>{box.innerHTML=html;box.style.opacity=1;},160);}
+  // 红线
+  $("rlVac").classList.toggle("bad",run.done&&j.k==="warn");
+  $("rlFlow").classList.toggle("bad",S.flow!=="ok");
+  $("rlLeak").classList.toggle("bad",S.leak>0.01);
+}
+
+/* 控件绑定 */
+function segWire(id, fn){
+  const seg=$(id);
+  seg.querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click",()=>{
+      seg.querySelectorAll("button").forEach(x=>x.classList.remove("on"));
+      b.classList.add("on"); fn(b.dataset.v);
+    });
+  });
+  return v=>{
+    seg.querySelectorAll("button").forEach(x=>x.classList.toggle("on",x.dataset.v==String(v)));
+  };
+}
+const syncDur=segWire("durSeg",v=>{S.dur=v;startRun();refreshLive();flash("mVac");flash("mTime");flash("mVol");});
+const syncFlow=segWire("flowSeg",v=>{S.flow=v;startRun();refreshLive();flash("mVac");flash("mVol");});
+const syncLeak=segWire("leakSeg",v=>{S.leak=parseFloat(v);startRun();refreshLive();flash("mVac");});
+/* 场景循环：空格切换 */
+const SCEN=[
+  {dur:"24h",flow:"ok",  leak:0,   rv0:-29, name:"基准采样"},
+  {dur:"24h",flow:"open",leak:0,   rv0:-29, name:"控制器失效"},
+  {dur:"24h",flow:"ok",  leak:0.15,rv0:-29, name:"罐体泄漏"},
+  {dur:"24h",flow:"clog",leak:0,rv0:-20, name:"极限工况"},
+];
+let scenIdx=0;
+function applyScen(i){
+  scenIdx=(i+SCEN.length)%SCEN.length;
+  const s=SCEN[scenIdx];
+  S.dur=s.dur;S.flow=s.flow;S.leak=s.leak;S.rv0=s.rv0;
+  $("vacRange").value=s.rv0;
+  syncDur(s.dur);syncFlow(s.flow);syncLeak(s.leak);
+  startRun();
+  $("scenVal").textContent=s.name;
+  refreshLive();flash("mVac");flash("mTime");flash("mVol");
+}
+function matchScen(){
+  const i=SCEN.findIndex(s=>s.dur===S.dur&&s.flow===S.flow&&Math.abs(s.leak-S.leak)<1e-9&&Math.abs(s.rv0-S.rv0)<1e-9);
+  if(i>=0){scenIdx=i;$("scenVal").textContent=SCEN[i].name;}
+  else $("scenVal").textContent="手动组合";
+}
+function setVac(v){
+  S.rv0=Math.max(-30,Math.min(-15,Math.round(v*2)/2));
+  $("vacRange").value=S.rv0;startRun();refreshLive();flash("mVac");
+}
+$("vacRange").addEventListener("input",e=>{$("vacVal").textContent=`${parseFloat(e.target.value).toFixed(1)} "Hg`;});
+$("vacRange").addEventListener("change",e=>setVac(parseFloat(e.target.value)));
+function setView(v){
+  S.view=v;
+  scene.style.display=v==="scene"?"":"none";
+  chart.style.display=v==="chart"?"":"none";
+  if(v==="chart")drawChart();
+}
+document.addEventListener("keydown",e=>{
+  if(e.target.tagName==="INPUT"&&e.target.type!=="range")return;
+  const k=e.key.toLowerCase();
+  const durMap={"1":"grab","2":"8h","3":"24h"};
+  const flowMap={"4":"ok","5":"clog","6":"open"};
+  const leakMap={"7":0,"8":0.05,"9":0.15};
+  if(durMap[k]){S.dur=durMap[k];syncDur(S.dur);startRun();refreshLive();}
+  else if(flowMap[k]){S.flow=flowMap[k];syncFlow(S.flow);startRun();refreshLive();}
+  else if(leakMap[k]!==undefined){S.leak=leakMap[k];syncLeak(S.leak);startRun();refreshLive();}
+  else if(k==="q")setVac(S.rv0-0.5);
+  else if(k==="a")setVac(S.rv0+0.5);
+  else if(k==="v"){setView(S.view==="scene"?"chart":"scene");}
+  else if(k===" "){
+    if(e.target.tagName==="BUTTON")return;
+    e.preventDefault();applyScen(scenIdx+1);
+  }
+  else if(k==="p"){S.running=!S.running;refreshLive();}
+});
+const reduced=matchMedia("(prefers-reduced-motion: reduce)").matches;
+if(reduced)S.running=false;
+
+/* 启动 */
+startRun();
+refreshLive();
+drawChart();
+requestAnimationFrame(t=>{lastT=t;tick(t);});
+setTimeout(()=>document.getElementById("loader").classList.add("done"), 900);
+</script>
+</body>
+</html>
