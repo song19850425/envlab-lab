@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全国碳市场行情看板 · CEA + CCER</title>
+<style>
+:root{--bg:#0b1220;--panel:#111a2e;--line:#1e2a45;--txt:#e8eefc;--dim:#8b9bb8;--up:#f6465d;--down:#0ecb81;--acc:#3b82f6}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;padding:20px;max-width:1100px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:10px;margin-bottom:18px}
+h1{font-size:24px;letter-spacing:1px}
+.sub{color:var(--dim);font-size:13px;margin-top:6px}
+.badge{font-size:12px;color:#fbbf24;background:rgba(251,191,36,.12);border:1px solid rgba(251,191,36,.35);padding:5px 12px;border-radius:20px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+.card .k{font-size:12px;color:var(--dim);margin-bottom:6px}
+.card .v{font-size:24px;font-weight:700}
+.card .d{font-size:12px;margin-top:4px;color:var(--dim)}
+.up{color:var(--up)} .down{color:var(--down)}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:16px}
+.panel h2{font-size:15px;margin-bottom:10px;font-weight:600}
+.panel h2 span{color:var(--dim);font-size:12px;font-weight:400;margin-left:8px}
+canvas{width:100%;height:220px;display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:760px){.grid2{grid-template-columns:1fr}}
+footer{color:var(--dim);font-size:12px;line-height:1.8;margin-top:8px}
+footer a{color:var(--acc);text-decoration:none}
+.note{background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.3);border-radius:10px;padding:12px 14px;font-size:13px;color:#bcd0f5;margin-bottom:16px;line-height:1.7}
+</style>
+</head>
+<body>
+<header>
+<div>
+<h1>全国碳市场行情看板</h1>
+<div class="sub">CEA 全国碳排放配额 · CCER 国家核证自愿减排量</div>
+</div>
+<div class="badge" id="dateBadge">数据日期：加载中…</div>
+</header>
+
+<div class="note">⚡ 本看板为<strong>每日更新</strong>架构：页面读取同目录 <code>carbon-data.json</code> 渲染，数据管线每日收盘后自动刷新该文件即可。目前首批数据来自开源项目 china-ets-mcp（截至 2026-03-05），自建更新管线开发中。</div>
+
+<div class="cards" id="cards"></div>
+
+<div class="panel">
+<h2>CEA 收盘价走势<span>近一年 · 元/吨</span></h2>
+<canvas id="c1"></canvas>
+</div>
+
+<div class="grid2">
+<div class="panel">
+<h2>CEA 日成交量<span>吨</span></h2>
+<canvas id="c2"></canvas>
+</div>
+<div class="panel">
+<h2>CCER 日均价走势<span>元/吨</span></h2>
+<canvas id="c3"></canvas>
+</div>
+</div>
+
+<footer>
+数据来源：<a href="https://github.com/JIN-Z-pop/china-ets-mcp" target="_blank">JIN-Z-pop/china-ets-mcp</a>（MIT 开源，原始数据来自上海环境能源交易所与 CCER 官方）<br>
+仅供研究与学习，不构成投资建议。看板架构支持每日自动更新，接入自建管线后此处将显示最新交易日数据。
+</footer>
+
+<script>
+function drawLine(cv, pts, color, fill){
+  const dpr=device.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const g=cv.getContext('2d'); g.scale(dpr,dpr);
+  const pad={l:52,r:10,t:12,b:24}, w=W-pad.l-pad.r, h=H-pad.t-pad.b;
+  const vs=pts.map(p=>p[1]), mn=Math.min(...vs), mx=Math.max(...vs), rg=(mx-mn)||1;
+  const X=i=>pad.l+w*i/(pts.length-1), Y=v=>pad.t+h*(1-(v-mn)/rg);
+  g.strokeStyle='#1e2a45'; g.fillStyle='#8b9bb8'; g.font='11px sans-serif'; g.lineWidth=1;
+  for(let i=0;i<=4;i++){const v=mn+rg*i/4,y=Y(v);
+    g.beginPath();g.moveTo(pad.l,y);g.lineTo(W-pad.r,y);g.stroke();
+    g.fillText(v.toFixed(1),6,y+4);}
+  const step=Math.ceil(pts.length/6);
+  g.textAlign='center';
+  for(let i=0;i<pts.length;i+=step) g.fillText(pts[i][0].slice(2),X(i),H-8);
+  g.textAlign='left';
+  if(fill){g.beginPath();g.moveTo(X(0),Y(vs[0]));
+    pts.forEach((p,i)=>g.lineTo(X(i),Y(p[1])));g.lineTo(X(pts.length-1),pad.t+h);g.lineTo(X(0),pad.t+h);g.closePath();
+    const gr=g.createLinearGradient(0,pad.t,0,pad.t+h);gr.addColorStop(0,color+'55');gr.addColorStop(1,color+'00');
+    g.fillStyle=gr;g.fill();}
+  g.beginPath();g.moveTo(X(0),Y(vs[0]));
+  pts.forEach((p,i)=>g.lineTo(X(i),Y(p[1])));
+  g.strokeStyle=color;g.lineWidth=2;g.stroke();
+  const lx=X(pts.length-1),ly=Y(vs[vs.length-1]);
+  g.fillStyle=color;g.beginPath();g.arc(lx,ly,4,0,7);g.fill();
+  g.fillStyle='#e8eefc';g.font='bold 12px sans-serif';g.fillText(vs[vs.length-1].toFixed(2),lx-44,ly-10);
+}
+function drawBars(cv, pts, color){
+  const dpr=device.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight;
+  cv.width=W*dpr; cv.height=H*dpr;
+  const g=cv.getContext('2d'); g.scale(dpr,dpr);
+  const pad={l:52,r:10,t:12,b:24}, w=W-pad.l-pad.r, h=H-pad.t-pad.b;
+  const mx=Math.max(...pts.map(p=>p[1]))||1, bw=w/pts.length;
+  g.fillStyle='#8b9bb8';g.font='11px sans-serif';
+  const step=Math.ceil(pts.length/6); g.textAlign='center';
+  for(let i=0;i<pts.length;i+=step) g.fillText(pts[i][0].slice(2),pad.l+bw*(i+.5),H-8);
+  g.textAlign='left';
+  pts.forEach((p,i)=>{const bh=h*p[1]/mx;
+    g.fillStyle=p[1]>0?color:'#22304f';
+    g.fillRect(pad.l+bw*i+1,pad.t+h-bh,Math.max(1,bw-2),bh);});
+  g.fillStyle='#8b9bb8';g.fillText((mx/10000).toFixed(0)+'万吨',6,pad.t+8);
+}
+function fmt(n){return n>=10000?(n/10000).toFixed(2)+'万':n.toLocaleString();}
+
+fetch('carbon-data.json').then(r=>r.json()).then(d=>{
+  document.getElementById('dateBadge').textContent='数据日期：'+d.updated+(d.stale?'（待更新）':'');
+  const cea=d.cea, ccer=d.ccer;
+  const L=cea[cea.length-1], P=cea[cea.length-2];
+  const chg=L.close-P.close, pct=(chg/P.close*100);
+  const cL=ccer[ccer.length-1], cP=ccer[ccer.length-2];
+  const cChg=cL.avg-cP.avg, cPct=(cChg/cP.avg*100);
+  const upCls=chg>=0?'up':'down', cupCls=cChg>=0?'up':'down';
+  document.getElementById('cards').innerHTML=`
+    <div class="card"><div class="k">CEA 最新收盘价</div><div class="v">${L.close.toFixed(2)}<span style="font-size:13px;color:#8b9bb8"> 元/吨</span></div><div class="d ${upCls}">${chg>=0?'+':''}${chg.toFixed(2)}（${pct>=0?'+':''}${pct.toFixed(2)}%）</div></div>
+    <div class="card"><div class="k">CEA 日成交量</div><div class="v">${fmt(L.tot_vol)}<span style="font-size:13px;color:#8b9bb8"> 吨</span></div><div class="d">成交额 ${(L.tot_amt/10000).toFixed(1)} 万元</div></div>
+    <div class="card"><div class="k">CEA 年内最高 / 最低</div><div class="v" style="font-size:19px">${Math.max(...cea.map(x=>x.close)).toFixed(2)} / ${Math.min(...cea.map(x=>x.close)).toFixed(2)}</div><div class="d">近一年收盘价区间</div></div>
+    <div class="card"><div class="k">CCER 最新均价</div><div class="v">${cL.avg.toFixed(2)}<span style="font-size:13px;color:#8b9bb8"> 元/吨</span></div><div class="d ${cupCls}">${cChg>=0?'+':''}${cChg.toFixed(2)}（${cPct>=0?'+':''}${cPct.toFixed(2)}%）</div></div>
+    <div class="card"><div class="k">CCER 日成交量</div><div class="v">${fmt(cL.vol)}<span style="font-size:13px;color:#8b9bb8"> 吨</span></div><div class="d">成交额 ${(cL.amt/10000).toFixed(2)} 万元</div></div>
+    <div class="card"><div class="k">CEA 累计成交</div><div class="v" style="font-size:19px">${(L.cum_vol/1e8).toFixed(2)} 亿吨</div><div class="d">累计成交额约 ${(L.cum_amt/1e8).toFixed(0)} 亿元</div></div>`;
+  drawLine(document.getElementById('c1'), cea.map(x=>[x.date,x.close]), '#3b82f6', true);
+  drawBars(document.getElementById('c2'), cea.map(x=>[x.date,x.tot_vol]), '#3b82f6');
+  drawLine(document.getElementById('c3'), ccer.map(x=>[x.date,x.avg]), '#0ecb81', true);
+}).catch(e=>{
+  document.getElementById('dateBadge').textContent='数据加载失败';
+});
+</script>
+</body>
+</html>
