@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>GC-MS检测实验室 · 从采样罐到谱图</title>
+<meta name="description" content="罐采样-GC/MS 法 · 依据 HJ 759-2015（参照 EPA TO-15）">
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+    --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+    --amber:#ffb020; --amber-dim:#8a5c10;
+    --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84; --violet:#b48cff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    overflow-x:hidden;
+  }
+  #loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;
+    align-items:center;justify-content:center;flex-direction:column;gap:14px;
+    transition:opacity .6s ease;}
+  #loader.done{opacity:0;pointer-events:none}
+  #loader .spin{width:46px;height:46px;border-radius:50%;
+    border:3px solid var(--line);border-top-color:var(--amber);
+    animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+  header.lab-head{padding:26px 4px 6px}
+  .kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+  h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+  h1.title .thin{color:var(--dim);font-weight:300}
+  .sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+  .oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;
+    border-left:3px solid var(--amber);padding-left:14px;max-width:680px}
+  .oneliner b{color:var(--amber)}
+  .stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+  @media (max-width:900px){.stage{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:16px;position:relative;overflow:hidden;margin-bottom:18px}
+  .card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+  svg.scene{width:100%;height:auto;display:block;background:
+    radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+  .metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+  .metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+  .metric.warn .v{color:var(--danger)}
+  .metric.good .v{color:var(--ok)}
+  .metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+  .metric.flash{animation:mflash .9s ease}
+  @keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+  #narrate{min-height:110px;background:var(--panel2);border:1px solid var(--line);
+    border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;
+    font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px;transition:opacity .3s}
+  #narrate b{color:var(--cyan);font-family:var(--mono)}
+  #narrate .warn{color:var(--danger);font-weight:700}
+  #narrate .ok{color:var(--ok);font-weight:700}
+  .ctl{margin-bottom:12px}
+  .ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+  .ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button{
+    flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;
+    background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;
+    font-family:var(--mono);transition:all .15s;
+  }
+  .seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+  .seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);
+    box-shadow:0 0 0 1px var(--amber-dim) inset}
+  .seg button.on small{color:var(--amber)}
+  .seg button.done{color:var(--ok);border-color:#1e4d33}
+  .seg button:active{transform:scale(.97)}
+  kbd.kbd{font-family:var(--mono);font-size:10px;color:var(--faint);
+    border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+    padding:1px 5px;margin-left:6px;background:#0d1117;white-space:nowrap}
+  #bench{margin-top:14px;min-height:120px}
+  .tipbox{font-size:13px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:10px}
+  .tipbox b{color:var(--txt)}
+  .tipbox .warnline{color:var(--amber)}
+  .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media (max-width:600px){.kv-grid{grid-template-columns:1fr}}
+  .kv{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .kv .k{font-size:11px;color:var(--faint)}
+  .kv .v{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--txt);margin-top:2px}
+  .kv .v em{font-style:normal;color:var(--amber)}
+  .bigtimer{text-align:center;padding:8px 0}
+  .bigtimer .t{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--amber)}
+  .bigtimer .l{font-size:12px;color:var(--faint);margin-top:4px}
+  .formula{background:#0d1117;border:1px solid var(--line);border-radius:10px;
+    padding:14px;font-family:var(--mono);font-size:15px;color:var(--cyan);
+    text-align:center;line-height:2;overflow-x:auto}
+  .formula .dim{color:var(--faint);font-size:12px}
+  .spec-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  .spec-table th{font-size:11px;color:var(--faint);text-align:left;padding:8px 10px;
+    border-bottom:1px solid var(--line);letter-spacing:.1em}
+  .spec-table td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--txt);
+    font-family:var(--mono);font-size:13px}
+  .spec-table td.st-ok{color:var(--ok);font-weight:700}
+  .spec-table td.st-warn{color:var(--danger);font-weight:700}
+  .spec-table td.st-mid{color:var(--amber);font-weight:700}
+  .actionrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn-act{flex:1;min-width:180px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;
+    background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206;border:none;border-radius:10px;
+    letter-spacing:.1em;transition:transform .12s, box-shadow .12s}
+  .btn-act:hover{box-shadow:0 4px 16px rgba(255,176,32,.35)}
+  .btn-act:active{transform:scale(.98)}
+  .btn-act:disabled{opacity:.45;cursor:default;box-shadow:none}
+  .btn-ghost{padding:13px 18px;font-size:14px;cursor:pointer;background:transparent;
+    color:var(--dim);border:1px solid var(--line);border-radius:10px}
+  .btn-ghost:hover{color:var(--txt);border-color:var(--faint)}
+  #conclusionCard{border-left:3px solid var(--violet)}
+  .bigresult{text-align:center;padding:18px 0 6px}
+  .bigresult .n{font-family:var(--mono);font-size:52px;font-weight:800;color:var(--violet)}
+  .bigresult .u{font-size:14px;color:var(--dim)}
+  .bigresult .c{font-size:13px;color:var(--faint);margin-top:6px;letter-spacing:.2em}
+  .conc-text{font-size:14.5px;line-height:1.9;color:var(--txt);background:var(--panel2);
+    border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}
+  .conc-text b{color:var(--cyan);font-family:var(--mono)}
+  .conc-text .bad{color:var(--danger);font-weight:700}
+  .conc-text .good{color:var(--ok);font-weight:700}
+  .qc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 4px}
+  @media (max-width:700px){.qc-grid{grid-template-columns:1fr 1fr}}
+  .qc{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .qc .k{font-size:11px;color:var(--faint);margin-bottom:4px}
+  .qc .v{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--ok)}
+  .qc .v small{font-size:11px;color:var(--faint);font-weight:400}
+  .redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+  @media (max-width:700px){.redlines{grid-template-columns:1fr}}
+  .rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+  .rl .d{font-size:12px;color:var(--dim);line-height:1.7}
+  details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+  details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+  details.how summary::-webkit-details-marker{display:none}
+  details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;
+    padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+  footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    font-size:12px;color:var(--faint)}
+  footer a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--faint)}
+  .tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);
+    border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+  #rp{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;
+    padding:20px;background:rgba(10,13,18,.72);backdrop-filter:blur(3px)}
+  #rp.on{display:flex}
+  #rp .rp-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:640px;
+    width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden}
+  #rp .rp-hd{display:flex;align-items:center;padding:15px 20px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  #rp .rp-ti{font-size:15px;font-weight:800;color:var(--txt);letter-spacing:.1em}
+  #rp .rp-x{margin-left:auto;border:none;background:transparent;font-size:20px;color:var(--dim);cursor:pointer;padding:2px 8px}
+  #rp .rp-x:hover{color:var(--txt)}
+  #rp .rp-bd{padding:18px 22px;overflow:auto;font-size:13px;line-height:1.8;color:var(--txt);
+    white-space:pre-wrap;font-family:var(--mono)}
+  #rp .rp-ft{display:flex;gap:10px;justify-content:flex-end;padding:13px 20px;border-top:1px solid var(--line);background:var(--panel2)}
+  #rp .rp-b{padding:9px 18px;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid transparent}
+  #rp .rp-b1{background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206}
+  #rp .rp-b2{background:transparent;border-color:var(--line);color:var(--dim)}
+  @media print{#rp{display:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>正在抽真空…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">ENVLAB · DEMO</div>
+    <div class="kicker">仪器分析 · 气相色谱-质谱联用</div>
+    <h1 class="title">GC-MS<span class="thin">检测实验室</span></h1>
+    <div class="sub">GCMS LAB · FROM CANISTER TO SPECTRUM</div>
+    <p class="oneliner"><b>0.5 μg/m³</b> 的苯，仪器看得见吗？<b>分流比 × 扫描模式</b>，决定你是检出还是检不出。<br>罐采样-GC/MS 法 · 依据 HJ 759-2015（参照 EPA TO-15）。</p>
+  </header>
+
+  <div class="stage">
+    <div class="card">
+      <h3>实验台 · <span id="sceneTitle" style="color:var(--amber)">① 样品</span></h3>
+      <svg class="scene" id="gcmsSvg" viewBox="0 0 420 340" role="img" aria-label="GC-MS 仪器与实时谱图">
+        <!-- 样品罐连线 -->
+        <g id="canLink">
+          <line x1="44" y1="52" x2="44" y2="20" stroke="#59d6ff" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <rect x="22" y="2" width="44" height="18" rx="4" fill="#151b25" stroke="#59d6ff" stroke-width="1.5"/>
+          <text x="44" y="15" text-anchor="middle" fill="#59d6ff" font-size="10" font-family="inherit">罐样品</text>
+        </g>
+        <!-- 进样口 -->
+        <g id="partInlet">
+          <rect x="18" y="52" width="52" height="64" rx="8" fill="#151b25" stroke="#ffb020" stroke-width="2"/>
+          <text x="44" y="80" text-anchor="middle" fill="#ffb020" font-size="11" font-family="inherit">进样口</text>
+          <text x="44" y="99" text-anchor="middle" fill="#8b95a3" font-size="10" font-family="inherit">250℃</text>
+        </g>
+        <line x1="70" y1="84" x2="94" y2="84" stroke="#5b6572" stroke-width="2"/>
+        <!-- 柱温箱 -->
+        <g id="partOven">
+          <rect x="94" y="34" width="142" height="102" rx="10" fill="#151b25" stroke="#ff5252" stroke-width="2"/>
+          <path d="M110 112 q12 -36 24 0 q12 36 24 0 q12 -36 24 0 q12 36 24 0" fill="none" stroke="#ffb020" stroke-width="2.5"/>
+          <text x="165" y="56" text-anchor="middle" fill="#ff5252" font-size="11" font-family="inherit">柱温箱 · DB-624</text>
+          <text id="ovenSvgT" x="165" y="22" text-anchor="middle" fill="#ffb020" font-size="16" font-family="ui-monospace,monospace">40℃</text>
+        </g>
+        <line x1="236" y1="84" x2="260" y2="84" stroke="#5b6572" stroke-width="2"/>
+        <!-- 质谱 -->
+        <g id="partMS">
+          <rect x="260" y="34" width="142" height="102" rx="10" fill="#151b25" stroke="#b48cff" stroke-width="2"/>
+          <circle id="eiDot" cx="284" cy="84" r="11" fill="none" stroke="#59d6ff" stroke-width="2"/>
+          <text x="284" y="88" text-anchor="middle" fill="#59d6ff" font-size="9" font-family="inherit">EI</text>
+          <g stroke="#b48cff" stroke-width="4" opacity="0.85">
+            <line x1="304" y1="74" x2="344" y2="74"/>
+            <line x1="304" y1="94" x2="344" y2="94"/>
+          </g>
+          <text x="324" y="64" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">四极杆</text>
+          <rect x="350" y="72" width="38" height="24" rx="4" fill="#0d1117" stroke="#3ddc84" stroke-width="1.5"/>
+          <text x="369" y="88" text-anchor="middle" fill="#3ddc84" font-size="9" font-family="inherit">检测器</text>
+          <text x="331" y="128" text-anchor="middle" fill="#8b95a3" font-size="10" font-family="inherit">离子源230℃ · 10⁻⁴Pa</text>
+        </g>
+        <!-- 三大单元注名 -->
+        <text x="44" y="134" text-anchor="middle" fill="#ffb020" font-size="12" font-weight="700" font-family="inherit">进样器</text>
+        <text x="165" y="154" text-anchor="middle" fill="#ff5252" font-size="12" font-weight="700" font-family="inherit">气相色谱</text>
+        <text x="331" y="154" text-anchor="middle" fill="#b48cff" font-size="12" font-weight="700" font-family="inherit">检测器</text>
+        <!-- 样品谱带 -->
+        <g id="plugs"></g>
+        <!-- TIC -->
+        <text x="210" y="174" text-anchor="middle" fill="#8b95a3" font-size="11" font-family="inherit">总离子流图（TIC）· 实时出峰</text>
+        <line x1="30" y1="300" x2="400" y2="300" stroke="#5b6572" stroke-width="1.5"/>
+        <line x1="30" y1="300" x2="30" y2="180" stroke="#5b6572" stroke-width="1.5"/>
+        <text x="396" y="332" text-anchor="end" fill="#5b6572" font-size="10" font-family="inherit">保留时间 (min)</text>
+        <text x="36" y="194" fill="#5b6572" font-size="10" font-family="inherit">丰度</text>
+        <path id="ticLive" d="" fill="#59d6ff" fill-opacity="0.14" stroke="#e8eef4" stroke-width="1.8"/>
+        <g id="ticLabels"></g>
+      </svg>
+      <div id="bench"></div>
+      <div class="actionrow">
+        <button class="btn-act" id="actBtn">开始</button>
+        <button class="btn-ghost" id="skipBtn" style="display:none">跳过等待 →</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>实时仪表</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">柱温 OVEN</div><div class="v" id="mOven">–<small>℃</small></div><div class="sub2">程序升温</div></div>
+          <div class="metric"><div class="k">苯保留时间</div><div class="v" id="mRT">–<small>min</small></div><div class="sub2">定性依据</div></div>
+          <div class="metric" id="mRsM"><div class="k">分离度 Rs</div><div class="v" id="mRs">–</div><div class="sub2">苯/甲苯 · ≥1.5 基线分离</div></div>
+          <div class="metric" id="mSnM"><div class="k">苯 S/N</div><div class="v" id="mSN">–</div><div class="sub2">≥3 检出 · ≥10 定量</div></div>
+        </div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">样品 SCENE</span><span class="val" id="scenVal">痕量</span></div>
+          <div class="seg" id="scenSeg">
+            <button data-v="trace" class="on">痕量<small>苯 0.5</small></button>
+            <button data-v="normal">常规<small>苯 300</small></button>
+            <button data-v="high">高浓度<small>苯 8000</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">分流比 SPLIT</span><span class="val" id="splitVal">不分流</span></div>
+          <div class="seg" id="splitSeg">
+            <button data-v="1" class="on">不分流<small>痕量专用</small></button>
+            <button data-v="0.1">10:1<small>常规</small></button>
+            <button data-v="0.02">50:1<small>高浓度</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">升温速率 RAMP</span><span class="val" id="rampVal">8 ℃/min</span></div>
+          <div class="seg" id="rampSeg">
+            <button data-v="4">4<small>慢·分离好</small></button>
+            <button data-v="8" class="on">8<small>常用</small></button>
+            <button data-v="15">15<small>快·省时间</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">扫描模式 MODE</span><span class="val" id="modeVal">SCAN</span></div>
+          <div class="seg" id="modeSeg">
+            <button data-v="1" class="on">SCAN<small>全扫·定性</small></button>
+            <button data-v="60">SIM<small>盯离子·灵敏×60</small></button>
+          </div>
+        </div>
+        <h3>步骤<kbd class="kbd">←</kbd><kbd class="kbd">→</kbd><kbd class="kbd">空格</kbd><span style="float:right;letter-spacing:0">执行当前步骤</span></h3>
+        <div class="seg" id="stepSeg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="conclusionCard" style="display:none">
+    <h3>检测结论 · HJ 759-2015 罐采样-GC/MS 法</h3>
+    <div class="bigresult">
+      <div class="n" id="concBig">–</div>
+      <div class="u">μg/m³ · 苯</div>
+      <div class="c" id="concState">–</div>
+    </div>
+    <div class="conc-text" id="concText">…</div>
+    <h3 style="margin-top:6px">质控数据</h3>
+    <div class="qc-grid">
+      <div class="qc"><div class="k">PFTBA 调谐</div><div class="v">通过 <small>69/219/502</small></div></div>
+      <div class="qc"><div class="k">空白</div><div class="v">&lt;MDL <small>无污染</small></div></div>
+      <div class="qc"><div class="k">内标回收率</div><div class="v">96.4% <small>70–130%</small></div></div>
+      <div class="qc"><div class="k">平行样 RSD</div><div class="v">4.1% <small>≤25%</small></div></div>
+    </div>
+    <div class="actionrow">
+      <button class="btn-act" onclick="printReport()">生成报告</button>
+      <button class="btn-ghost" onclick="resetAll()">重新做一次</button>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl"><div class="t"><span class="dot"></span>红线一 · 衬管与分流</div><div class="d">高浓度样不分流 = 离子源污染，拆洗离子源半天没了。衬管脏了 → 峰拖尾、鬼峰，先换衬管再怀疑人生。</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>红线二 · 程序升温</div><div class="d">升温太快 → 分离度打折、保留时间前移，定性用的保留时间窗口得重建；太慢 → 峰展宽、峰变矮，灵敏度掉还耗时。DB-624 上限 260℃，超温就是柱流失。</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>红线三 · 调谐与真空</div><div class="d">PFTBA 调谐（69/219/502）不过，后面定的性全是猜的。分子泵高真空约 10⁻⁴ Pa，真空不良直接烧灯丝。</div></div>
+  </div>
+
+  <details class="how">
+    <summary>▸ 模型与公式（确定性演示，无随机数凑结果）</summary>
+    <div class="f">内标法：Cx = (Ax / Ais) × Cis / RF        RF=1（演示）
+tR(苯) = 2.0 + 25.6/R     tR(甲苯) = 2.6 + 41.6/R     R = 升温速率(℃/min)
+Rs = ΔtR / w              w = 0.28×(8/R)^0.25（峰宽）
+S/N = A / N               A = C×f分流×f模式×500，N = 1000
+判定：S/N≥3 检出，≥10 定量；A &gt; 5×10⁵ 过载（削顶）
+SIM 灵敏度约为 SCAN 的 60 倍（盯特征离子）
+实际方法检出限见 HJ 759-2015 附录A（SCAN、100mL：约 0.3~5.4 μg/m³）</div>
+    <p>演示模型按 HJ 759-2015 罐采样-GC/MS 流程设定，色谱柱 DB-624（30m×0.25mm×1.4μm），内标氟苯。教学演示用，不作为检测报告依据。</p>
+  </details>
+</div>
+<script>
+"use strict";
+/* ================= 模型（确定性演示） ================= */
+const K = 500, NOISE = 1000, A_SAT = 500000, C_IS = 200;
+const SCENS = {
+  trace:  {ben:0.5,  tol:0.8,   label:"痕量"},
+  normal: {ben:300,  tol:500,   label:"常规"},
+  high:   {ben:8000, tol:12000, label:"高浓度"},
+};
+const SPLIT_LBL = {"1":"不分流", "0.1":"10:1", "0.02":"50:1"};
+let P = { scen:"trace", split:1, ramp:8, mode:1 };   // mode: 1=SCAN, 60=SIM
+
+const tRben = () => 2.0 + 25.6/P.ramp;
+const tRtol = () => 2.6 + 41.6/P.ramp;
+const tRis  = () => 2.3 + 33.0/P.ramp;
+const peakW = () => 0.28*Math.pow(8/P.ramp, 0.25);
+const Rs    = () => (tRtol()-tRben())/peakW();
+const runtime = () => 4 + 160/P.ramp;
+const area  = C => C*P.split*P.mode*K;
+const Aben = () => area(SCENS[P.scen].ben);
+const Atol = () => area(SCENS[P.scen].tol);
+const Ais  = () => area(C_IS);
+const SNben = () => Aben()/NOISE;
+const SNtol = () => Atol()/NOISE;
+
+function verdict(){
+  const A = Aben(), sn = SNben();
+  if(A > A_SAT) return {st:"overload", sn};
+  if(sn < 3)    return {st:"nd", sn};
+  if(sn < 10)   return {st:"det", sn};
+  return {st:"quant", sn, cBen:(A/Ais())*C_IS, cTol:(Atol()/Ais())*C_IS};
+}
+const vLine = v => {
+  if(v.st==="overload") return '<span class="warn">过载！</span>峰削顶，离子源已污染——高浓度样请用 50:1 大分流或稀释进样。';
+  if(v.st==="nd")  return `<span class="warn">苯未检出</span>（S/N=${v.sn.toFixed(1)}&lt;3）。方法灵敏度不够——切 <b>SIM</b>，或不分流进样。`;
+  if(v.st==="det") return `苯检出但 S/N=${v.sn.toFixed(1)}&lt;10，只能半定量——<span class="warn">切 SIM 或不分流可准确定量。</span>`;
+  return `<span class="ok">苯 ${v.cBen.toFixed(1)} μg/m³</span>（S/N=${v.sn.toFixed(0)}，内标法定量）；甲苯 ${v.cTol.toFixed(1)} μg/m³。`;
+};
+
+const STEPS = [
+  {n:"① 样品"}, {n:"② 进样"}, {n:"③ 分离"}, {n:"④ 电离"},
+  {n:"⑤ 检测"}, {n:"⑥ 解析"}, {n:"⑦ 报告"},
+];
+const ACTLBL = [
+  "确认样品 → 进样",
+  "进样完成 → 程序升温",
+  "开始运行",
+  "电离完成 → 质量检测",
+  "开始检测 → 解析谱图",
+  "进样分析 → 解析谱图",
+  "",
+];
+const BENCH = [
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">罐号</div><div class="v">CAN-2026-101</div></div>
+     <div class="kv"><div class="k">采样点</div><div class="v">某市 · 环境空气点位</div></div>
+     <div class="kv"><div class="k">采样日期</div><div class="v">2026-10-06</div></div>
+     <div class="kv"><div class="k">罐容 / 材质</div><div class="v">6L · 硅烷化内壁</div></div>
+   </div>
+   <div class="tipbox"><b>样品背景：</b>苏玛罐采样那步，看"苏玛罐采样实验室"。这里从罐进 GC-MS 开始。当前样品：<b id="bScen">痕量</b>（苯 <b id="bBenC">0.5</b> μg/m³）。</div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">进样口温度</div><div class="v"><em>250℃</em></div></div>
+     <div class="kv"><div class="k">衬管</div><div class="v">去活石英</div></div>
+     <div class="kv"><div class="k">载气</div><div class="v">He · 1.0 mL/min</div></div>
+     <div class="kv"><div class="k">分流比</div><div class="v" id="bSplit"><em>不分流</em></div></div>
+   </div>
+   <div class="tipbox"><b>分流比：</b>不分流 = 样品全进柱（痕量救星）；10:1 = 常规；50:1 = 高浓度样保命。<span class="warnline">高浓度样不分流，离子源洗一次半天没了。</span></div>`,
+  `<div class="bigtimer"><div class="t" id="ovenHtmlT">40℃</div><div class="l">柱温（演示加速）</div></div>
+   <div class="kv-grid">
+     <div class="kv"><div class="k">程序</div><div class="v" id="bProg"><em>40℃</em>(2min)→8℃/min→200℃</div></div>
+     <div class="kv"><div class="k">全程约</div><div class="v" id="bRun"><em>24.0</em> min</div></div>
+   </div>
+   <div class="tipbox"><b>升温速率：</b>4℃/min 分离最好但慢（44min）；15℃/min 快（~15min）但未知物易共流出。DB-624 上限 260℃。</div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">电离方式</div><div class="v"><em>EI · 70eV</em></div></div>
+     <div class="kv"><div class="k">离子源温度</div><div class="v">230℃</div></div>
+     <div class="kv"><div class="k">四极杆温度</div><div class="v">150℃</div></div>
+     <div class="kv"><div class="k">真空度</div><div class="v">~10⁻⁴ Pa</div></div>
+   </div>
+   <div class="tipbox"><b>为什么是 70eV？</b>行规。能量固定，碎片模式稳定，谱图才能进 NIST 库比对。真空不良会烧灯丝。</div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">SCAN</div><div class="v">全扫描<small style="display:block;font-size:11px;color:var(--faint)">定性强 · 灵敏度×1</small></div></div>
+     <div class="kv"><div class="k">SIM</div><div class="v"><em>选择离子</em><small style="display:block;font-size:11px;color:var(--faint)">只盯特征离子 · 灵敏度×60</small></div></div>
+   </div>
+   <div class="tipbox"><b>选哪个？</b>未知筛查用 SCAN；目标物痕量定量用 SIM（苯 m/z 78，甲苯 m/z 91，氟苯 m/z 96）。<span class="warnline">高浓度样开 SIM = 直接过载。</span></div>`,
+  `<table class="spec-table"><thead><tr><th>组分</th><th>保留时间</th><th>定量离子</th><th>S/N</th><th>状态</th><th>浓度(μg/m³)</th></tr></thead>
+    <tbody id="specBody"><tr><td colspan="6" style="color:var(--faint)">点击"进样分析"生成谱图</td></tr></tbody></table>`,
+  `<div class="tipbox">7 步走完：样品 → 进样 → 分离 → 电离 → 检测 → 解析 → 报告。<b>分流比 × 扫描模式</b>选不对，神仙也检不出。</div>`,
+];
+
+let S = { step:0, max:0, running:false, analyzed:false, raf:null, ovenT:40, snap:null, justCleared:false };
+const $ = id => document.getElementById(id);
+
+function narrate(){
+  const sc = SCENS[P.scen], v = verdict();
+  const spHint = P.split===1 ? "全部进柱，痕量样品就靠它"
+    : P.split===0.1 ? "常规操作" : "高浓度样保命";
+  const modeD = P.mode===1 ? "全质量范围扫描，定性强，灵敏度×1"
+    : "只盯特征离子（苯 m/z 78），灵敏度约×60，痕量救星";
+  const N = [
+    `样品罐 <b>CAN-2026-101</b>（6L 苏玛罐，环境空气）。当前样品：<b>${sc.label}</b>，苯 <b>${sc.ben} μg/m³</b>。采样那步看"苏玛罐采样实验室"，这里从进样开始。`,
+    `进样口 <b>250℃</b> 瞬间汽化。分流比 <b>${SPLIT_LBL[String(P.split)]}</b>：${spHint}。衬管去活，载气 He 1.0 mL/min。`,
+    `程序升温：<b>40℃(2min) → ${P.ramp}℃/min → 200℃</b>，全程约 <b>${runtime().toFixed(1)} min</b>。`,
+    `EI <b>70eV</b> 电子轰击：M → M⁺· + 碎片。离子源 230℃，四极杆 150℃，高真空 10⁻⁴ Pa。70eV 是行规——谱图能进库比对。`,
+    `<b>${P.mode===1?"SCAN":"SIM"}</b>：${modeD}。当前苯 S/N = <b>${v.sn<1000?v.sn.toFixed(1):v.sn.toFixed(0)}</b>。`,
+    `TIC 出来了。保留时间定性（苯 <b>${tRben().toFixed(2)} min</b>，与标样比对），内标法（氟苯）定量。${vLine(v)}`,
+    `${vLine(v)}`,
+  ];
+  let html = N[S.step];
+  if(S.justCleared && S.step>=2){
+    html = '<span class="warn">条件已更改，谱图已清空，请重新运行。</span><br>' + html;
+    S.justCleared = false;
+  }
+  $("narrate").innerHTML = html;
+}
+
+function refreshMetrics(){
+  setM("mOven", Math.round(S.ovenT), "℃");
+  setM("mRT", tRben().toFixed(2), "min");
+  const rs = Rs();
+  setM("mRs", rs.toFixed(1), "");
+  $("mRsM").className = "metric" + (rs < 1.5 ? " warn" : " good");
+  const v = verdict();
+  const mm = $("mSnM");
+  if(v.st==="overload"){ setM("mSN","过载",""); mm.className="metric warn"; }
+  else{
+    setM("mSN", v.sn<1000?v.sn.toFixed(1):v.sn.toFixed(0), "");
+    mm.className = "metric" + (v.sn<3?" warn":v.sn>=10?" good":"");
+  }
+}
+function setM(id, val, unit){
+  $(id).innerHTML = val + "<small>"+unit+"</small>";
+}
+function flash(id){
+  const m = $(id).closest(".metric");
+  m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash");
+}
+
+/* ---------- 仪器高亮（实验台始终是同一台 GC-MS） ---------- */
+const HLC = {canLink:"#59d6ff", partInlet:"#ffb020", partOven:"#ff5252", partMS:"#b48cff"};
+const STEP_HL = ["canLink","partInlet","partOven","partMS","partMS",null,null];
+function highlight(id){
+  Object.keys(HLC).forEach(k=>{
+    const el=$(k); if(!el) return;
+    el.style.filter = (k===id) ? `drop-shadow(0 0 7px ${HLC[k]})` : "";
+  });
+}
+
+/* ---------- 步骤导航 ---------- */
+function buildSeg(){
+  const seg = $("stepSeg");
+  STEPS.forEach((s,i)=>{
+    const b = document.createElement("button");
+    b.textContent = s.n;
+    b.onclick = ()=>goStep(i);
+    seg.appendChild(b);
+  });
+}
+function paintSeg(){
+  [...$("stepSeg").children].forEach((b,i)=>{
+    b.classList.toggle("on", i===S.step);
+    b.classList.toggle("done", i<S.max || i<S.step);
+  });
+}
+function goStep(n){
+  if(n > S.max+1 || n < 0 || n > 6) return;
+  if(S.running) return;
+  S.step = n;
+  if(n > S.max) S.max = n;
+  render();
+}
+function render(){
+  highlight(STEP_HL[S.step]);
+  $("sceneTitle").textContent = STEPS[S.step].n;
+  $("bench").innerHTML = BENCH[S.step];
+  syncBench();
+  narrate(); refreshMetrics();
+  if(!S.analyzed && !S.running) drawBaseline();
+  const ab = $("actBtn");
+  if(S.step === 6){
+    ab.style.display = "none";
+    $("skipBtn").style.display = "none";
+    $("conclusionCard").style.display = "";
+    showConclusion();
+  } else {
+    ab.style.display = "";
+    ab.disabled = false;
+    ab.textContent = S.step===5 ? (S.analyzed ? "解析完成 → 查看报告" : "← 回第③步重新运行") : ACTLBL[S.step];
+    $("skipBtn").style.display = "none";
+    $("conclusionCard").style.display = "none";
+  }
+  paintSeg();
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+function syncBench(){
+  const bs=$("bScen"); if(bs){ bs.textContent=SCENS[P.scen].label; $("bBenC").textContent=SCENS[P.scen].ben; }
+  const sp=$("bSplit"); if(sp){ sp.innerHTML="<em>"+SPLIT_LBL[String(P.split)]+"</em>"; }
+  const pr=$("bProg"); if(pr){ pr.innerHTML=`<em>40℃</em>(2min)→${P.ramp}℃/min→200℃`; $("bRun").innerHTML=`<em>${runtime().toFixed(1)}</em> min`; }
+  const oh=$("ovenHtmlT"); if(oh){ oh.textContent=Math.round(S.ovenT)+"℃"; }
+  if(S.step===5 && S.analyzed) fillSpec();
+}
+
+/* ---------- 每步动作 ---------- */
+function act(){
+  if(S.running) return;
+  const n = S.step;
+  if(n===0||n===1||n===3||n===4){ goStep(n+1); }
+  else if(n===2){ runAnalysis(); }
+  else if(n===5){
+    if(!S.analyzed){ goStep(2); }
+    else goStep(6);
+  }
+}
+
+/* ---------- 载气连续流（常开，样品谱带在气流中走） ---------- */
+const GAS_N = 34;
+let gasDots = [], lastGasT = 0;
+function initGas(){
+  const NS="http://www.w3.org/2000/svg";
+  const svg=$("gcmsSvg");
+  let g=$("gasFlow");
+  if(!g){
+    g=document.createElementNS(NS,"g"); g.setAttribute("id","gasFlow");
+    svg.insertBefore(g, $("plugs"));
+  }
+  for(let i=0;i<GAS_N;i++){
+    const c=document.createElementNS(NS,"circle");
+    c.setAttribute("r",(1.2+(i%3)*0.5).toFixed(1));
+    c.setAttribute("fill","#7d8ea3"); c.setAttribute("opacity","0.55");
+    g.appendChild(c);
+    gasDots.push({el:c, p:i/GAS_N, sp:0.085+(i%5)*0.006});
+  }
+  requestAnimationFrame(gasTick);
+}
+function gasTick(now){
+  const dt=Math.min(0.05, ((now-lastGasT)/1000)||0.016); lastGasT=now;
+  gasDots.forEach(d=>{
+    d.p=(d.p+d.sp*dt)%1;
+    const x=44+d.p*(368-44);
+    d.el.setAttribute("cx",x.toFixed(1));
+    d.el.setAttribute("cy",(84+1.5*Math.sin(d.p*20)).toFixed(1));
+  });
+  requestAnimationFrame(gasTick);
+}
+
+/* ---------- 实时运行：进样 → 分离 → 出峰 ---------- */
+const TIC = {x0:30, x1:400, base:300, tmax:16};
+const tX = t => TIC.x0 + t/TIC.tmax*(TIC.x1-TIC.x0);
+const peakH = sn => Math.min(115, 24*Math.log10(1+sn));
+function snapModel(){
+  const ps=[
+    {t:tRben(), sn:SNben(),     label:"苯",       c:"#b48cff", off:14},
+    {t:tRis(),  sn:Ais()/NOISE, label:"氟苯(IS)", c:"#59d6ff", off:7},
+    {t:tRtol(), sn:SNtol(),     label:"甲苯",     c:"#3ddc84", off:0},
+  ].map(p=>({...p, vis:p.sn>=3}));   // 谱带都走，检不出的峰不画
+  return {ps, over:Aben()>A_SAT, wmin:peakW()};
+}
+function traceY(px, snap){
+  const t=(px-TIC.x0)/(TIC.x1-TIC.x0)*TIC.tmax;
+  let h=16*Math.exp(-Math.pow((t-1.2)/0.35,2));   // 溶剂峰
+  const s=snap.wmin/2.5;
+  snap.ps.forEach(p=>{ if(p.vis) h+=peakH(p.sn)*Math.exp(-Math.pow((t-p.t)/s,2)/2); });
+  if(snap.over) h=Math.min(h,115);               // 过载削顶
+  return TIC.base-h+0.8*Math.sin(px*0.4);
+}
+function drawSweep(penT, snap){
+  const g=$("ticLive"); if(!g) return;
+  const xEnd=Math.min(tX(penT), TIC.x1);
+  let d=`M ${TIC.x0} ${TIC.base}`;
+  for(let x=TIC.x0;x<=xEnd;x+=2) d+=` L ${x.toFixed(1)} ${traceY(x,snap).toFixed(1)}`;
+  d+=` L ${xEnd.toFixed(1)} ${TIC.base} Z`;
+  g.setAttribute("d",d);
+}
+function drawBaseline(){
+  const g=$("ticLive"); if(!g) return;
+  g.setAttribute("d",`M ${TIC.x0} ${TIC.base} L ${TIC.x1} ${TIC.base}`);
+  drawTicks();
+}
+function drawTicks(){
+  const NS="http://www.w3.org/2000/svg";
+  const g=$("ticLabels"); if(!g) return; g.innerHTML="";
+  [0,4,8,12,16].forEach(t=>{
+    const tx=document.createElementNS(NS,"text");
+    tx.setAttribute("x",tX(t)); tx.setAttribute("y",316);
+    tx.setAttribute("text-anchor","middle"); tx.setAttribute("fill","#5b6572");
+    tx.setAttribute("font-size","10"); tx.textContent=t; g.appendChild(tx);
+  });
+}
+function drawLabels(snap){
+  const NS="http://www.w3.org/2000/svg";
+  const g=$("ticLabels"); if(!g) return;
+  drawTicks();
+  snap.ps.forEach(p=>{
+    if(!p.vis) return;
+    const x=tX(p.t), y=traceY(x,snap);
+    const tx=document.createElementNS(NS,"text");
+    tx.setAttribute("x",x); tx.setAttribute("y",Math.max(190,y-10));
+    tx.setAttribute("text-anchor","middle"); tx.setAttribute("fill",p.c);
+    tx.setAttribute("font-size","11"); tx.setAttribute("font-family","inherit");
+    tx.textContent=p.label+" "+p.t.toFixed(2); g.appendChild(tx);
+    if(snap.over && p.label==="苯"){
+      const w=document.createElementNS(NS,"text");
+      w.setAttribute("x",x); w.setAttribute("y",Math.max(176,y-26));
+      w.setAttribute("text-anchor","middle"); w.setAttribute("fill","#ff5252");
+      w.setAttribute("font-size","11"); w.setAttribute("font-weight","700");
+      w.textContent="过载削顶"; g.appendChild(w);
+    }
+  });
+}
+function drawStatic(){
+  const snap=snapModel(); S.snap=snap;
+  drawSweep(TIC.tmax,snap); drawLabels(snap);
+}
+function setOvenUI(){
+  const t=Math.round(S.ovenT)+"℃";
+  const a=$("ovenSvgT"); if(a) a.textContent=t;
+  const b=$("ovenHtmlT"); if(b) b.textContent=t;
+  setM("mOven", Math.round(S.ovenT), "℃");
+}
+function runAnalysis(){
+  if(S.running) return;
+  S.running=true; S.analyzed=false;
+  const ab=$("actBtn"); ab.disabled=true; ab.textContent="运行中…";
+  $("skipBtn").style.display="";
+  const snap=snapModel(); S.snap=snap;
+  const NS="http://www.w3.org/2000/svg";
+  const pg=$("plugs"); pg.innerHTML="";
+  const bands=snap.ps.map(p=>{
+    const r=document.createElementNS(NS,"rect");
+    r.setAttribute("width","12"); r.setAttribute("height","9"); r.setAttribute("rx","4.5");
+    r.setAttribute("y","79.5"); r.setAttribute("fill",p.c); r.setAttribute("opacity","0.95");
+    pg.appendChild(r);
+    return {el:r, off:p.off, tR:p.t};
+  });
+  const ei=$("eiDot"), DUR=9000, t0=performance.now();
+  function frame(now){
+    const t=Math.min(1,(now-t0)/DUR);
+    S.ovenT=40+(200-40)*Math.min(1,t/0.55); setOvenUI();
+    let flash=false;
+    bands.forEach(b=>{
+      // 谱带 i 在 tArr 时刻到达检测器；TIC 笔同步扫到保留时间 tR 处
+      const tArr=0.45+0.45*(b.tR/16), tGo=tArr-0.12;
+      let x, op=0.95;
+      if(t<0.10){ x=44+(110-44)*(t/0.10); }
+      else if(t<tGo){ const q=Math.min(1,(t-0.10)/(tGo-0.10)); x=110+q*(112+b.off); }
+      else {
+        const q=Math.min(1,(t-tGo)/0.12), x0=110+112+b.off;
+        x=x0+q*(368-x0);
+        if(t>tArr) op=Math.max(0, 1-(t-tArr)/0.08);   // 撞上检测器后被消耗掉
+      }
+      if(x>276&&x<298) flash=true;
+      b.el.setAttribute("x",(x-6).toFixed(1));
+      b.el.setAttribute("opacity",op.toFixed(2));
+    });
+    if(ei) ei.setAttribute("stroke", flash?"#ffffff":"#59d6ff");
+    const penT=Math.max(0, Math.min(1,(t-0.45)/0.45))*16;  // 笔走到哪=谁刚到检测器
+    drawSweep(penT, snap);
+    if(t<1) S.raf=requestAnimationFrame(frame);
+    else finishRun();
+  }
+  S.raf=requestAnimationFrame(frame);
+}
+function cancelRun(){
+  if(S.raf) cancelAnimationFrame(S.raf); S.raf=null;
+  S.running=false;
+  const ei=$("eiDot"); if(ei) ei.setAttribute("stroke","#59d6ff");
+  $("skipBtn").style.display="none";
+  const ab=$("actBtn"); if(ab) ab.disabled=false;
+}
+/* 条件改变 → 谱图清空，回到待运行状态 */
+function clearRun(){
+  cancelRun();
+  S.analyzed=false; S.snap=null; S.justCleared=true;
+  S.ovenT=40; setOvenUI();
+  const pg=$("plugs"); if(pg) pg.innerHTML="";
+  drawBaseline();
+  const tb=$("specBody");
+  if(tb) tb.innerHTML='<tr><td colspan="6" style="color:var(--faint)">条件已改，谱图已清空——请回第③步重新运行</td></tr>';
+  const ab=$("actBtn");
+  if(ab && S.step!==6) ab.textContent = S.step===5 ? "← 回第③步重新运行" : ACTLBL[S.step];
+}
+function finishRun(){
+  if(!S.running) return;
+  cancelRun();
+  S.analyzed=true; S.ovenT=200; setOvenUI();
+  drawStatic(); narrate(); refreshMetrics();
+  setTimeout(()=>{ if(S.step===2) goStep(3); }, 600);
+}
+
+function stOf(sn, A){
+  if(A>A_SAT) return ['<span class="st-warn">过载</span>', "—"];
+  if(sn<3)  return ['<span class="st-warn">未检出</span>', "—"];
+  if(sn<10) return ['<span class="st-mid">检出·半定量</span>', "—"];
+  return ['<span class="st-ok">定量</span>', ((A/Ais())*C_IS).toFixed(1)];
+}
+function fillSpec(){
+  const tb=$("specBody"); if(!tb) return;
+  const row=(name,tR,ion,sn,A)=>{
+    const [st,conc]=stOf(sn,A);
+    const snT = sn<1000 ? sn.toFixed(1) : sn.toFixed(0);
+    return `<tr><td>${name}</td><td>${tR.toFixed(2)} min</td><td>${ion}</td>`+
+           `<td>${snT}</td><td>${st}</td><td>${conc}</td></tr>`;
+  };
+  tb.innerHTML =
+    row("苯", tRben(), "m/z 78", SNben(), Aben())+
+    row("甲苯", tRtol(), "m/z 91", SNtol(), Atol())+
+    `<tr><td>氟苯(IS)</td><td>${tRis().toFixed(2)} min</td><td>m/z 96</td>`+
+    `<td>${(Ais()/NOISE).toFixed(0)}</td><td><span class="st-ok">内标</span></td><td>${C_IS.toFixed(0)}</td></tr>`;
+}
+</script>
+<script>
+"use strict";
+/* ================= 结论 ================= */
+function showConclusion(){
+  const v=verdict(), sc=SCENS[P.scen];
+  const big=$("concBig");
+  const setR=(a,b)=>{ const x=$("repSvgT"), y=$("repSvgS"); if(x) x.textContent=a; if(y) y.textContent=b; };
+  if(v.st==="overload"){
+    big.textContent="过载"; big.style.color="var(--danger)";
+    $("concState").textContent="离子源污染风险";
+    $("concText").innerHTML=
+      `样品（<b>${sc.label}</b>）浓度太高：当前分流比 <b>${SPLIT_LBL[String(P.split)]}</b> 下苯峰面积 <b>${(Aben()/1e6).toFixed(2)}×10⁶</b>，`+
+      `超过检测器线性上限（5×10⁵），峰削顶、定量作废，还会<span class="bad">污染离子源</span>。<br>`+
+      `正确做法：<b>50:1 大分流</b>或稀释样品后重测。`;
+    setR("过载","峰削顶 · 离子源污染");
+  } else if(v.st==="nd"){
+    big.textContent="未检出"; big.style.color="var(--faint)";
+    $("concState").textContent="S/N < 3";
+    $("concText").innerHTML=
+      `苯：<span class="bad">未检出</span>（S/N=${v.sn.toFixed(1)}）。注意：<b>未检出 ≠ 不存在</b>，只是当前方法看不见。<br>`+
+      `正确做法：切 <b>SIM</b>（灵敏度×60）+ 不分流进样，${sc.ben} μg/m³ 的痕量完全看得见。`;
+    setR("ND","低于检出限");
+  } else if(v.st==="det"){
+    big.textContent="检出"; big.style.color="var(--amber)";
+    $("concState").textContent="半定量 · S/N<10";
+    $("concText").innerHTML=
+      `苯检出，S/N=${v.sn.toFixed(1)}，只能<span class="bad">半定量</span>，报数底气不足。<br>`+
+      `切 <b>SIM</b> 或不分流，S/N 提到 10 以上再准确定量。`;
+    setR("检出","半定量");
+  } else {
+    big.textContent=v.cBen.toFixed(1); big.style.color="var(--violet)";
+    $("concState").textContent="内标法定量 · S/N≥10";
+    $("concText").innerHTML=
+      `苯 <b>${v.cBen.toFixed(1)} μg/m³</b>，甲苯 <b>${v.cTol.toFixed(1)} μg/m³</b>（内标氟苯定量，S/N=${v.sn.toFixed(0)}）。<br>`+
+      `条件组合正确：<b>${sc.label}</b>样品 × <b>${SPLIT_LBL[String(P.split)]}</b> × <b>${P.mode===1?"SCAN":"SIM"}</b>，一次进样搞定。`;
+    setR(v.cBen.toFixed(1),"μg/m³ · 定量");
+  }
+}
+
+/* ================= 控件联动 ================= */
+function bindSeg(id, set, fmt){
+  const seg=$(id);
+  [...seg.children].forEach(b=>{
+    b.addEventListener("click",()=>{
+      set(b.dataset.v);
+      [...seg.children].forEach(x=>x.classList.toggle("on",x===b));
+      fmt();
+      if(S.running || S.analyzed) clearRun();
+      narrate(); refreshMetrics(); syncBench();
+      if(S.step===5 && S.analyzed){ fillSpec(); }
+      if(S.step===6) showConclusion();
+    });
+  });
+}
+function setSegOn(id, val){
+  [...$(id).children].forEach(x=>x.classList.toggle("on", x.dataset.v===String(val)));
+}
+
+/* ================= 报告 ================= */
+function reportText(){
+  const v=verdict(), sc=SCENS[P.scen];
+  const L=[];
+  L.push("GC-MS 检测报告（演示）");
+  L.push("方法：罐采样-GC/MS 法 · HJ 759-2015（参照 EPA TO-15）");
+  L.push("=".repeat(40));
+  L.push(`样品：CAN-2026-101（6L 苏玛罐，环境空气）· 类型：${sc.label}`);
+  L.push(`进样：250℃，分流比 ${SPLIT_LBL[String(P.split)]}`);
+  L.push(`分离：DB-624，40℃(2min)→${P.ramp}℃/min→200℃，约${runtime().toFixed(1)}min`);
+  L.push(`电离：EI 70eV；检测：${P.mode===1?"SCAN 全扫描":"SIM 选择离子"}`);
+  L.push("=".repeat(40));
+  if(v.st==="overload")      L.push("苯：过载（峰削顶，离子源污染风险）——50:1 大分流或稀释后重测");
+  else if(v.st==="nd")       L.push(`苯：未检出（S/N=${v.sn.toFixed(1)}<3）——建议 SIM + 不分流重测`);
+  else if(v.st==="det")      L.push(`苯：检出·半定量（S/N=${v.sn.toFixed(1)}）——建议提高灵敏度后准确定量`);
+  else { L.push(`苯：${v.cBen.toFixed(1)} μg/m³（tR=${tRben().toFixed(2)}min，S/N=${v.sn.toFixed(0)}）`);
+         L.push(`甲苯：${v.cTol.toFixed(1)} μg/m³（tR=${tRtol().toFixed(2)}min）`); }
+  L.push("=".repeat(40));
+  L.push("质控：PFTBA 调谐通过(69/219/502)；空白<MDL；内标回收率 96.4%；平行样 RSD 4.1%");
+  L.push("备注：教学演示模型，RF=1，不作为检测报告依据。");
+  return L.join("\n");
+}
+function printReport(){
+  const bd=$("rpBody"); if(bd) bd.textContent=reportText();
+  $("rp").classList.add("on");
+}
+function rpClose(){ $("rp").classList.remove("on"); }
+function rpCopy(){
+  const t=reportText();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(t).then(()=>{$("rpCopyBtn").textContent="已复制 ✓";});
+  }
+}
+function resetAll(){
+  P={scen:"trace",split:1,ramp:8,mode:1};
+  S={step:0,max:0,running:false,analyzed:false,raf:null,ovenT:40,snap:null,justCleared:false};
+  setSegOn("scenSeg","trace"); $("scenVal").textContent="痕量";
+  setSegOn("splitSeg","1");    $("splitVal").textContent="不分流";
+  setSegOn("rampSeg","8");     $("rampVal").textContent="8 ℃/min";
+  setSegOn("modeSeg","1");     $("modeVal").textContent="SCAN";
+  render();
+}
+
+/* ================= 初始化 ================= */
+document.addEventListener("DOMContentLoaded",()=>{
+  buildSeg();
+  bindSeg("scenSeg", v=>P.scen=v, ()=>$("scenVal").textContent=SCENS[P.scen].label);
+  bindSeg("splitSeg",v=>P.split=parseFloat(v), ()=>$("splitVal").textContent=SPLIT_LBL[$("splitSeg").querySelector(".on").dataset.v]);
+  bindSeg("rampSeg", v=>P.ramp=parseInt(v,10), ()=>$("rampVal").textContent=P.ramp+" ℃/min");
+  bindSeg("modeSeg", v=>P.mode=parseFloat(v), ()=>$("modeVal").textContent=P.mode===1?"SCAN":"SIM");
+  $("actBtn").addEventListener("click", act);
+  $("skipBtn").addEventListener("click", ()=>finishRun());
+  document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowRight") goStep(S.step+1);
+    else if(e.key==="ArrowLeft") goStep(S.step-1);
+    else if(e.code==="Space" && S.step<6){ e.preventDefault(); act(); }
+  });
+  render();
+  initGas();
+  setTimeout(()=>$("loader").classList.add("done"), 700);
+});
+</script>
+
+<div id="rp" role="dialog" aria-modal="true" aria-label="检测报告">
+  <div class="rp-box">
+    <div class="rp-hd">
+      <div class="rp-ti">GC-MS 检测报告（演示）</div>
+      <button class="rp-x" onclick="rpClose()" aria-label="关闭">×</button>
+    </div>
+    <div class="rp-bd" id="rpBody"></div>
+    <div class="rp-ft">
+      <button class="rp-b rp-b1" id="rpCopyBtn" onclick="rpCopy()">复制报告</button>
+      <button class="rp-b rp-b2" onclick="rpClose()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <details class="how">
+    <summary>▸ 标准依据</summary>
+    <div class="f">HJ 759-2015《环境空气 挥发性有机物的测定 罐采样/气相色谱-质谱法》
+参照：EPA TO-15（罐采样-GC/MS，环境空气 VOCs 经典方法）
+相关：HJ 639-2012（水质 VOCs · 吹扫捕集/GC-MS）· HJ 605-2011（土壤 VOCs）
+本页模型：内标法（氟苯），色谱柱 DB-624，教学演示用。</div>
+  </details>
+
+  <div class="card" style="margin-top:18px">
+    <h3>延伸学习</h3>
+    <div class="tipbox" style="margin-top:0">
+      · <b>苏玛罐采样实验室</b> —— 采样那一半在这里：6L 罐充填模型，四场景（控制器失效/泄漏/极限工况）<br>
+      · <b>五气分析仪实验室</b> —— 现场直读 vs 实验室 GC-MS 精测，什么时候用哪个<br>
+      · 记住顺序：<b>样品浓度决定分流比，分流比决定进样量，进样量决定你看得见还是看不见。</b>
+    </div>
+  </div>
+
+  <footer>
+    <span>ENVLAB · GC-MS 检测实验室 · 交互演示</span>
+    <span>联系作者：<a href="mailto:jinghao.song@gmail.com">jinghao.song@gmail.com</a></span>
+  </footer>
+</div>
+</body>
+</html>
