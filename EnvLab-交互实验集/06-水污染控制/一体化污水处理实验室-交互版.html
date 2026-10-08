@@ -310,17 +310,17 @@ h+=`<line x1="2" y1="210" x2="10" y2="210" stroke="#22d3ee" stroke-width="3" mar
 // 提升泵：调节池→缺氧池
 h+=`<circle cx="216" cy="262" r="11" fill="#14213a" stroke="#8fa3c4" stroke-width="1.5"/>
 <path d="M216,256 l6,10 h-12 z" fill="#8fa3c4"/>
-<path d="M216,251 L216,118 L298,118" stroke="#22d3ee" stroke-width="3" fill="none"/>
-<line x1="298" y1="118" x2="298" y2="150" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr)"/>`;
+<path d="M216,251 L216,118 L270,118" stroke="#22d3ee" stroke-width="3" fill="none"/>
+<line x1="270" y1="118" x2="270" y2="150" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr)"/>`;
 // 翻水堰：缺氧→好氧→膜池
 [[364],[514]].forEach(([wx])=>{
   h+=`<path d="M${wx-3},${WL} L${wx-3},128 L${wx+22},128" stroke="#22d3ee" stroke-width="2.5" fill="none"/>
   <line x1="${wx+22}" y1="128" x2="${wx+22}" y2="162" stroke="#22d3ee" stroke-width="2.5" marker-end="url(#arr)"/>`;
 });
 // 混合液回流：膜池→缺氧池
-h+=`<path d="M660,140 L660,108 L304,108" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="7,5" fill="none"/>
-<line x1="304" y1="108" x2="304" y2="140" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="7,5" marker-end="url(#arr)"/>
-<text x="470" y="100" fill="#fbbf24" font-size="12" text-anchor="middle">混合液回流（内回流）</text>`;
+h+=`<path d="M660,140 L660,108 L330,108" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="7,5" fill="none"/>
+<line x1="330" y1="108" x2="330" y2="140" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="7,5" marker-end="url(#arr)"/>
+<text x="490" y="100" fill="#fbbf24" font-size="12" text-anchor="middle">混合液回流（内回流）</text>`;
 // 消毒：膜池→阀门→紫外→贮水池
 h+=`<path d="M600,140 L600,58 L636,58" stroke="#22d3ee" stroke-width="3" fill="none"/>
 <path d="M636,52 l12,6 l-12,6 l12,6" stroke="#8fa3c4" stroke-width="2" fill="none"/>
@@ -364,7 +364,7 @@ TANKS.filter(t=>t.air).forEach(tk=>{
 });
 // 消毒/出水/回流管水流点
 const fg=document.getElementById('fdots');
-const fsegs=[[600,788,58],[834,918,210],[304,660,108]];
+const fsegs=[[600,788,58],[834,918,210],[660,330,108]];
 const fdots=[];
 for(let i=0;i<18;i++){
   const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
