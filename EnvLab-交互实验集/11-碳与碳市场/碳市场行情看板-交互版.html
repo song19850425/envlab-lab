@@ -38,7 +38,7 @@ footer a{color:var(--acc);text-decoration:none}
 <div class="badge" id="dateBadge">数据日期：加载中…</div>
 </header>
 
-<div class="note">⚡ 本看板为<strong>每日更新</strong>架构：页面读取同目录 <code>carbon-data.json</code> 渲染，数据管线每日收盘后自动刷新该文件即可。目前首批数据来自开源项目 china-ets-mcp（截至 2026-03-05），自建更新管线开发中。</div>
+<div class="note">⚡ 本看板<strong>每日自动更新</strong>：数据管线于每个交易日收盘后抓取上环交所（CEA）与 CCER 官方（北京绿色交易所）数据并刷新。历史数据基础来自开源项目 china-ets-mcp。</div>
 
 <div class="cards" id="cards"></div>
 
@@ -113,18 +113,21 @@ fetch('carbon-data.json').then(r=>r.json()).then(d=>{
   const L=cea[cea.length-1], P=cea[cea.length-2];
   const chg=L.close-P.close, pct=(chg/P.close*100);
   const cL=ccer[ccer.length-1], cP=ccer[ccer.length-2];
-  const cChg=cL.avg-cP.avg, cPct=(cChg/cP.avg*100);
+  const nz=ccer.filter(x=>x.avg>0);           // 无成交日均价为空，图表与涨跌取最近有成交日
+  const nL=nz[nz.length-1], nP=nz[nz.length-2];
+  const cChg=nL.avg-nP.avg, cPct=(cChg/nP.avg*100);
+  const sumVol=cea.reduce((a,x)=>a+x.tot_vol,0), sumAmt=cea.reduce((a,x)=>a+x.tot_amt,0);
   const upCls=chg>=0?'up':'down', cupCls=cChg>=0?'up':'down';
   document.getElementById('cards').innerHTML=`
     <div class="card"><div class="k">CEA 最新收盘价</div><div class="v">${L.close.toFixed(2)}<span style="font-size:13px;color:#8b9bb8"> 元/吨</span></div><div class="d ${upCls}">${chg>=0?'+':''}${chg.toFixed(2)}（${pct>=0?'+':''}${pct.toFixed(2)}%）</div></div>
     <div class="card"><div class="k">CEA 日成交量</div><div class="v">${fmt(L.tot_vol)}<span style="font-size:13px;color:#8b9bb8"> 吨</span></div><div class="d">成交额 ${(L.tot_amt/10000).toFixed(1)} 万元</div></div>
     <div class="card"><div class="k">CEA 年内最高 / 最低</div><div class="v" style="font-size:19px">${Math.max(...cea.map(x=>x.close)).toFixed(2)} / ${Math.min(...cea.map(x=>x.close)).toFixed(2)}</div><div class="d">近一年收盘价区间</div></div>
-    <div class="card"><div class="k">CCER 最新均价</div><div class="v">${cL.avg.toFixed(2)}<span style="font-size:13px;color:#8b9bb8"> 元/吨</span></div><div class="d ${cupCls}">${cChg>=0?'+':''}${cChg.toFixed(2)}（${cPct>=0?'+':''}${cPct.toFixed(2)}%）</div></div>
-    <div class="card"><div class="k">CCER 日成交量</div><div class="v">${fmt(cL.vol)}<span style="font-size:13px;color:#8b9bb8"> 吨</span></div><div class="d">成交额 ${(cL.amt/10000).toFixed(2)} 万元</div></div>
-    <div class="card"><div class="k">CEA 累计成交</div><div class="v" style="font-size:19px">${(L.cum_vol/1e8).toFixed(2)} 亿吨</div><div class="d">累计成交额约 ${(L.cum_amt/1e8).toFixed(0)} 亿元</div></div>`;
+    <div class="card"><div class="k">CCER 最新均价</div><div class="v">${nL.avg.toFixed(2)}<span style="font-size:13px;color:#8b9bb8"> 元/吨</span></div><div class="d ${cupCls}">${cChg>=0?'+':''}${cChg.toFixed(2)}（${cPct>=0?'+':''}${cPct.toFixed(2)}%）<span style="color:#8b9bb8"> · ${nL.date.slice(5)}</span></div></div>
+    <div class="card"><div class="k">CCER 最新成交量</div><div class="v">${cL.vol?fmt(cL.vol):'无成交'}${cL.vol?'<span style="font-size:13px;color:#8b9bb8"> 吨</span>':''}</div><div class="d">${cL.date.slice(5)}${cL.vol?' 成交额 '+(cL.amt/10000).toFixed(2)+' 万元':''}</div></div>
+    <div class="card"><div class="k">CEA 近一年累计成交</div><div class="v" style="font-size:19px">${(sumVol/1e8).toFixed(2)} 亿吨</div><div class="d">累计成交额约 ${(sumAmt/1e8).toFixed(0)} 亿元</div></div>`;
   drawLine(document.getElementById('c1'), cea.map(x=>[x.date,x.close]), '#3b82f6', true);
   drawBars(document.getElementById('c2'), cea.map(x=>[x.date,x.tot_vol]), '#3b82f6');
-  drawLine(document.getElementById('c3'), ccer.map(x=>[x.date,x.avg]), '#0ecb81', true);
+  drawLine(document.getElementById('c3'), nz.map(x=>[x.date,x.avg]), '#0ecb81', true);
 }).catch(e=>{
   document.getElementById('dateBadge').textContent='数据加载失败';
 });
