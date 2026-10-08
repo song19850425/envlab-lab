@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>离子色谱检测实验室 · 从淋洗液到色谱峰</title>
+<meta name="description" content="离子色谱法 · 依据 HJ 84-2016">
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+    --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+    --amber:#ffb020; --amber-dim:#8a5c10;
+    --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84; --violet:#b48cff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    overflow-x:hidden;
+  }
+  #loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;
+    align-items:center;justify-content:center;flex-direction:column;gap:14px;
+    transition:opacity .6s ease;}
+  #loader.done{opacity:0;pointer-events:none}
+  #loader .spin{width:46px;height:46px;border-radius:50%;
+    border:3px solid var(--line);border-top-color:var(--amber);
+    animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+  header.lab-head{padding:26px 4px 6px}
+  .kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+  h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+  h1.title .thin{color:var(--dim);font-weight:300}
+  .sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+  .oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;
+    border-left:3px solid var(--amber);padding-left:14px;max-width:680px}
+  .oneliner b{color:var(--amber)}
+  .stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+  @media (max-width:900px){.stage{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:16px;position:relative;overflow:hidden;margin-bottom:18px}
+  .card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+  svg.scene{width:100%;height:auto;display:block;background:
+    radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+  .metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+  .metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+  .metric.warn .v{color:var(--danger)}
+  .metric.good .v{color:var(--ok)}
+  .metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+  .metric.flash{animation:mflash .9s ease}
+  @keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+  #narrate{min-height:110px;background:var(--panel2);border:1px solid var(--line);
+    border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;
+    font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px;transition:opacity .3s}
+  #narrate b{color:var(--cyan);font-family:var(--mono)}
+  #narrate .warn{color:var(--danger);font-weight:700}
+  #narrate .ok{color:var(--ok);font-weight:700}
+  .ctl{margin-bottom:12px}
+  .ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+  .ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button{
+    flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;
+    background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;
+    font-family:var(--mono);transition:all .15s;
+  }
+  .seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+  .seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);
+    box-shadow:0 0 0 1px var(--amber-dim) inset}
+  .seg button.on small{color:var(--amber)}
+  .seg button.done{color:var(--ok);border-color:#1e4d33}
+  .seg button:active{transform:scale(.97)}
+  kbd.kbd{font-family:var(--mono);font-size:10px;color:var(--faint);
+    border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+    padding:1px 5px;margin-left:6px;background:#0d1117;white-space:nowrap}
+  #bench{margin-top:14px;min-height:120px}
+  .tipbox{font-size:13px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:10px}
+  .tipbox b{color:var(--txt)}
+  .tipbox .warnline{color:var(--amber)}
+  .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media (max-width:600px){.kv-grid{grid-template-columns:1fr}}
+  .kv{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .kv .k{font-size:11px;color:var(--faint)}
+  .kv .v{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--txt);margin-top:2px}
+  .kv .v em{font-style:normal;color:var(--amber)}
+  .bigtimer{text-align:center;padding:8px 0}
+  .bigtimer .t{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--amber)}
+  .bigtimer .l{font-size:12px;color:var(--faint);margin-top:4px}
+  .formula{background:#0d1117;border:1px solid var(--line);border-radius:10px;
+    padding:14px;font-family:var(--mono);font-size:15px;color:var(--cyan);
+    text-align:center;line-height:2;overflow-x:auto}
+  .formula .dim{color:var(--faint);font-size:12px}
+  .spec-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  .spec-table th{font-size:11px;color:var(--faint);text-align:left;padding:8px 10px;
+    border-bottom:1px solid var(--line);letter-spacing:.1em}
+  .spec-table td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--txt);
+    font-family:var(--mono);font-size:13px}
+  .spec-table td.st-ok{color:var(--ok);font-weight:700}
+  .spec-table td.st-warn{color:var(--danger);font-weight:700}
+  .spec-table td.st-mid{color:var(--amber);font-weight:700}
+  .actionrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn-act{flex:1;min-width:180px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;
+    background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206;border:none;border-radius:10px;
+    letter-spacing:.1em;transition:transform .12s, box-shadow .12s}
+  .btn-act:hover{box-shadow:0 4px 16px rgba(255,176,32,.35)}
+  .btn-act:active{transform:scale(.98)}
+  .btn-act:disabled{opacity:.45;cursor:default;box-shadow:none}
+  .btn-ghost{padding:13px 18px;font-size:14px;cursor:pointer;background:transparent;
+    color:var(--dim);border:1px solid var(--line);border-radius:10px}
+  .btn-ghost:hover{color:var(--txt);border-color:var(--faint)}
+  #conclusionCard{border-left:3px solid var(--violet)}
+  .bigresult{text-align:center;padding:18px 0 6px}
+  .bigresult .n{font-family:var(--mono);font-size:52px;font-weight:800;color:var(--violet)}
+  .bigresult .u{font-size:14px;color:var(--dim)}
+  .bigresult .c{font-size:13px;color:var(--faint);margin-top:6px;letter-spacing:.2em}
+  .conc-text{font-size:14.5px;line-height:1.9;color:var(--txt);background:var(--panel2);
+    border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}
+  .conc-text b{color:var(--cyan);font-family:var(--mono)}
+  .conc-text .bad{color:var(--danger);font-weight:700}
+  .conc-text .good{color:var(--ok);font-weight:700}
+  .qc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 4px}
+  @media (max-width:700px){.qc-grid{grid-template-columns:1fr 1fr}}
+  .qc{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .qc .k{font-size:11px;color:var(--faint);margin-bottom:4px}
+  .qc .v{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--ok)}
+  .qc .v small{font-size:11px;color:var(--faint);font-weight:400}
+  .redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+  @media (max-width:700px){.redlines{grid-template-columns:1fr}}
+  .rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+  .rl .d{font-size:12px;color:var(--dim);line-height:1.7}
+  details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+  details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+  details.how summary::-webkit-details-marker{display:none}
+  details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;
+    padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+  footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    font-size:12px;color:var(--faint)}
+  footer a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--faint)}
+  .tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);
+    border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+  #rp{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;
+    padding:20px;background:rgba(10,13,18,.72);backdrop-filter:blur(3px)}
+  #rp.on{display:flex}
+  #rp .rp-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:640px;
+    width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden}
+  #rp .rp-hd{display:flex;align-items:center;padding:15px 20px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  #rp .rp-ti{font-size:15px;font-weight:800;color:var(--txt);letter-spacing:.1em}
+  #rp .rp-x{margin-left:auto;border:none;background:transparent;font-size:20px;color:var(--dim);cursor:pointer;padding:2px 8px}
+  #rp .rp-x:hover{color:var(--txt)}
+  #rp .rp-bd{padding:18px 22px;overflow:auto;font-size:13px;line-height:1.8;color:var(--txt);
+    white-space:pre-wrap;font-family:var(--mono)}
+  #rp .rp-ft{display:flex;gap:10px;justify-content:flex-end;padding:13px 20px;border-top:1px solid var(--line);background:var(--panel2)}
+  #rp .rp-b{padding:9px 18px;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid transparent}
+  #rp .rp-b1{background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206}
+  #rp .rp-b2{background:transparent;border-color:var(--line);color:var(--dim)}
+  @media print{#rp{display:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>正在平衡基线…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">ENVLAB · DEMO</div>
+    <div class="kicker">仪器分析 · 离子色谱法</div>
+    <h1 class="title">离子色谱<span class="thin">检测实验室</span></h1>
+    <div class="sub">IC LAB · FROM ELUENT TO PEAKS</div>
+    <p class="oneliner"><b>0.05 mg/L</b> 的氟离子，仪器看得见吗？<b>淋洗液浓度 × 进样体积</b>，决定你是检出还是检不出。<br>离子色谱法 · 依据 HJ 84-2016。</p>
+  </header>
+
+  <div class="stage">
+    <div class="card">
+      <h3>实验台 · <span id="sceneTitle" style="color:var(--amber)">① 样品</span></h3>
+      <svg class="scene" id="icSvg" viewBox="0 0 420 340" role="img" aria-label="离子色谱仪器与实时色谱峰">
+        <g id="partPump">
+          <rect x="8" y="70" width="34" height="44" rx="6" fill="#151b25" stroke="#59d6ff" stroke-width="1.5"/>
+          <text x="25" y="90" text-anchor="middle" fill="#59d6ff" font-size="8" font-family="inherit">淋洗液</text>
+          <text x="25" y="104" text-anchor="middle" fill="#8b95a3" font-size="7" font-family="inherit">碳酸盐</text>
+          <rect x="46" y="76" width="30" height="32" rx="6" fill="#151b25" stroke="#8b95a3" stroke-width="1.5"/>
+          <text x="61" y="95" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">泵</text>
+        </g>
+        <line x1="76" y1="92" x2="94" y2="92" stroke="#5b6572" stroke-width="2"/>
+        <g id="partValve">
+          <circle cx="114" cy="92" r="20" fill="#151b25" stroke="#ffb020" stroke-width="2"/>
+          <path d="M102 84 a14 14 0 0 1 24 0" fill="none" stroke="#ffb020" stroke-width="2"/>
+          <circle cx="114" cy="92" r="4" fill="#ffb020"/>
+        </g>
+        <line x1="134" y1="92" x2="152" y2="92" stroke="#5b6572" stroke-width="2"/>
+        <g id="partCol">
+          <rect x="152" y="52" width="112" height="80" rx="10" fill="#151b25" stroke="#ff5252" stroke-width="2"/>
+          <g fill="#ff5252" opacity="0.30">
+            <circle cx="172" cy="76" r="3"/><circle cx="188" cy="96" r="3"/><circle cx="204" cy="76" r="3"/>
+            <circle cx="220" cy="96" r="3"/><circle cx="236" cy="76" r="3"/><circle cx="252" cy="96" r="3"/>
+            <circle cx="180" cy="114" r="3"/><circle cx="212" cy="114" r="3"/><circle cx="244" cy="114" r="3"/>
+          </g>
+          <text x="208" y="72" text-anchor="middle" fill="#ff5252" font-size="11" font-family="inherit">分离柱</text>
+          <text x="208" y="124" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">阴离子交换柱</text>
+          <text id="pressSvgT" x="208" y="30" text-anchor="middle" fill="#ff5252" font-size="14" font-family="ui-monospace,monospace">8.0 MPa</text>
+        </g>
+        <line x1="264" y1="92" x2="282" y2="92" stroke="#5b6572" stroke-width="2"/>
+        <g id="partSup">
+          <rect x="282" y="72" width="46" height="40" rx="8" fill="#151b25" stroke="#b48cff" stroke-width="1.5"/>
+          <text x="305" y="96" text-anchor="middle" fill="#b48cff" font-size="10" font-family="inherit">抑制器</text>
+        </g>
+        <line x1="328" y1="92" x2="346" y2="92" stroke="#5b6572" stroke-width="2"/>
+        <g id="partDet">
+          <rect x="346" y="72" width="56" height="40" rx="8" fill="#151b25" stroke="#3ddc84" stroke-width="2"/>
+          <text x="374" y="96" text-anchor="middle" fill="#3ddc84" font-size="10" font-family="inherit">电导检测器</text>
+        </g>
+        <text x="61" y="140" text-anchor="middle" fill="#59d6ff" font-size="12" font-weight="700" font-family="inherit">输液系统</text>
+        <text x="114" y="140" text-anchor="middle" fill="#ffb020" font-size="12" font-weight="700" font-family="inherit">进样阀</text>
+        <text x="208" y="152" text-anchor="middle" fill="#ff5252" font-size="12" font-weight="700" font-family="inherit">分离柱</text>
+        <text x="374" y="140" text-anchor="middle" fill="#3ddc84" font-size="12" font-weight="700" font-family="inherit">检测器</text>
+        <g id="gasFlow"></g>
+        <g id="plugs"></g>
+        <text x="210" y="176" text-anchor="middle" fill="#8b95a3" font-size="11" font-family="inherit">电导-时间曲线 · 实时出峰</text>
+        <line x1="30" y1="300" x2="400" y2="300" stroke="#5b6572" stroke-width="1.5"/>
+        <line x1="30" y1="300" x2="30" y2="180" stroke="#5b6572" stroke-width="1.5"/>
+        <text x="396" y="332" text-anchor="end" fill="#5b6572" font-size="10" font-family="inherit">保留时间 (min)</text>
+        <text x="36" y="194" fill="#5b6572" font-size="10" font-family="inherit">电导 (μS)</text>
+        <path id="ticLive" d="" fill="#59d6ff" fill-opacity="0.14" stroke="#e8eef4" stroke-width="1.8"/>
+        <g id="ticLabels"></g>
+      </svg>
+      <div id="bench"></div>
+      <div class="actionrow">
+        <button class="btn-act" id="actBtn">开始</button>
+        <button class="btn-ghost" id="skipBtn" style="display:none">跳过等待 →</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>实时仪表</h3>
+        <div class="metrics">
+          <div class="metric" id="mPressM"><div class="k">柱压 PRESS</div><div class="v" id="mPress">–<small>MPa</small></div><div class="sub2">上限 15 MPa</div></div>
+          <div class="metric"><div class="k">F⁻保留时间</div><div class="v" id="mRT">–<small>min</small></div><div class="sub2">定性依据</div></div>
+          <div class="metric"><div class="k">分离度 Rs</div><div class="v" id="mRs">–</div><div class="sub2">F⁻/Cl⁻ · ≥1.5</div></div>
+          <div class="metric" id="mSnM"><div class="k">F⁻ S/N</div><div class="v" id="mSN">–</div><div class="sub2">≥3 检出 · ≥10 定量</div></div>
+        </div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">样品 SCENE</span><span class="val" id="scenVal">痕量</span></div>
+          <div class="seg" id="scenSeg">
+            <button data-v="trace" class="on">痕量<small>F 0.05</small></button>
+            <button data-v="normal">常规<small>F 0.8</small></button>
+            <button data-v="high">高浓度<small>F 5</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">淋洗液 ELUENT</span><span class="val" id="eluentVal">4.5 mM</span></div>
+          <div class="seg" id="eluentSeg">
+            <button data-v="1.8">1.8<small>稀·慢</small></button>
+            <button data-v="4.5" class="on">4.5<small>标准</small></button>
+            <button data-v="9">9.0<small>浓·快</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">流速 FLOW</span><span class="val" id="flowVal">1.2 mL/min</span></div>
+          <div class="seg" id="flowSeg">
+            <button data-v="0.8">0.8<small>慢</small></button>
+            <button data-v="1.2" class="on">1.2<small>标准</small></button>
+            <button data-v="2.0">2.0<small>快·高压</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">进样体积 INJ</span><span class="val" id="injVal">25 μL</span></div>
+          <div class="seg" id="injSeg">
+            <button data-v="25" class="on">25<small>常规</small></button>
+            <button data-v="100">100<small>增敏</small></button>
+            <button data-v="500">500<small>痕量专用</small></button>
+          </div>
+        </div>
+        <h3>步骤<kbd class="kbd">←</kbd><kbd class="kbd">→</kbd><kbd class="kbd">空格</kbd><span style="float:right;letter-spacing:0">执行当前步骤</span></h3>
+        <div class="seg" id="stepSeg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="conclusionCard" style="display:none">
+    <h3>检测结论 · 离子色谱法 HJ 84-2016</h3>
+    <div class="bigresult">
+      <div class="n" id="concBig">–</div>
+      <div class="u">mg/L · 氟离子</div>
+      <div class="c" id="concState">–</div>
+    </div>
+    <div class="conc-text" id="concText">…</div>
+    <h3 style="margin-top:6px">质控数据</h3>
+    <div class="qc-grid">
+      <div class="qc"><div class="k">空白</div><div class="v">&lt;MDL <small>无污染</small></div></div>
+      <div class="qc"><div class="k">标准曲线 R²(F⁻)</div><div class="v" id="qcR2">–</div></div>
+      <div class="qc"><div class="k">平行样 RSD</div><div class="v">2.8% <small>≤10%</small></div></div>
+      <div class="qc"><div class="k">加标回收率</div><div class="v">101.2% <small>90–110%</small></div></div>
+    </div>
+    <div class="actionrow">
+      <button class="btn-act" onclick="printReport()">生成报告</button>
+      <button class="btn-ghost" onclick="resetAll()">重新做一次</button>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl"><div class="t"><span class="dot"></span>红线一 · 淋洗液</div><div class="d">碳酸盐淋洗液现配现用，吸了 CO₂ 就变质；0.45μm 过滤 + 脱气，气泡进泵直接断流，基线先飞为敬。</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>红线二 · 抑制器</div><div class="d">抑制电流按手册设，抑制器失效背景电导飞高，痕量峰全淹没。耗材有寿命，定期再生或更换。</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>红线三 · 样品预处理</div><div class="d">0.45μm 过滤是底线，有机物多先过 C18/OnGuard；高浓度样稀释进样，保护柱不是摆设，堵了整根柱报废。</div></div>
+  </div>
+
+  <details class="how">
+    <summary>▸ 模型与公式（确定性演示，无随机数凑结果）</summary>
+    <div class="f">外标法：Cx = (Hx - b) / m        峰高-浓度标准曲线
+tR = (a + b/E) × (1.2/F)          E=淋洗液(mM)，F=流速(mL/min)
+F⁻: 1.0+11.25/E · Cl⁻: 1.3+17.55/E · NO₃⁻: 2.0+27.45/E · SO₄²⁻: 2.8+39.15/E
+峰高 H = C × 0.15 × (V/25) × 0.4/w    w = 0.30+0.02×tR（峰宽）
+噪声 σ = 0.01 × (E/4.5)               淋洗液越浓背景电导越高
+判定：S/N≥3 检出，≥10 定量；C×V &gt; 20000 → 过载前沿
+水负峰：tR(F⁻) &lt; t₀+1.0 → 与水峰重叠，定量不准；柱压上限 15 MPa</div>
+    <p>演示模型按 HJ 84-2016 离子色谱流程设定，教学演示用，不作为检测报告依据。</p>
+  </details>
+</div>
+<script>
+"use strict";
+/* ================= 模型（确定性演示） ================= */
+const kH=0.15, noise0=0.01, CAP=20000;
+const AB={F:[1.0,11.25], Cl:[1.3,17.55], NO3:[2.0,27.45], SO4:[2.8,39.15]};
+const ANIONS=[
+  {key:"F",  label:"氟离子", sym:"F⁻",   c:"#59d6ff", off:21},
+  {key:"Cl", label:"氯离子", sym:"Cl⁻",  c:"#3ddc84", off:14},
+  {key:"NO3",label:"硝酸盐", sym:"NO₃⁻", c:"#ffb020", off:7},
+  {key:"SO4",label:"硫酸盐", sym:"SO₄²⁻",c:"#b48cff", off:0},
+];
+const CONC={
+  trace: {F:0.05, Cl:0.2,  NO3:0.1,  SO4:0.3},
+  normal:{F:0.8,  Cl:25,   NO3:8,    SO4:40},
+  high:  {F:5,    Cl:500,  NO3:100,  SO4:800},
+};
+const STDS=[1,5,20];
+let P={scen:"trace", eluent:4.5, flow:1.2, inj:25};
+
+const tR  =k=>{const [a,b]=AB[k]; return (a+b/P.eluent)*(1.2/P.flow);};
+const t0  =()=>1.5*(1.2/P.flow);
+const pw  =k=>0.30+0.02*tR(k);
+const pH  =k=>CONC[P.scen][k]*kH*(P.inj/25)*0.4/pw(k);
+const pNoise=()=>noise0*(P.eluent/4.5);
+const pSN =k=>pH(k)/pNoise();
+const pOver=k=>CONC[P.scen][k]*P.inj>CAP;
+const dip =()=>tR("F")<t0()+1.0;
+const press=()=>8*(P.flow/1.2)*Math.pow(P.eluent/4.5,0.3);
+const runtime=()=>tR("SO4")+3;
+const Rs  =()=>{const dt=tR("Cl")-tR("F");return dt/((pw("F")+pw("Cl"))/2);};
+
+function calFit(k){
+  const xs=STDS, ys=STDS.map(c=>c*kH*(P.inj/25)*0.4/pw(k));
+  const n=xs.length, sx=xs.reduce((a,b)=>a+b,0), sy=ys.reduce((a,b)=>a+b,0);
+  const sxx=xs.reduce((a,x)=>a+(x-sx/n)**2,0), sxy=xs.reduce((a,x,i)=>a+(x-sx/n)*(ys[i]-sy/n),0);
+  const m=sxy/sxx, b=sy/n-m*sx/n;
+  const syy=ys.reduce((a,y)=>a+(y-sy/n)**2,0);
+  return {m,b,r2:syy<1e-12?1:(sxy*sxy/(sxx*syy)),ys};
+}
+function verdict(){
+  if(pOver("Cl")||pOver("SO4")) return {st:"overload"};
+  if(dip()) return {st:"dip"};
+  const sn=pSN("F");
+  if(sn<3)  return {st:"nd", sn};
+  if(sn<10) return {st:"det", sn};
+  const {m,b}=calFit("F");
+  return {st:"quant", sn, c:(pH("F")-b)/m};
+}
+const vLine=v=>{
+  if(v.st==="overload") return `<span class="warn">过载！</span>Cl⁻/SO₄²⁻ 上柱量超柱容量，峰前沿、定量作废——<b>稀释</b>后重测，或把进样体积降回 25μL。`;
+  if(v.st==="dip") return `<span class="warn">F⁻ 与水负峰重叠</span>（tR=${tR("F").toFixed(2)}min，距水峰不足 1min），定量不准——<b>降低淋洗液浓度</b>把 F⁻ 往后推。`;
+  if(v.st==="nd")  return `<span class="warn">F⁻ 未检出</span>（S/N=${v.sn.toFixed(1)}&lt;3）。<b>未检出 ≠ 没有</b>——把进样体积加到 <b>500μL</b> 再测。`;
+  if(v.st==="det") return `F⁻ 检出但 S/N=${v.sn.toFixed(1)}&lt;10，只能半定量——加大进样体积或降淋洗液背景。`;
+  return `<span class="ok">F⁻ ${v.c.toFixed(2)} mg/L</span>（S/N=${v.sn.toFixed(0)}，外标法定量）；Cl⁻ ${CONC[P.scen].Cl} / NO₃⁻ ${CONC[P.scen].NO3} / SO₄²⁻ ${CONC[P.scen].SO4} mg/L。`;
+};
+
+const STEPS=[
+  {n:"① 样品"},{n:"② 平衡"},{n:"③ 进样"},{n:"④ 分离"},
+  {n:"⑤ 检测"},{n:"⑥ 定量"},{n:"⑦ 报告"},
+];
+const ACTLBL=[
+  "确认样品 → 平衡",
+  "启动输液泵 → 平衡基线",
+  "切换进样阀 → 分离",
+  "开始分离",
+  "检测完成 → 定量",
+  "拟合曲线 → 报告",
+  "",
+];
+const BENCH=[
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">样品编号</div><div class="v">WS-2026-120</div></div>
+     <div class="kv"><div class="k">样品类型</div><div class="v">地表水</div></div>
+     <div class="kv"><div class="k">目标物</div><div class="v"><em>F⁻ Cl⁻ NO₃⁻ SO₄²⁻</em></div></div>
+     <div class="kv"><div class="k">前处理</div><div class="v">0.45μm 过滤</div></div>
+   </div>
+   <div class="tipbox"><b>当前样品：</b><b id="bScen">痕量</b>（F⁻ <b id="bFC">0.05</b> mg/L）。离子色谱看的是水里的阴离子，阳离子另有柱子。</div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">淋洗液</div><div class="v">Na₂CO₃/NaHCO₃</div></div>
+     <div class="kv"><div class="k">浓度</div><div class="v" id="bEluent"><em>4.5 mM</em></div></div>
+     <div class="kv"><div class="k">流速</div><div class="v" id="bFlow"><em>1.2 mL/min</em></div></div>
+     <div class="kv"><div class="k">柱压</div><div class="v" id="bPress"><em>8.0 MPa</em></div></div>
+   </div>
+   <div class="tipbox"><b>平衡基线：</b>泵开起来，基线走平才能进样。基线漂，峰就定不准。</div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">进样方式</div><div class="v"><em>六通阀 · 定量环</em></div></div>
+     <div class="kv"><div class="k">进样体积</div><div class="v" id="bInj"><em>25 μL</em></div></div>
+   </div>
+   <div class="tipbox"><b>进样体积：</b>25μL 常规；痕量样加到 500μL 增敏；<span class="warnline">高浓度样用大体积 = 过载前沿。</span></div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">淋洗液</div><div class="v" id="bEluent2"><em>4.5 mM</em></div></div>
+     <div class="kv"><div class="k">预计运行</div><div class="v" id="bRun"><em>14.5</em> min</div></div>
+   </div>
+   <div class="tipbox"><b>看离子带：</b>淋洗液推着四条离子带过柱子，亲和力弱的 F⁻ 先出，强的 SO₄²⁻ 后出。<span class="warnline">淋洗液太浓，F⁻ 会撞上水负峰。</span></div>`,
+  `<div class="tipbox"><b>抑制器 + 电导检测器：</b>抑制器把淋洗液背景电导压下去，样品离子的电导峰才看得清。离子带撞上检测器的瞬间，峰长出来。</div>`,
+  `<svg id="calSvg" viewBox="0 0 360 210" style="width:100%;height:auto;background:#0d1117;border-radius:10px"></svg>
+   <table class="spec-table"><thead><tr><th>组分</th><th>保留时间</th><th>峰高(μS)</th><th>S/N</th><th>状态</th></tr></thead>
+   <tbody id="specBody"><tr><td colspan="5" style="color:var(--faint)">点击"拟合曲线"生成</td></tr></tbody></table>`,
+  `<div class="tipbox">7 步走完：样品 → 平衡 → 进样 → 分离 → 检测 → 定量 → 报告。<b>淋洗液浓度 × 进样体积</b>，决定你是检出还是检不出。</div>`,
+];
+
+let S={step:0,max:0,running:false,analyzed:false,raf:null,snap:null,justCleared:false,pumpOn:false};
+const $=id=>document.getElementById(id);
+
+/* ---------- 解说 ---------- */
+function narrate(){
+  const v=verdict();
+  const N=[
+    `水样 <b>WS-2026-120</b>（地表水）。目标：F⁻/Cl⁻/NO₃⁻/SO₄²⁻，当前 <b>${({trace:"痕量",normal:"常规",high:"高浓度"})[P.scen]}</b> 样品（F⁻ <b>${CONC[P.scen].F} mg/L</b>）。方法：离子色谱法 HJ 84-2016。`,
+    `启动输液泵：淋洗液 <b>${P.eluent} mM</b>，流速 <b>${P.flow} mL/min</b>，柱压 <b>${press().toFixed(1)} MPa</b>。${S.pumpOn?"基线走平，可以进样。":"点击「启动输液泵」。"}${press()>15?' <span class="warn">柱压超 15MPa！降流速或稀淋洗液。</span>':""}`,
+    `六通阀切换，进样 <b>${P.inj} μL</b>。${P.inj===500&&P.scen==="high"?'<span class="warn">高浓度样用 500μL？等着过载吧。</span>':""}`,
+    `分离中：预计 <b>${runtime().toFixed(1)} min</b>（演示加速）。F⁻ 先出，SO₄²⁻ 最后。${P.eluent===9?'<span class="warn">淋洗液 9mM：F⁻ 保留 '+tR("F").toFixed(2)+'min，离水负峰太近了。</span>':""}`,
+    `抑制器 + 电导检测器工作中。离子带撞上检测器的瞬间，峰长出来。`,
+    `外标法三点校准（1/5/20 mg/L）。${vLine(v)}`,
+    `${vLine(v)}`,
+  ];
+  let html=N[S.step];
+  if(S.justCleared&&S.step>=2){ html='<span class="warn">条件已更改，色谱图已清空，请重新测定。</span><br>'+html; S.justCleared=false; }
+  $("narrate").innerHTML=html;
+}
+
+/* ---------- 仪表 ---------- */
+function setM(id,val,unit){ $(id).innerHTML=val+"<small>"+unit+"</small>"; }
+function refreshMetrics(){
+  const pm=$("mPressM"), pr=press();
+  setM("mPress",pr.toFixed(1),"MPa");
+  pm.className="metric"+(pr>15?" warn":"");
+  setM("mRT",tR("F").toFixed(2),"min");
+  setM("mRs",Rs().toFixed(1),"");
+  const v=verdict(), mm=$("mSnM");
+  if(v.st==="overload"){ setM("mSN","过载",""); mm.className="metric warn"; }
+  else if(v.st==="dip"){ setM("mSN","水峰干扰",""); mm.className="metric warn"; }
+  else{ setM("mSN",v.sn<100?v.sn.toFixed(1):v.sn.toFixed(0),"");
+        mm.className="metric"+(v.sn<3?" warn":v.sn>=10?" good":""); }
+  const pt=$("pressSvgT"); if(pt) pt.textContent=pr.toFixed(1)+" MPa";
+}
+function flash(id){ const m=$(id).closest(".metric"); m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); }
+
+/* ---------- 步骤导航 ---------- */
+function buildSeg(){
+  const seg=$("stepSeg");
+  STEPS.forEach((s,i)=>{ const b=document.createElement("button"); b.textContent=s.n;
+    b.onclick=()=>goStep(i); seg.appendChild(b); });
+}
+function paintSeg(){
+  [...$("stepSeg").children].forEach((b,i)=>{
+    b.classList.toggle("on",i===S.step);
+    b.classList.toggle("done",i<S.max||i<S.step);
+  });
+}
+const HLC={partPump:"#59d6ff",partValve:"#ffb020",partCol:"#ff5252",partSup:"#b48cff",partDet:"#3ddc84"};
+const STEP_HL=["partValve","partPump","partValve","partCol","partDet",null,null];
+function highlight(id){
+  Object.keys(HLC).forEach(k=>{ const el=$(k); if(el) el.style.filter=(k===id)?`drop-shadow(0 0 7px ${HLC[k]})`:""; });
+}
+function goStep(n){
+  if(n>S.max+1||n<0||n>6) return;
+  if(S.running) return;
+  S.step=n; if(n>S.max) S.max=n;
+  render();
+}
+function render(){
+  highlight(STEP_HL[S.step]);
+  $("sceneTitle").textContent=STEPS[S.step].n;
+  $("bench").innerHTML=BENCH[S.step];
+  syncBench();
+  narrate(); refreshMetrics();
+  if(!S.analyzed&&!S.running) drawBaseline();
+  const ab=$("actBtn");
+  if(S.step===6){ ab.style.display="none"; $("skipBtn").style.display="none";
+    $("conclusionCard").style.display=""; showConclusion(); }
+  else{ ab.style.display=""; ab.disabled=false;
+    ab.textContent=S.step===5?(S.analyzed?"定量完成 → 查看报告":"← 回第④步重新测定"):ACTLBL[S.step];
+    $("skipBtn").style.display="none"; $("conclusionCard").style.display="none"; }
+  paintSeg();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function syncBench(){
+  const bs=$("bScen"); if(bs){ bs.textContent=({trace:"痕量",normal:"常规",high:"高浓度"})[P.scen]; $("bFC").textContent=CONC[P.scen].F; }
+  const be=$("bEluent"); if(be) be.innerHTML="<em>"+P.eluent+" mM</em>";
+  const be2=$("bEluent2"); if(be2) be2.innerHTML="<em>"+P.eluent+" mM</em>";
+  const bf=$("bFlow"); if(bf) bf.innerHTML="<em>"+P.flow+" mL/min</em>";
+  const bp=$("bPress"); if(bp) bp.innerHTML="<em>"+press().toFixed(1)+" MPa</em>";
+  const bi=$("bInj"); if(bi) bi.innerHTML="<em>"+P.inj+" μL</em>";
+  const br=$("bRun"); if(br) br.innerHTML="<em>"+runtime().toFixed(1)+"</em> min";
+  if(S.step===5&&S.analyzed){ drawCal(); fillSpec(); }
+}
+
+/* ---------- 每步动作 ---------- */
+function act(){
+  if(S.running) return;
+  const n=S.step;
+  if(n===0){ goStep(1); }
+  else if(n===1){ S.pumpOn=true; runBaseline(3000); }
+  else if(n===2){ goStep(3); }
+  else if(n===3){ runAnalysis(); }
+  else if(n===4){ goStep(5); }
+  else if(n===5){ if(!S.analyzed) goStep(3); else goStep(6); }
+}
+
+/* ---------- 实时引擎：淋洗液流 + 离子带 + 出峰 ---------- */
+const TIC={x0:30,x1:400,base:300,tmax:30};
+const tX=t=>TIC.x0+t/TIC.tmax*(TIC.x1-TIC.x0);
+const peakH=h=>Math.min(115,25*Math.sqrt(Math.max(h,0)));
+function snapModel(){
+  const ps=ANIONS.map(a=>{
+    const H=pH(a.key), sn=H/pNoise();
+    return {...a, t:tR(a.key), H, sn, vis:sn>=3, over:pOver(a.key)};
+  });
+  return {ps, t0v:t0(), dipOn:dip()};
+}
+function traceY(px,snap){
+  const t=(px-TIC.x0)/(TIC.x1-TIC.x0)*TIC.tmax;
+  let h=0;
+  h-=22*Math.exp(-Math.pow((t-snap.t0v)/0.28,2));          // 水负峰
+  snap.ps.forEach(p=>{
+    if(!p.vis) return;
+    const s=pw(p.key)/2.5;
+    let g=Math.exp(-Math.pow((t-p.t)/s,2)/2);
+    if(p.over){ // 过载前沿：前沿陡、拖尾
+      g=t<p.t?Math.exp(-Math.pow((t-p.t)/(s*0.5),2)/2):Math.exp(-Math.pow((t-p.t)/(s*1.8),2)/2);
+    }
+    h+=peakH(p.H)*g;
+  });
+  return TIC.base-h+0.8*Math.sin(px*0.4);
+}
+function drawSweep(penT,snap){
+  const g=$("ticLive"); if(!g) return;
+  const xEnd=Math.min(tX(penT),TIC.x1);
+  let d=`M ${TIC.x0} ${TIC.base}`;
+  for(let x=TIC.x0;x<=xEnd;x+=2) d+=` L ${x.toFixed(1)} ${traceY(x,snap).toFixed(1)}`;
+  d+=` L ${xEnd.toFixed(1)} ${TIC.base} Z`;
+  g.setAttribute("d",d);
+}
+function drawBaseline(){
+  const g=$("ticLive"); if(!g) return;
+  g.setAttribute("d",`M ${TIC.x0} ${TIC.base} L ${TIC.x1} ${TIC.base}`);
+  drawTicks();
+}
+function drawTicks(){
+  const NS="http://www.w3.org/2000/svg";
+  const g=$("ticLabels"); if(!g) return; g.innerHTML="";
+  [0,5,10,15,20,25,30].forEach(t=>{
+    const tx=document.createElementNS(NS,"text");
+    tx.setAttribute("x",tX(t)); tx.setAttribute("y",316);
+    tx.setAttribute("text-anchor","middle"); tx.setAttribute("fill","#5b6572");
+    tx.setAttribute("font-size","10"); tx.textContent=t; g.appendChild(tx);
+  });
+}
+function drawLabels(snap){
+  const NS="http://www.w3.org/2000/svg";
+  const g=$("ticLabels"); if(!g) return; drawTicks();
+  const wx=tX(snap.t0v);
+  const wd=document.createElementNS(NS,"text");
+  wd.setAttribute("x",wx); wd.setAttribute("y",TIC.base+22);
+  wd.setAttribute("text-anchor","middle"); wd.setAttribute("fill","#5b6572");
+  wd.setAttribute("font-size","10"); wd.textContent="水负峰"; g.appendChild(wd);
+  snap.ps.forEach(p=>{
+    if(!p.vis) return;
+    const x=tX(p.t), y=traceY(x,snap);
+    const tx=document.createElementNS(NS,"text");
+    tx.setAttribute("x",x); tx.setAttribute("y",Math.max(186,y-10));
+    tx.setAttribute("text-anchor","middle"); tx.setAttribute("fill",p.c);
+    tx.setAttribute("font-size","11"); tx.setAttribute("font-family","inherit");
+    tx.textContent=p.sym+" "+p.t.toFixed(1); g.appendChild(tx);
+    if(p.over){
+      const w=document.createElementNS(NS,"text");
+      w.setAttribute("x",x); w.setAttribute("y",Math.max(172,y-26));
+      w.setAttribute("text-anchor","middle"); w.setAttribute("fill","#ff5252");
+      w.setAttribute("font-size","11"); w.setAttribute("font-weight","700");
+      w.textContent="过载前沿"; g.appendChild(w);
+    }
+  });
+}
+function drawStatic(){
+  const snap=snapModel(); S.snap=snap;
+  drawSweep(TIC.tmax,snap); drawLabels(snap);
+}
+/* 基线平衡（第②步）：只画基线+水负峰 */
+function runBaseline(dur){
+  if(S.running) return;
+  S.running=true;
+  const ab=$("actBtn"); ab.disabled=true; ab.textContent="平衡中…";
+  $("skipBtn").style.display="";
+  const snap=snapModel();
+  const t0n=performance.now();
+  const done=()=>{ cancelRun(); S.finishNow=null; drawSweep(6,snap); drawTicks();
+    narrate(); setTimeout(()=>goStep(2),600); };
+  S.finishNow=done;
+  (function frame(now){
+    const t=Math.min(1,(now-t0n)/dur);
+    drawSweep(t*6,snap);
+    if(t<1) S.raf=requestAnimationFrame(frame); else done();
+  })(t0n);
+}
+/* 主运行（第④步）：离子带分离 → 撞检测器 → 出峰 */
+function runAnalysis(){
+  if(S.running) return;
+  S.running=true; S.analyzed=false;
+  const ab=$("actBtn"); ab.disabled=true; ab.textContent="分离中…";
+  $("skipBtn").style.display="";
+  const snap=snapModel(); S.snap=snap;
+  const NS="http://www.w3.org/2000/svg";
+  const pg=$("plugs"); pg.innerHTML="";
+  const bands=snap.ps.map(p=>{
+    const r=document.createElementNS(NS,"rect");
+    r.setAttribute("width","12"); r.setAttribute("height","9"); r.setAttribute("rx","4.5");
+    r.setAttribute("y","87.5"); r.setAttribute("fill",p.c); r.setAttribute("opacity","0.95");
+    pg.appendChild(r);
+    return {el:r, off:p.off, tR:p.t};
+  });
+  const DUR=9000, t0n=performance.now();
+  const done=()=>{
+    cancelRun(); S.finishNow=null;
+    S.analyzed=true; drawStatic(); flash("mSN");
+    narrate(); refreshMetrics();
+    setTimeout(()=>{ if(S.step===3) goStep(4); },600);
+  };
+  S.finishNow=done;
+  function frame(now){
+    const t=Math.min(1,(now-t0n)/DUR);
+    bands.forEach(b=>{
+      const tArr=0.45+0.45*(b.tR/TIC.tmax), tGo=tArr-0.12;
+      let x, op=0.95;
+      if(t<0.10){ x=114+(152-114)*(t/0.10); }
+      else if(t<tGo){ const q=Math.min(1,(t-0.10)/Math.max(0.01,(tGo-0.10))); x=152+q*(104+b.off); }
+      else { const q=Math.min(1,(t-tGo)/0.12), x0=152+104+b.off; x=x0+q*(374-x0);
+             if(t>tArr) op=Math.max(0,1-(t-tArr)/0.08); }
+      b.el.setAttribute("x",(x-6).toFixed(1));
+      b.el.setAttribute("opacity",op.toFixed(2));
+    });
+    const penT=Math.max(0,Math.min(1,(t-0.45)/0.45))*TIC.tmax;
+    drawSweep(penT,snap);
+    if(t<1) S.raf=requestAnimationFrame(frame); else done();
+  }
+  S.raf=requestAnimationFrame(frame);
+}
+function cancelRun(){
+  if(S.raf) cancelAnimationFrame(S.raf); S.raf=null;
+  S.running=false; S.finishNow=null;
+  $("skipBtn").style.display="none";
+  const ab=$("actBtn"); if(ab) ab.disabled=false;
+}
+function clearRun(){
+  cancelRun();
+  S.analyzed=false; S.snap=null; S.justCleared=true;
+  const pg=$("plugs"); if(pg) pg.innerHTML="";
+  drawBaseline();
+  const ab=$("actBtn");
+  if(ab&&S.step!==6) ab.textContent=S.step===5?"← 回第④步重新测定":ACTLBL[S.step];
+}
+</script>
+<script>
+"use strict";
+/* ================= 外标法定量曲线 ================= */
+function drawCal(){
+  const svg=$("calSvg"); if(!svg) return;
+  const NS="http://www.w3.org/2000/svg";
+  svg.innerHTML="";
+  const X=c=>40+c/22*300, Y=h=>180-Math.min(h,12)/12*160;
+  const {m,b,r2,ys}=calFit("F"), v=verdict();
+  const el=(t,at)=>{const e=document.createElementNS(NS,t);for(const k in at)e.setAttribute(k,at[k]);return e;};
+  svg.appendChild(el("line",{x1:40,y1:180,x2:340,y2:180,stroke:"#5b6572","stroke-width":1.5}));
+  svg.appendChild(el("line",{x1:40,y1:180,x2:40,y2:20,stroke:"#5b6572","stroke-width":1.5}));
+  [0,5,10,15,20].forEach(c=>{const t=el("text",{x:X(c),y:198,"text-anchor":"middle",fill:"#5b6572","font-size":10});t.textContent=c;svg.appendChild(t);});
+  const xt=el("text",{x:335,y:198,"text-anchor":"end",fill:"#5b6572","font-size":10});xt.textContent="mg/L";svg.appendChild(xt);
+  const yt=el("text",{x:34,y:30,fill:"#5b6572","font-size":10});yt.textContent="μS";svg.appendChild(yt);
+  svg.appendChild(el("line",{x1:X(0),y1:Y(b),x2:X(22),y2:Y(m*22+b),stroke:"#ffb020","stroke-width":2}));
+  STDS.forEach((c,i)=>svg.appendChild(el("circle",{cx:X(c),cy:Y(ys[i]),r:4,fill:"#59d6ff"})));
+  if(v.st==="quant"){
+    const sx=X(v.c), sy=Y(pH("F"));
+    svg.appendChild(el("circle",{cx:sx,cy:sy,r:5,fill:"#b48cff",stroke:"#fff","stroke-width":1.5}));
+    const lb=el("text",{x:sx,y:sy-12,"text-anchor":"middle",fill:"#b48cff","font-size":11});lb.textContent="F⁻ "+v.c.toFixed(2);svg.appendChild(lb);
+  }
+  const r2t=el("text",{x:330,y:36,"text-anchor":"end",fill:"#8b95a3","font-size":11});
+  r2t.textContent=`H=${m.toFixed(3)}C${b>=0?"+":""}${b.toFixed(4)}  R²=${r2.toFixed(4)}`;svg.appendChild(r2t);
+  const ti=el("text",{x:40,y:36,fill:"#8b95a3","font-size":11});ti.textContent="F⁻ 外标曲线";svg.appendChild(ti);
+}
+function stCell(k){
+  const sn=pSN(k), H=pH(k);
+  if(pOver(k)) return `<span class="st-warn">过载</span>`;
+  if(k==="F"&&dip()) return `<span class="st-warn">水峰重叠</span>`;
+  if(sn<3)  return `<span class="st-warn">未检出</span>`;
+  if(sn<10) return `<span class="st-mid">半定量</span>`;
+  return `<span class="st-ok">定量</span>`;
+}
+function fillSpec(){
+  const tb=$("specBody"); if(!tb) return;
+  tb.innerHTML=ANIONS.map(a=>{
+    const sn=pSN(a.key), H=pH(a.key);
+    return `<tr><td>${a.sym}</td><td>${tR(a.key).toFixed(1)} min</td><td>${H.toFixed(2)}</td>`+
+      `<td>${sn<100?sn.toFixed(1):sn.toFixed(0)}</td><td>${stCell(a.key)}</td></tr>`;
+  }).join("");
+}
+
+/* ================= 结论 ================= */
+function showConclusion(){
+  const v=verdict(), big=$("concBig");
+  $("qcR2").innerHTML=calFit("F").r2.toFixed(4)+" <small>≥0.995</small>";
+  if(v.st==="overload"){
+    big.textContent="过载"; big.style.color="var(--danger)";
+    $("concState").textContent="稀释后重测";
+    $("concText").innerHTML=`高浓度样品 × 大进样体积，上柱量超柱容量（>20000），Cl⁻/SO₄²⁻ 峰前沿、定量作废。<br>正确做法：<b>稀释</b>后重测，或进样体积降回 <b>25μL</b>。`;
+  } else if(v.st==="dip"){
+    big.textContent="干扰"; big.style.color="var(--amber)";
+    $("concState").textContent="F⁻ 水负峰重叠";
+    $("concText").innerHTML=`F⁻ 保留 <b>${tR("F").toFixed(2)} min</b>，与水负峰（${t0().toFixed(1)} min）不足 1min，定量不准。<br>正确做法：<b>降低淋洗液浓度</b>（9.0 → 4.5 mM），把 F⁻ 往后推离水峰。`;
+  } else if(v.st==="nd"){
+    big.textContent="未检出"; big.style.color="var(--faint)";
+    $("concState").textContent="S/N < 3";
+    $("concText").innerHTML=`F⁻：<span class="bad">未检出</span>（S/N=${v.sn.toFixed(1)}）。<b>未检出 ≠ 没有</b>，只是峰高被噪声淹没了。<br>正确做法：进样体积加到 <b>500μL</b>，${CONC[P.scen].F} mg/L 的 F⁻ 看得见。`;
+  } else if(v.st==="det"){
+    big.textContent="检出"; big.style.color="var(--amber)";
+    $("concState").textContent="半定量 · S/N<10";
+    $("concText").innerHTML=`F⁻ 检出，S/N=${v.sn.toFixed(1)}，只能<span class="bad">半定量</span>。<br>加大进样体积或降低淋洗液背景，S/N 提到 10 以上再报数。`;
+  } else {
+    big.textContent=v.c.toFixed(2); big.style.color="var(--violet)";
+    $("concState").textContent="外标法定量 · S/N≥10";
+    $("concText").innerHTML=`F⁻ <b>${v.c.toFixed(2)} mg/L</b>（S/N=${v.sn.toFixed(0)}，外标法定量，R²=${calFit("F").r2.toFixed(4)}）。<br>Cl⁻ ${CONC[P.scen].Cl} / NO₃⁻ ${CONC[P.scen].NO3} / SO₄²⁻ ${CONC[P.scen].SO4} mg/L 同步出峰，一次进样四个离子全定。`;
+  }
+}
+
+/* ================= 淋洗液连续流 ================= */
+let flowDots=[],lastFlowT=0;
+function initFlow(){
+  const NS="http://www.w3.org/2000/svg";
+  const g=$("gasFlow");
+  for(let i=0;i<36;i++){
+    const c=document.createElementNS(NS,"circle");
+    c.setAttribute("r",(1.2+(i%3)*0.5).toFixed(1));
+    c.setAttribute("fill","#7d8ea3"); c.setAttribute("opacity","0.55");
+    g.appendChild(c);
+    flowDots.push({el:c,p:i/36,sp:0.075+(i%5)*0.005});
+  }
+  requestAnimationFrame(flowTick);
+}
+function flowTick(now){
+  const dt=Math.min(0.05,((now-lastFlowT)/1000)||0.016); lastFlowT=now;
+  flowDots.forEach(d=>{
+    d.p=(d.p+d.sp*dt)%1;
+    const x=8+d.p*(402-8);
+    d.el.setAttribute("cx",x.toFixed(1));
+    d.el.setAttribute("cy",(92+1.5*Math.sin(d.p*22)).toFixed(1));
+  });
+  requestAnimationFrame(flowTick);
+}
+
+/* ================= 控件联动 ================= */
+function bindSeg(id,set,fmt){
+  const seg=$(id);
+  [...seg.children].forEach(b=>{
+    b.addEventListener("click",()=>{
+      set(b.dataset.v);
+      [...seg.children].forEach(x=>x.classList.toggle("on",x===b));
+      fmt();
+      if(S.running||S.analyzed) clearRun();
+      narrate(); refreshMetrics(); syncBench();
+      if(S.step===5&&S.analyzed){ drawCal(); fillSpec(); }
+      if(S.step===6) showConclusion();
+    });
+  });
+}
+function setSegOn(id,val){
+  [...$(id).children].forEach(x=>x.classList.toggle("on",x.dataset.v===String(val)));
+}
+
+/* ================= 报告 ================= */
+function reportText(){
+  const v=verdict(), {m,b,r2}=calFit("F");
+  const L=[];
+  L.push("离子色谱检测报告（演示）");
+  L.push("方法：离子色谱法 · HJ 84-2016（F⁻/Cl⁻/NO₃⁻/SO₄²⁻）");
+  L.push("=".repeat(40));
+  L.push(`样品：WS-2026-120（地表水）`);
+  L.push(`条件：淋洗液${P.eluent}mM(Na₂CO₃/NaHCO₃) · 流速${P.flow}mL/min · 进样${P.inj}μL`);
+  L.push(`柱压 ${press().toFixed(1)}MPa · 运行约${runtime().toFixed(1)}min`);
+  L.push(`F⁻ 外标曲线：H=${m.toFixed(3)}C${b>=0?"+":""}${b.toFixed(4)}，R²=${r2.toFixed(4)}`);
+  L.push("=".repeat(40));
+  ANIONS.forEach(a=>{
+    const sn=pSN(a.key);
+    let r;
+    if(pOver(a.key)) r="过载";
+    else if(a.key==="F"&&dip()) r="水峰重叠";
+    else if(sn<3) r=`未检出(S/N=${sn.toFixed(1)})`;
+    else if(sn<10) r=`半定量(S/N=${sn.toFixed(1)})`;
+    else r=`${(calFit(a.key).m!==0?((pH(a.key)-calFit(a.key).b)/calFit(a.key).m):0).toFixed(2)} mg/L`;
+    L.push(`${a.sym}：tR=${tR(a.key).toFixed(1)}min，${r}`);
+  });
+  L.push("=".repeat(40));
+  L.push("质控：空白<MDL；平行样 RSD 2.8%；加标回收率 101.2%");
+  L.push("备注：教学演示模型，不作为检测报告依据。");
+  return L.join("\n");
+}
+function printReport(){ $("rpBody").textContent=reportText(); $("rp").classList.add("on"); }
+function rpClose(){ $("rp").classList.remove("on"); }
+function rpCopy(){
+  const t=reportText();
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(()=>{$("rpCopyBtn").textContent="已复制 ✓";});
+}
+function resetAll(){
+  cancelRun();
+  P={scen:"trace",eluent:4.5,flow:1.2,inj:25};
+  S={step:0,max:0,running:false,analyzed:false,raf:null,snap:null,justCleared:false,pumpOn:false};
+  setSegOn("scenSeg","trace");   $("scenVal").textContent="痕量";
+  setSegOn("eluentSeg","4.5");   $("eluentVal").textContent="4.5 mM";
+  setSegOn("flowSeg","1.2");     $("flowVal").textContent="1.2 mL/min";
+  setSegOn("injSeg","25");       $("injVal").textContent="25 μL";
+  render();
+}
+
+/* ================= 初始化 ================= */
+document.addEventListener("DOMContentLoaded",()=>{
+  buildSeg();
+  bindSeg("scenSeg",v=>P.scen=v,()=>$("scenVal").textContent=({trace:"痕量",normal:"常规",high:"高浓度"})[P.scen]);
+  bindSeg("eluentSeg",v=>P.eluent=parseFloat(v),()=>$("eluentVal").textContent=P.eluent+" mM");
+  bindSeg("flowSeg",v=>P.flow=parseFloat(v),()=>$("flowVal").textContent=P.flow+" mL/min");
+  bindSeg("injSeg",v=>P.inj=parseInt(v,10),()=>$("injVal").textContent=P.inj+" μL");
+  $("actBtn").addEventListener("click",act);
+  $("skipBtn").addEventListener("click",()=>{ if(S.finishNow){ const f=S.finishNow; S.finishNow=null; f(); } });
+  document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowRight") goStep(S.step+1);
+    else if(e.key==="ArrowLeft") goStep(S.step-1);
+    else if(e.code==="Space"&&S.step<6){ e.preventDefault(); act(); }
+  });
+  render(); initFlow();
+  setTimeout(()=>$("loader").classList.add("done"),700);
+});
+</script>
+
+<div id="rp" role="dialog" aria-modal="true" aria-label="检测报告">
+  <div class="rp-box">
+    <div class="rp-hd">
+      <div class="rp-ti">离子色谱检测报告（演示）</div>
+      <button class="rp-x" onclick="rpClose()" aria-label="关闭">×</button>
+    </div>
+    <div class="rp-bd" id="rpBody"></div>
+    <div class="rp-ft">
+      <button class="rp-b rp-b1" id="rpCopyBtn" onclick="rpCopy()">复制报告</button>
+      <button class="rp-b rp-b2" onclick="rpClose()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <details class="how">
+    <summary>▸ 标准依据</summary>
+    <div class="f">HJ 84-2016《水质 无机阴离子（F⁻、Cl⁻、NO₂⁻、Br⁻、NO₃⁻、PO₄³⁻、SO₄²⁻）的测定 离子色谱法》
+参照：EPA 300.0（饮用水中常见阴离子 · 离子色谱法）
+本页模型：碳酸盐淋洗液体系，外标法定量，教学演示用。</div>
+  </details>
+
+  <div class="card" style="margin-top:18px">
+    <h3>延伸学习</h3>
+    <div class="tipbox" style="margin-top:0">
+      · <b>GC-MS 检测实验室</b> —— 有机物的色谱：气相 + 质谱，出的是质谱峰<br>
+      · <b>原子吸收检测实验室</b> —— 金属元素的光谱：火焰 + 特征谱线，出的是吸光度<br>
+      · 记住顺序：<b>样品浓度决定进样体积，淋洗液浓度决定保留，流速决定柱压。</b>
+    </div>
+  </div>
+
+  <footer>
+    <span>ENVLAB · 离子色谱检测实验室 · 交互演示</span>
+    <span>联系作者：<a href="mailto:jinghao.song@gmail.com">jinghao.song@gmail.com</a></span>
+  </footer>
+</div>
+</body>
+</html>
