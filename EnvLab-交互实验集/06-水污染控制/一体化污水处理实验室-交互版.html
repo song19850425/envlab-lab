@@ -29,11 +29,9 @@ main{display:grid;grid-template-columns:1fr 340px;gap:16px;padding:0 26px 20px}
 #flowwrap{position:relative}
 #flowsvg{width:100%;height:auto;display:block}
 .unit{cursor:pointer}
-.unit rect{fill:#14213a;stroke:#2b3d63;stroke-width:1.5;rx:10}
-.unit:hover rect,.unit.sel rect{stroke:var(--acc)}
-.unit text{fill:var(--txt);font-size:13px;text-anchor:middle}
-.unit .sub{fill:var(--mut);font-size:11px}
-.unit .badge{font-size:11px;font-weight:700}
+.unit .tank{fill:#0d1526;stroke:#2b3d63;stroke-width:1.5}
+.unit:hover .tank,.unit.sel .tank{stroke:var(--acc)}
+.unit .tlabel{fill:var(--txt);text-anchor:middle}
 .pipe{stroke:#27406e;stroke-width:10;fill:none;stroke-linecap:round}
 .pipeflow{stroke:var(--acc);stroke-width:3;fill:none;stroke-linecap:round;opacity:.85}
 #unitinfo{margin-top:10px;background:var(--panel2);border:1px dashed #2b3d63;border-radius:10px;padding:10px 14px;font-size:13px;color:var(--mut);min-height:56px;line-height:1.7}
@@ -72,7 +70,7 @@ footer th{background:var(--panel)}
 <body>
 <header>
   <h1>一体化污水处理实验室 <span class="tag">A2O + MBR</span></h1>
-  <p>地埋式一体化设备 · 生活污水 → 格栅 → 调节池 → 缺氧池(A) → 好氧池(O) → MBR膜池 → 消毒 → 达标排放 &nbsp;|&nbsp; 拖动右侧参数，看出水水质实时变化；点上方的事故场景，亲手处置一次运行故障</p>
+  <p>地埋式一体化设备 · 生活污水 → 格栅井 → 调节池 → 缺氧池 → 好氧池 → 膜生物反应池 → 消毒 → 贮水池 → 中水回用 &nbsp;|&nbsp; 拖动右侧参数，看出水水质实时变化；点上方的事故场景，亲手处置一次运行故障</p>
 </header>
 
 <div class="scenbar">
@@ -242,7 +240,7 @@ function render(){
   // 流程图徽标
   badge('O', 'DO '+m.DO.toFixed(1));
   badge('MBR', 'TMP '+m.tmp.toFixed(0)+'kPa');
-  badge('EFF', bad.length? '超标':'达标', bad.length?'var(--red)':'var(--grn)');
+  badge('STO', bad.length? '超标':'达标', bad.length?'var(--red)':'var(--grn)');
   badge('INF', 'COD '+S.codin);
 }
 
@@ -266,65 +264,124 @@ bind('flux','flux', v=>v+' %');
 function setCtl(id,val){ const c=document.getElementById('c-'+id); c.value=val; c.dispatchEvent(new Event('input')); }
 </script>
 <script>
-// ---------- 流程图 ----------
-const UNITS=[
-  {id:'INF', x:8,   w:70,  t:'进水', s:'生活污水', info:'<b>进水</b>：生活污水经管网汇入。看 COD/氨氮两个数——它们决定后面所有池子的负荷。'},
-  {id:'GE',  x:98,  w:70,  t:'格栅', s:'去大渣', info:'<b>格栅</b>：拦塑料袋、毛发等大块杂物。别小看它，膜池最怕毛发缠绕。'},
-  {id:'REG', x:188, w:96,  t:'调节池', s:'均质均量', info:'<b>调节池</b>：削峰填谷。水量水质波动先在这里缓冲——"进水冲击"场景的正确答案就藏在这里。'},
-  {id:'A',   x:304, w:96,  t:'缺氧池 A', s:'反硝化', info:'<b>缺氧池(A)</b>：缺氧环境+内回流带来的硝态氮，反硝化菌把氮变成氮气跑掉。脱氮的主战场，内回流比是关键旋钮。'},
-  {id:'O',   x:420, w:110, t:'好氧池 O', s:'曝气硝化', info:'<b>好氧池(O)</b>：曝气供氧，硝化菌把氨氮变成硝态氮，同时降解 COD。DO＜2 硝化就掉链子——"曝气故障"场景会教你。', badge:'DO'},
-  {id:'MBR', x:550, w:110, t:'MBR膜池', s:'泥水分离', info:'<b>MBR膜池</b>：0.1微米膜丝代替二沉池，出水 SS≈5。盯紧 TMP（跨膜压差）：涨得快=膜在喊救命。', badge:'TMP'},
-  {id:'DIS', x:680, w:80,  t:'消毒', s:'紫外/次钠', info:'<b>消毒</b>：紫外或次氯酸钠杀灭病原微生物，粪大肠菌群达标最后一道门。'},
-  {id:'EFF', x:780, w:90,  t:'出水', s:'达标排放', info:'<b>出水</b>：对照 GB 18918 一级A 五项限值。灯全绿=可以排放。', badge:'达标'},
+// ---------- 流程图（贴近参考：侧视剖面） ----------
+const WL=172; // 水面线
+const TANKS=[
+ {id:'GE', x:10,  w:64,  t:'格栅井',   info:'<b>格栅井</b>：原水先进这里，格栅拦下塑料袋、毛发等杂物——膜组件最怕毛发缠绕。'},
+ {id:'REG',x:84,  w:150, t:'调节池', air:true, info:'<b>调节池</b>：底部曝气搅拌防沉淀、均质均量；提升泵把水打进缺氧池。"进水冲击"场景的正确答案——事故调节池削峰，就靠它。'},
+ {id:'A',  x:244, w:120, t:'缺氧池',   info:'<b>缺氧池</b>：回流带来的硝态氮在这里被反硝化成氮气逸出。脱氮的主战场，内回流比是关键旋钮。'},
+ {id:'O',  x:374, w:140, t:'好氧池', air:true, info:'<b>好氧池</b>：鼓风曝气供氧，硝化菌把氨氮变成硝态氮，同时降解 COD。DO＜2 硝化就掉链子——"曝气故障"场景会教你。', badge:'DO'},
+ {id:'MBR',x:524, w:180, t:'膜生物反应池', air:true, mem:true, info:'<b>膜生物反应池</b>：两组膜组件代替二沉池，出水 SS≈5；膜下曝气既供氧又冲刷膜面。盯紧 TMP：涨得快=膜在喊救命。', badge:'TMP'},
+ {id:'STO',x:714, w:120, t:'贮水池',   info:'<b>贮水池</b>：消毒后的清水暂存，回用泵送"至用水点"——中水回用，绿化、冲厕、洗车都行。', badge:'达标'},
 ];
-const ug=document.getElementById('units'), pg=document.getElementById('pipes');
-UNITS.forEach((u,i)=>{
-  if(i<UNITS.length-1){
-    const x1=u.x+u.w, x2=UNITS[i+1].x;
-    pg.innerHTML+=`<line class="pipe" x1="${x1}" y1="110" x2="${x2}" y2="110"/>`;
-    pg.innerHTML+=`<line class="pipeflow" x1="${x1}" y1="110" x2="${x2}" y2="110" marker-end="url(#arr)"/>`;
+const svg=document.getElementById('flowsvg');
+svg.setAttribute('viewBox','0 0 980 370');
+let h=`<defs><marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#22d3ee"/></marker></defs>`;
+// 池体
+TANKS.forEach(tk=>{
+  const cx=tk.x+tk.w/2;
+  h+=`<g class="unit" data-id="${tk.id}">
+    <rect class="tank" x="${tk.x}" y="140" width="${tk.w}" height="162" rx="6"/>
+    <rect x="${tk.x+3}" y="${WL}" width="${tk.w-6}" height="${302-WL-3}" fill="rgba(56,130,200,.32)"/>
+    <text class="tlabel" x="${cx}" y="326" font-size="14" text-anchor="middle">${tk.t}</text>
+    ${tk.badge?`<text id="bdg-${tk.id}" x="${cx}" y="124" fill="#22d3ee" font-size="12" font-weight="700" text-anchor="middle"></text>`:''}
+  </g>`;
+  if(tk.air){ // 曝气头
+    for(let i=0;i<3;i++){ const ax=tk.x+tk.w*(0.25+0.25*i);
+      h+=`<path d="M${ax-9},292 l5,7 l5,-7 M${ax+1-9},292 l5,7 l5,-7" stroke="#8fa3c4" stroke-width="1.6" fill="none"/>`; }
   }
-  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
-  g.setAttribute('class','unit'); g.dataset.id=u.id;
-  g.innerHTML=`<rect x="${u.x}" y="60" width="${u.w}" height="100" rx="10"/>
-    <text x="${u.x+u.w/2}" y="105">${u.t}</text>
-    <text class="sub" x="${u.x+u.w/2}" y="126">${u.s}</text>
-    ${u.badge?`<text class="badge" id="bdg-${u.id}" x="${u.x+u.w/2}" y="148" fill="#22d3ee"></text>`:''}`;
+  if(tk.mem){ // 两组膜组件
+    [0,1].forEach(i=>{ const mx=tk.x+34+i*72;
+      h+=`<rect x="${mx}" y="186" width="46" height="80" fill="#c96a1b" stroke="#8a4a12" stroke-width="1.5"/>
+          <path d="M${mx},186 L${mx+46},266 M${mx+46},186 L${mx},266" stroke="#8a4a12" stroke-width="1.2"/>`; });
+  }
+});
+// 鼓风机
+h+=`<g><rect x="60" y="336" width="76" height="26" rx="13" fill="#3b3454" stroke="#6b6285"/>
+<text x="98" y="354" fill="#cfc6e8" font-size="13" text-anchor="middle">风机</text></g>`;
+// 风管：风机→各曝气池
+[[159,'REG'],[444,'O'],[614,'MBR']].forEach(([fx])=>{
+  h+=`<line x1="98" y1="336" x2="${fx}" y2="336" stroke="#4a5a7a" stroke-width="2"/><line x1="${fx}" y1="336" x2="${fx}" y2="302" stroke="#4a5a7a" stroke-width="2"/>`;
+});
+// 进水
+h+=`<line x1="2" y1="210" x2="10" y2="210" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr)"/>
+<text x="14" y="198" fill="#8fa3c4" font-size="12">原水</text>
+<text id="bdg-INF" x="14" y="124" fill="#22d3ee" font-size="12" font-weight="700"></text>`;
+// 提升泵：调节池→缺氧池
+h+=`<circle cx="216" cy="262" r="11" fill="#14213a" stroke="#8fa3c4" stroke-width="1.5"/>
+<path d="M216,256 l6,10 h-12 z" fill="#8fa3c4"/>
+<path d="M216,251 L216,118 L298,118" stroke="#22d3ee" stroke-width="3" fill="none"/>
+<line x1="298" y1="118" x2="298" y2="150" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr)"/>`;
+// 翻水堰：缺氧→好氧→膜池
+[[364],[514]].forEach(([wx])=>{
+  h+=`<path d="M${wx-3},${WL} L${wx-3},128 L${wx+22},128" stroke="#22d3ee" stroke-width="2.5" fill="none"/>
+  <line x1="${wx+22}" y1="128" x2="${wx+22}" y2="162" stroke="#22d3ee" stroke-width="2.5" marker-end="url(#arr)"/>`;
+});
+// 混合液回流：膜池→缺氧池
+h+=`<path d="M660,140 L660,108 L304,108" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="7,5" fill="none"/>
+<line x1="304" y1="108" x2="304" y2="140" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="7,5" marker-end="url(#arr)"/>
+<text x="470" y="100" fill="#fbbf24" font-size="12" text-anchor="middle">混合液回流（内回流）</text>`;
+// 消毒：膜池→阀门→紫外→贮水池
+h+=`<path d="M600,140 L600,58 L636,58" stroke="#22d3ee" stroke-width="3" fill="none"/>
+<path d="M636,52 l12,6 l-12,6 l12,6" stroke="#8fa3c4" stroke-width="2" fill="none"/>
+<rect x="676" y="48" width="72" height="20" rx="10" fill="#3f6212" stroke="#65a30d"/>
+<text x="712" y="62" fill="#d9f99d" font-size="11" text-anchor="middle">紫外消毒</text>
+<path d="M748,58 L788,58 L788,140" stroke="#22d3ee" stroke-width="3" fill="none" marker-end="url(#arr)"/>
+<text x="724" y="38" fill="#8fa3c4" font-size="13" text-anchor="middle">消毒设备</text>`;
+// 贮水池回用泵→至用水点
+h+=`<circle cx="800" cy="262" r="11" fill="#14213a" stroke="#8fa3c4" stroke-width="1.5"/>
+<path d="M800,256 l6,10 h-12 z" fill="#8fa3c4"/>
+<path d="M834,210 L918,210" stroke="#22d3ee" stroke-width="3" marker-end="url(#arr)"/>
+<text x="876" y="190" fill="#8fa3c4" font-size="13" text-anchor="middle">至用水点</text>`;
+// 气泡 + 水流点
+h+=`<g id="bubbles"></g><g id="fdots"></g>`;
+svg.innerHTML=h;
+// 点击池体看说明
+svg.querySelectorAll('.unit').forEach(g=>{
   g.addEventListener('click',()=>{
-    document.querySelectorAll('.unit').forEach(e=>e.classList.remove('sel'));
+    svg.querySelectorAll('.unit').forEach(e=>e.classList.remove('sel'));
     g.classList.add('sel');
-    document.getElementById('unitinfo').innerHTML=u.info;
+    const tk=TANKS.find(t=>t.id===g.dataset.id);
+    document.getElementById('unitinfo').innerHTML=tk.info;
   });
-  ug.appendChild(g);
 });
 function badge(id,txt,color){
   const e=document.getElementById('bdg-'+id); if(!e)return;
-  e.textContent=txt; if(color)e.setAttribute('fill',color);
+  e.textContent=txt; if(color)e.style.fill=color;
 }
-// 水流粒子：只在管道缝隙里跑，不压住池体文字
-const dg=document.getElementById('dots');
-const segs=[];
-UNITS.forEach((u,i)=>{
-  if(i<UNITS.length-1) segs.push([u.x+u.w+4, UNITS[i+1].x-4]);
+// 气泡上升
+const bg=document.getElementById('bubbles');
+const bubs=[];
+TANKS.filter(t=>t.air).forEach(tk=>{
+  for(let i=0;i<9;i++){
+    const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    const bx=tk.x+14+Math.random()*(tk.w-28);
+    c.setAttribute('cx',bx); c.setAttribute('r',2.6+Math.random()*2.4);
+    c.setAttribute('fill','#fff'); c.setAttribute('opacity','.55');
+    bg.appendChild(c);
+    bubs.push({el:c, y:170+Math.random()*120, sp:0.5+Math.random()*0.7, x:bx});
+  }
 });
-const dots=[];
-for(let i=0;i<30;i++){
+// 消毒/出水/回流管水流点
+const fg=document.getElementById('fdots');
+const fsegs=[[600,788,58],[834,918,210],[304,660,108]];
+const fdots=[];
+for(let i=0;i<18;i++){
   const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
-  c.setAttribute('r',3.6); c.setAttribute('fill','#22d3ee'); c.setAttribute('opacity','.85');
-  c.setAttribute('cy',110);
-  dg.appendChild(c);
-  dots.push({el:c, s:i%segs.length, t:Math.random(), sp:0.008+Math.random()*0.008});
+  c.setAttribute('r',3.4); c.setAttribute('fill','#22d3ee'); c.setAttribute('opacity','.85');
+  fg.appendChild(c);
+  const s=fsegs[i%fsegs.length];
+  fdots.push({el:c, s, t:Math.random(), sp:0.01+Math.random()*0.01});
 }
 (function anim(){
-  dots.forEach(d=>{
-    d.t+=d.sp;
-    if(d.t>=1){ d.t=0; d.s=(d.s+1+Math.floor(Math.random()*(segs.length-1)))%segs.length; }
-    const [x1,x2]=segs[d.s];
-    d.el.setAttribute('cx', x1+(x2-x1)*d.t);
-  });
+  bubs.forEach(b=>{ b.y-=b.sp; if(b.y<176)b.y=296; b.el.setAttribute('cy',b.y); });
+  fdots.forEach(d=>{ d.t+=d.sp; if(d.t>1)d.t=0;
+    d.el.setAttribute('cx', d.s[0]+(d.s[1]-d.s[0])*d.t); d.el.setAttribute('cy', d.s[2]); });
   requestAnimationFrame(anim);
 })();
 
+</script>
+<script>
 // ---------- 事件日志 ----------
 const elog=document.getElementById('eventlog');
 function log(msg, cls){
