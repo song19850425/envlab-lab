@@ -21,6 +21,12 @@ header p{color:var(--mut);font-size:13px;width:100%;margin-top:6px}
 .scen{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:10px;padding:9px 16px;font-size:14px;transition:.15s}
 .scen:hover{border-color:var(--acc)}
 .scen.on{background:rgba(34,211,238,.14);border-color:var(--acc);color:#fff;box-shadow:0 0 12px rgba(34,211,238,.25)}
+.scen[data-s="shock"].on{border-color:var(--amb);background:rgba(251,191,36,.13);box-shadow:0 0 12px rgba(251,191,36,.25)}
+.scen[data-s="aerfail"].on{border-color:var(--red);background:rgba(248,113,113,.13);box-shadow:0 0 12px rgba(248,113,113,.25)}
+.scen[data-s="foul"].on{border-color:#c084fc;background:rgba(192,132,252,.13);box-shadow:0 0 12px rgba(192,132,252,.25)}
+@keyframes warnpulse{50%{stroke-opacity:.25}}
+.unit .tank.warn{stroke:var(--amb);stroke-width:2.5;animation:warnpulse 1.2s infinite}
+.unit .tank.crit{stroke:var(--red);stroke-width:3;animation:warnpulse .7s infinite}
 main{display:grid;grid-template-columns:1fr 340px;gap:16px;padding:0 26px 20px}
 @media(max-width:1100px){main{grid-template-columns:1fr}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px}
@@ -242,6 +248,7 @@ function render(){
   badge('MBR', 'TMP '+m.tmp.toFixed(0)+'kPa');
   badge('STO', bad.length? '超标':'达标', bad.length?'var(--red)':'var(--grn)');
   badge('INF', 'COD '+S.codin);
+  if(typeof paintFlow==='function') paintFlow();
 }
 
 // ---------- 滑杆 ----------
@@ -282,7 +289,7 @@ TANKS.forEach(tk=>{
   const cx=tk.x+tk.w/2;
   h+=`<g class="unit" data-id="${tk.id}">
     <rect class="tank" x="${tk.x}" y="140" width="${tk.w}" height="162" rx="6"/>
-    <rect x="${tk.x+3}" y="${WL}" width="${tk.w-6}" height="${302-WL-3}" fill="rgba(56,130,200,.32)"/>
+    <rect class="water" x="${tk.x+3}" y="${WL}" width="${tk.w-6}" height="${302-WL-3}" fill="rgba(56,130,200,.32)"/>
     <text class="tlabel" x="${cx}" y="326" font-size="14" text-anchor="middle">${tk.t}</text>
     ${tk.badge?`<text id="bdg-${tk.id}" x="${cx}" y="124" fill="#22d3ee" font-size="12" font-weight="700" text-anchor="middle"></text>`:''}
   </g>`;
@@ -292,13 +299,14 @@ TANKS.forEach(tk=>{
   }
   if(tk.mem){ // 两组膜组件
     [0,1].forEach(i=>{ const mx=tk.x+34+i*72;
-      h+=`<rect x="${mx}" y="186" width="46" height="80" fill="#c96a1b" stroke="#8a4a12" stroke-width="1.5"/>
+      h+=`<rect class="mem" x="${mx}" y="186" width="46" height="80" fill="#c96a1b" stroke="#8a4a12" stroke-width="1.5"/>
           <path d="M${mx},186 L${mx+46},266 M${mx+46},186 L${mx},266" stroke="#8a4a12" stroke-width="1.2"/>`; });
   }
 });
 // 鼓风机
-h+=`<g><rect x="60" y="336" width="76" height="26" rx="13" fill="#3b3454" stroke="#6b6285"/>
-<text x="98" y="354" fill="#cfc6e8" font-size="13" text-anchor="middle">风机</text></g>`;
+h+=`<g id="blower"><rect x="60" y="336" width="76" height="26" rx="13" fill="#3b3454" stroke="#6b6285"/>
+<text x="98" y="354" fill="#cfc6e8" font-size="13" text-anchor="middle">风机</text></g>
+<text id="blowerx" x="98" y="358" fill="#f87171" font-size="22" font-weight="800" text-anchor="middle" style="display:none">✕</text>`;
 // 风管：风机→各曝气池
 [[159,'REG'],[444,'O'],[614,'MBR']].forEach(([fx])=>{
   h+=`<line x1="98" y1="336" x2="${fx}" y2="336" stroke="#4a5a7a" stroke-width="2"/><line x1="${fx}" y1="336" x2="${fx}" y2="302" stroke="#4a5a7a" stroke-width="2"/>`;
@@ -359,7 +367,7 @@ TANKS.filter(t=>t.air).forEach(tk=>{
     c.setAttribute('cx',bx); c.setAttribute('r',2.6+Math.random()*2.4);
     c.setAttribute('fill','#fff'); c.setAttribute('opacity','.55');
     bg.appendChild(c);
-    bubs.push({el:c, y:170+Math.random()*120, sp:0.5+Math.random()*0.7, x:bx});
+    bubs.push({el:c, y:170+Math.random()*120, sp:0.5+Math.random()*0.7, x:bx, tank:tk.id});
   }
 });
 // 消毒/出水/回流管水流点
@@ -373,8 +381,13 @@ for(let i=0;i<18;i++){
   const s=fsegs[i%fsegs.length];
   fdots.push({el:c, s, t:Math.random(), sp:0.01+Math.random()*0.01});
 }
+let bubbleOn=true;
 (function anim(){
-  bubs.forEach(b=>{ b.y-=b.sp; if(b.y<176)b.y=296; b.el.setAttribute('cy',b.y); });
+  bubs.forEach(b=>{
+    if(!bubbleOn){ b.el.setAttribute('opacity','0'); return; }
+    b.el.setAttribute('opacity','.55');
+    b.y-=b.sp; if(b.y<176)b.y=296; b.el.setAttribute('cy',b.y);
+  });
   fdots.forEach(d=>{ d.t+=d.sp; if(d.t>1)d.t=0;
     d.el.setAttribute('cx', d.s[0]+(d.s[1]-d.s[0])*d.t); d.el.setAttribute('cy', d.s[2]); });
   requestAnimationFrame(anim);
@@ -382,6 +395,24 @@ for(let i=0;i<18;i++){
 
 </script>
 <script>
+// 场景视觉：水色/池框/膜色/气泡/风机随运行状态变
+function paintFlow(){
+  const muddy = S.codin > 500;                    // 进水冲击→水变黄
+  document.querySelectorAll('.unit').forEach(g=>{
+    const id=g.dataset.id, w=g.querySelector('.water'), t=g.querySelector('.tank');
+    if(w && (id==='GE'||id==='REG')) w.setAttribute('fill', muddy?'rgba(178,128,44,.5)':'rgba(56,130,200,.32)');
+    if(t) t.classList.remove('warn','crit');
+  });
+  const T=id=>{ const e=document.querySelector(`.unit[data-id="${id}"] .tank`); return e; };
+  if(muddy && T('REG')) T('REG').classList.add('warn');
+  if(S.lockedAer && T('O')) T('O').classList.add('crit');       // 曝气故障
+  if(S.foul>0.5 && T('MBR')) T('MBR').classList.add(S.foul>0.9?'crit':'warn'); // 膜污染
+  document.querySelectorAll('.mem').forEach(e=>e.setAttribute('fill', S.foul>0.5?'#6e4416':'#c96a1b'));
+  bubbleOn = !S.lockedAer;                                       // 风机跳闸→气泡停
+  const bx=document.getElementById('blowerx'), bl=document.getElementById('blower');
+  if(bx) bx.style.display = S.lockedAer?'':'none';
+  if(bl) bl.setAttribute('opacity', S.lockedAer?'.3':'1');
+}
 // ---------- 事件日志 ----------
 const elog=document.getElementById('eventlog');
 function log(msg, cls){
