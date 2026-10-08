@@ -1,0 +1,861 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>原子吸收检测实验室 · 从火焰到吸光度</title>
+<meta name="description" content="火焰原子吸收法 · 依据 GB 7475-87">
+<style>
+  :root{
+    --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+    --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+    --amber:#ffb020; --amber-dim:#8a5c10;
+    --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84; --violet:#b48cff;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    overflow-x:hidden;
+  }
+  #loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;
+    align-items:center;justify-content:center;flex-direction:column;gap:14px;
+    transition:opacity .6s ease;}
+  #loader.done{opacity:0;pointer-events:none}
+  #loader .spin{width:46px;height:46px;border-radius:50%;
+    border:3px solid var(--line);border-top-color:var(--amber);
+    animation:spin 1s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  #loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+  .wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+  header.lab-head{padding:26px 4px 6px}
+  .kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+  h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+  h1.title .thin{color:var(--dim);font-weight:300}
+  .sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+  .oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;
+    border-left:3px solid var(--amber);padding-left:14px;max-width:680px}
+  .oneliner b{color:var(--amber)}
+  .stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+  @media (max-width:900px){.stage{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;
+    padding:16px;position:relative;overflow:hidden;margin-bottom:18px}
+  .card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+  svg.scene{width:100%;height:auto;display:block;background:
+    radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+  .metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+  .metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+  .metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+  .metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+  .metric.warn .v{color:var(--danger)}
+  .metric.good .v{color:var(--ok)}
+  .metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+  .metric.flash{animation:mflash .9s ease}
+  @keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+  #narrate{min-height:110px;background:var(--panel2);border:1px solid var(--line);
+    border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;
+    font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px;transition:opacity .3s}
+  #narrate b{color:var(--cyan);font-family:var(--mono)}
+  #narrate .warn{color:var(--danger);font-weight:700}
+  #narrate .ok{color:var(--ok);font-weight:700}
+  .ctl{margin-bottom:12px}
+  .ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+  .ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+  .seg{display:flex;gap:8px;flex-wrap:wrap}
+  .seg button{
+    flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;
+    background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;
+    font-family:var(--mono);transition:all .15s;
+  }
+  .seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+  .seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);
+    box-shadow:0 0 0 1px var(--amber-dim) inset}
+  .seg button.on small{color:var(--amber)}
+  .seg button.done{color:var(--ok);border-color:#1e4d33}
+  .seg button:active{transform:scale(.97)}
+  kbd.kbd{font-family:var(--mono);font-size:10px;color:var(--faint);
+    border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;
+    padding:1px 5px;margin-left:6px;background:#0d1117;white-space:nowrap}
+  #bench{margin-top:14px;min-height:120px}
+  .tipbox{font-size:13px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);
+    border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:10px}
+  .tipbox b{color:var(--txt)}
+  .tipbox .warnline{color:var(--amber)}
+  .kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  @media (max-width:600px){.kv-grid{grid-template-columns:1fr}}
+  .kv{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+  .kv .k{font-size:11px;color:var(--faint)}
+  .kv .v{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--txt);margin-top:2px}
+  .kv .v em{font-style:normal;color:var(--amber)}
+  .bigtimer{text-align:center;padding:8px 0}
+  .bigtimer .t{font-family:var(--mono);font-size:44px;font-weight:700;color:var(--amber)}
+  .bigtimer .l{font-size:12px;color:var(--faint);margin-top:4px}
+  .formula{background:#0d1117;border:1px solid var(--line);border-radius:10px;
+    padding:14px;font-family:var(--mono);font-size:15px;color:var(--cyan);
+    text-align:center;line-height:2;overflow-x:auto}
+  .formula .dim{color:var(--faint);font-size:12px}
+  .spec-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+  .spec-table th{font-size:11px;color:var(--faint);text-align:left;padding:8px 10px;
+    border-bottom:1px solid var(--line);letter-spacing:.1em}
+  .spec-table td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--txt);
+    font-family:var(--mono);font-size:13px}
+  .spec-table td.st-ok{color:var(--ok);font-weight:700}
+  .spec-table td.st-warn{color:var(--danger);font-weight:700}
+  .spec-table td.st-mid{color:var(--amber);font-weight:700}
+  .actionrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+  .btn-act{flex:1;min-width:180px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;
+    background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206;border:none;border-radius:10px;
+    letter-spacing:.1em;transition:transform .12s, box-shadow .12s}
+  .btn-act:hover{box-shadow:0 4px 16px rgba(255,176,32,.35)}
+  .btn-act:active{transform:scale(.98)}
+  .btn-act:disabled{opacity:.45;cursor:default;box-shadow:none}
+  .btn-ghost{padding:13px 18px;font-size:14px;cursor:pointer;background:transparent;
+    color:var(--dim);border:1px solid var(--line);border-radius:10px}
+  .btn-ghost:hover{color:var(--txt);border-color:var(--faint)}
+  #conclusionCard{border-left:3px solid var(--violet)}
+  .bigresult{text-align:center;padding:18px 0 6px}
+  .bigresult .n{font-family:var(--mono);font-size:52px;font-weight:800;color:var(--violet)}
+  .bigresult .u{font-size:14px;color:var(--dim)}
+  .bigresult .c{font-size:13px;color:var(--faint);margin-top:6px;letter-spacing:.2em}
+  .conc-text{font-size:14.5px;line-height:1.9;color:var(--txt);background:var(--panel2);
+    border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}
+  .conc-text b{color:var(--cyan);font-family:var(--mono)}
+  .conc-text .bad{color:var(--danger);font-weight:700}
+  .conc-text .good{color:var(--ok);font-weight:700}
+  .qc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:6px 0 4px}
+  @media (max-width:700px){.qc-grid{grid-template-columns:1fr 1fr}}
+  .qc{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+  .qc .k{font-size:11px;color:var(--faint);margin-bottom:4px}
+  .qc .v{font-family:var(--mono);font-size:15px;font-weight:700;color:var(--ok)}
+  .qc .v small{font-size:11px;color:var(--faint);font-weight:400}
+  .redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+  @media (max-width:700px){.redlines{grid-template-columns:1fr}}
+  .rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+  .rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+  .rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+  .rl .d{font-size:12px;color:var(--dim);line-height:1.7}
+  details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);
+    border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+  details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+  details.how summary::-webkit-details-marker{display:none}
+  details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;
+    padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+  footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);
+    display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;
+    font-size:12px;color:var(--faint)}
+  footer a{color:var(--dim);text-decoration:none;border-bottom:1px dotted var(--faint)}
+  .tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);
+    border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+  #rp{position:fixed;inset:0;z-index:10000;display:none;align-items:center;justify-content:center;
+    padding:20px;background:rgba(10,13,18,.72);backdrop-filter:blur(3px)}
+  #rp.on{display:flex}
+  #rp .rp-box{background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:640px;
+    width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 18px 50px rgba(0,0,0,.5);overflow:hidden}
+  #rp .rp-hd{display:flex;align-items:center;padding:15px 20px;border-bottom:1px solid var(--line);background:var(--panel2)}
+  #rp .rp-ti{font-size:15px;font-weight:800;color:var(--txt);letter-spacing:.1em}
+  #rp .rp-x{margin-left:auto;border:none;background:transparent;font-size:20px;color:var(--dim);cursor:pointer;padding:2px 8px}
+  #rp .rp-x:hover{color:var(--txt)}
+  #rp .rp-bd{padding:18px 22px;overflow:auto;font-size:13px;line-height:1.8;color:var(--txt);
+    white-space:pre-wrap;font-family:var(--mono)}
+  #rp .rp-ft{display:flex;gap:10px;justify-content:flex-end;padding:13px 20px;border-top:1px solid var(--line);background:var(--panel2)}
+  #rp .rp-b{padding:9px 18px;border-radius:9px;font-size:13.5px;font-weight:700;cursor:pointer;border:1px solid transparent}
+  #rp .rp-b1{background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206}
+  #rp .rp-b2{background:transparent;border-color:var(--line);color:var(--dim)}
+  @media print{#rp{display:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>正在预热元素灯…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">ENVLAB · DEMO</div>
+    <div class="kicker">仪器分析 · 原子吸收分光光度法</div>
+    <h1 class="title">原子吸收<span class="thin">检测实验室</span></h1>
+    <div class="sub">AAS LAB · FROM FLAME TO ABSORBANCE</div>
+    <p class="oneliner"><b>0.05 mg/L</b> 的铜，火焰看得见吗？<b>燃气比 × 灯电流</b>，决定你是检出还是淹没在噪声里。<br>火焰原子吸收法 · 依据 GB 7475-87。</p>
+  </header>
+
+  <div class="stage">
+    <div class="card">
+      <h3>实验台 · <span id="sceneTitle" style="color:var(--amber)">① 样品</span></h3>
+      <svg class="scene" id="aasSvg" viewBox="0 0 420 340" role="img" aria-label="原子吸收仪器与实时信号">
+        <g id="partLamp">
+          <rect x="8" y="64" width="44" height="48" rx="8" fill="#151b25" stroke="#ffb020" stroke-width="2"/>
+          <circle id="lampGlow" cx="30" cy="88" r="9" fill="#ffb020" opacity="0.15"/>
+          <text x="30" y="84" text-anchor="middle" fill="#ffb020" font-size="10" font-family="inherit">Cu灯</text>
+          <text x="30" y="100" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">324.8nm</text>
+        </g>
+        <line id="beam1" x1="52" y1="88" x2="192" y2="88" stroke="#ffd75e" stroke-width="2" opacity="0.85"/>
+        <line id="beam2" x1="244" y1="88" x2="292" y2="88" stroke="#ffd75e" stroke-width="2" opacity="0.85"/>
+        <g id="partNeb">
+          <rect x="120" y="70" width="46" height="44" rx="8" fill="#151b25" stroke="#59d6ff" stroke-width="1.5"/>
+          <text x="143" y="95" text-anchor="middle" fill="#59d6ff" font-size="10" font-family="inherit">雾化器</text>
+          <line x1="143" y1="114" x2="143" y2="148" stroke="#5b6572" stroke-width="2"/>
+          <rect x="128" y="148" width="30" height="20" rx="4" fill="#151b25" stroke="#8b95a3" stroke-width="1.5"/>
+          <text x="143" y="162" text-anchor="middle" fill="#8b95a3" font-size="8" font-family="inherit">样品杯</text>
+        </g>
+        <g id="partBurn">
+          <rect x="196" y="104" width="44" height="16" rx="3" fill="#151b25" stroke="#ff5252" stroke-width="2"/>
+          <g id="flameG" style="display:none">
+            <polygon id="flameOut" points="206,104 230,104 218,52" fill="#59d6ff" opacity="0.85"/>
+            <polygon id="flameIn" points="211,104 225,104 218,70" fill="#cfeeff" opacity="0.9"/>
+          </g>
+          <text x="218" y="134" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">燃烧头</text>
+        </g>
+        <text id="flameStateT" x="218" y="30" text-anchor="middle" fill="#ff5252" font-size="13" font-family="inherit"></text>
+        <g opacity="0.9">
+          <polygon points="292,70 322,88 292,106" fill="#151b25" stroke="#b48cff" stroke-width="1.5"/>
+          <text x="307" y="126" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">单色器</text>
+        </g>
+        <g id="partDet">
+          <rect x="330" y="68" width="52" height="40" rx="8" fill="#151b25" stroke="#3ddc84" stroke-width="2"/>
+          <text x="356" y="92" text-anchor="middle" fill="#3ddc84" font-size="10" font-family="inherit">检测器</text>
+        </g>
+        <text x="30" y="152" text-anchor="middle" fill="#ffb020" font-size="12" font-weight="700" font-family="inherit">光源</text>
+        <text x="180" y="152" text-anchor="middle" fill="#ff5252" font-size="12" font-weight="700" font-family="inherit">原子化器</text>
+        <text x="356" y="152" text-anchor="middle" fill="#3ddc84" font-size="12" font-weight="700" font-family="inherit">检测器</text>
+        <g id="gasFlow"></g>
+        <text x="210" y="176" text-anchor="middle" fill="#8b95a3" font-size="11" font-family="inherit">吸光度-时间曲线 · 实时信号</text>
+        <line x1="30" y1="300" x2="400" y2="300" stroke="#5b6572" stroke-width="1.5"/>
+        <line x1="30" y1="300" x2="30" y2="180" stroke="#5b6572" stroke-width="1.5"/>
+        <text x="396" y="332" text-anchor="end" fill="#5b6572" font-size="10" font-family="inherit">时间 (s)</text>
+        <text x="36" y="194" fill="#5b6572" font-size="10" font-family="inherit">吸光度</text>
+        <path id="ticLive" d="" fill="#59d6ff" fill-opacity="0.14" stroke="#e8eef4" stroke-width="1.8"/>
+        <g id="ticLabels"></g>
+      </svg>
+      <div id="bench"></div>
+      <div class="actionrow">
+        <button class="btn-act" id="actBtn">开始</button>
+        <button class="btn-ghost" id="skipBtn" style="display:none">跳过等待 →</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>实时仪表</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">吸光度 ABS</div><div class="v" id="mAbs">–</div><div class="sub2">火焰实时信号</div></div>
+          <div class="metric"><div class="k">灵敏度 S</div><div class="v" id="mS">–<small>A·L/mg</small></div><div class="sub2">单位浓度的吸光度</div></div>
+          <div class="metric" id="mSnM"><div class="k">信噪比 S/N</div><div class="v" id="mSN">–</div><div class="sub2">≥3 检出 · ≥10 定量</div></div>
+          <div class="metric"><div class="k">火焰</div><div class="v" id="mFlame" style="font-size:20px">–</div><div class="sub2">燃气比决定</div></div>
+        </div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">样品 SCENE</span><span class="val" id="scenVal">痕量</span></div>
+          <div class="seg" id="scenSeg">
+            <button data-v="trace" class="on">痕量<small>Cu 0.05</small></button>
+            <button data-v="normal">常规<small>Cu 1.0</small></button>
+            <button data-v="high">高浓度<small>Cu 10</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">燃气比 FUEL</span><span class="val" id="fuelVal">化学计量</span></div>
+          <div class="seg" id="fuelSeg">
+            <button data-v="lean">贫燃<small>氧化焰</small></button>
+            <button data-v="stoich" class="on">化学计量<small>推荐</small></button>
+            <button data-v="rich">富燃<small>还原焰</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">灯电流 LAMP</span><span class="val" id="lampVal">4 mA</span></div>
+          <div class="seg" id="lampSeg">
+            <button data-v="2">2<small>光弱噪声大</small></button>
+            <button data-v="4" class="on">4<small>推荐</small></button>
+            <button data-v="8">8<small>谱线变宽</small></button>
+          </div>
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">狭缝 SLIT</span><span class="val" id="slitVal">0.7 nm</span></div>
+          <div class="seg" id="slitSeg">
+            <button data-v="0.2">0.2<small>光弱</small></button>
+            <button data-v="0.7" class="on">0.7<small>推荐</small></button>
+            <button data-v="2.0">2.0<small>线性差</small></button>
+          </div>
+        </div>
+        <h3>步骤<kbd class="kbd">←</kbd><kbd class="kbd">→</kbd><kbd class="kbd">空格</kbd><span style="float:right;letter-spacing:0">执行当前步骤</span></h3>
+        <div class="seg" id="stepSeg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="conclusionCard" style="display:none">
+    <h3>检测结论 · 火焰原子吸收法 GB 7475-87</h3>
+    <div class="bigresult">
+      <div class="n" id="concBig">–</div>
+      <div class="u">mg/L · 铜</div>
+      <div class="c" id="concState">–</div>
+    </div>
+    <div class="conc-text" id="concText">…</div>
+    <h3 style="margin-top:6px">质控数据</h3>
+    <div class="qc-grid">
+      <div class="qc"><div class="k">空白</div><div class="v">&lt;DL <small>已调零</small></div></div>
+      <div class="qc"><div class="k">标准曲线 R²</div><div class="v" id="qcR2">–</div></div>
+      <div class="qc"><div class="k">平行样 RSD</div><div class="v">3.2% <small>≤10%</small></div></div>
+      <div class="qc"><div class="k">加标回收率</div><div class="v">98.5% <small>90–110%</small></div></div>
+    </div>
+    <div class="actionrow">
+      <button class="btn-act" onclick="printReport()">生成报告</button>
+      <button class="btn-ghost" onclick="resetAll()">重新做一次</button>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl"><div class="t"><span class="dot"></span>红线一 · 乙炔安全</div><div class="d">先开助燃气（空气）后开乙炔，关火顺序反过来。乙炔瓶压低于 0.05 MPa 立刻换瓶——丙酮出来会回火。</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>红线二 · 灯电流</div><div class="d">电流太大谱线变宽、自吸，灵敏度掉、灯寿命短。Cu 共振线 324.8nm，灯电流按说明书来，别图亮。</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>红线三 · 基体与背景</div><div class="d">高盐样品背景吸收高；富燃火焰化学干扰重；2.0nm 大狭缝邻近线进来，线性先弯。</div></div>
+  </div>
+
+  <details class="how">
+    <summary>▸ 模型与公式（确定性演示，无随机数凑结果）</summary>
+    <div class="f">A = S × C                      吸光度 = 灵敏度 × 浓度
+S = 0.20 × f燃气比 × f灯电流 × f狭缝    (A·L/mg，Cu 324.8nm)
+燃气比：贫燃 0.75 / 化学计量 1.0 / 富燃 0.55
+灯电流：2mA(×0.95,噪声×2.5) / 4mA(×1.0) / 8mA(×0.70,谱线变宽)
+狭缝：0.2nm(×0.9,噪声×1.8) / 0.7nm(×1.0) / 2.0nm(×1.0,线性上限 0.5)
+噪声 σ = 0.001 × f灯 × f狭缝
+判定：S/N≥3 检出，≥10 定量；A &gt; 线性上限(0.8/0.5)→弯曲，稀释重测
+标准曲线：0/0.5/1.0/2.0/4.0 mg/L 五点，最小二乘拟合</div>
+    <p>演示模型按 GB 7475-87 火焰原子吸收流程设定，教学演示用，不作为检测报告依据。</p>
+  </details>
+</div>
+<script>
+"use strict";
+/* ================= 模型（确定性演示） ================= */
+const S_BASE=0.20, NOISE0=0.001;
+const FUEL={
+  lean:  {f:0.75, label:"贫燃",     flame:"氧化焰"},
+  stoich:{f:1.00, label:"化学计量", flame:"化学计量焰"},
+  rich:  {f:0.55, label:"富燃",     flame:"还原焰"},
+};
+const LAMP={"2":{f:0.95,n:2.5},"4":{f:1.00,n:1.0},"8":{f:0.70,n:1.3}};
+const SLIT={"0.2":{f:0.9,n:1.8,lin:0.8},"0.7":{f:1.0,n:1.0,lin:0.8},"2.0":{f:1.0,n:1.0,lin:0.5}};
+const SCENS={
+  trace: {cu:0.05, label:"痕量"},
+  normal:{cu:1.0,  label:"常规"},
+  high:  {cu:10,   label:"高浓度"},
+};
+const STDS=[0,0.5,1.0,2.0,4.0];
+let P={scen:"trace",fuel:"stoich",lamp:"4",slit:"0.7"};
+
+const Seff  =()=>S_BASE*FUEL[P.fuel].f*LAMP[P.lamp].f*SLIT[P.slit].f;
+const anoise=()=>NOISE0*LAMP[P.lamp].n*SLIT[P.slit].n;
+const Araw  =()=>SCENS[P.scen].cu*Seff();
+const Alin  =()=>SLIT[P.slit].lin;
+const bendA =a=>{const L=Alin();return a<=L?a:L+(a-L)*0.35;};
+const Ameas =()=>bendA(Araw());
+const bent  =()=>Araw()>Alin();
+const SN    =()=>Ameas()/anoise();
+
+/* 标准曲线：五点最小二乘 */
+function calFit(){
+  const xs=STDS, ys=STDS.map(c=>bendA(c*Seff()));
+  const n=xs.length, sx=xs.reduce((a,b)=>a+b,0), sy=ys.reduce((a,b)=>a+b,0);
+  const sxx=xs.reduce((a,x)=>a+(x-sx/n)**2,0), sxy=xs.reduce((a,x,i)=>a+(x-sx/n)*(ys[i]-sy/n),0);
+  const m=sxy/sxx, b=sy/n-m*sx/n;
+  const syy=ys.reduce((a,y)=>a+(y-sy/n)**2,0);
+  const r2=syy<1e-12?1:(sxy*sxy/(sxx*syy));
+  return {m,b,r2,ys};
+}
+function verdict(){
+  if(bent()) return {st:"overrange"};
+  const sn=SN();
+  if(sn<3)  return {st:"nd", sn};
+  if(sn<10) return {st:"det", sn};
+  const {m,b}=calFit();
+  return {st:"quant", sn, c:(Ameas()-b)/m};
+}
+const vLine=v=>{
+  const sc=SCENS[P.scen];
+  if(v.st==="overrange") return `<span class="warn">超线性！</span>A=${Ameas().toFixed(2)} 超出线性上限 ${Alin().toFixed(1)}，曲线已弯曲——<b>稀释 10 倍</b>后重测（或转燃烧头/换次灵敏线）。`;
+  if(v.st==="nd")  return `<span class="warn">未检出</span>（S/N=${v.sn.toFixed(1)}&lt;3），信号淹没在噪声里——把灯电流降回 4mA、狭缝 0.7nm 再测。`;
+  if(v.st==="det") return `检出但 S/N=${v.sn.toFixed(1)}&lt;10，只能半定量——优化条件把信噪比提上去。`;
+  return `<span class="ok">Cu ${v.c.toFixed(2)} mg/L</span>（A=${Ameas().toFixed(3)}，S/N=${v.sn.toFixed(0)}，标准曲线定量）。`;
+};
+
+const STEPS=[
+  {n:"① 样品"},{n:"② 点火"},{n:"③ 调灯"},{n:"④ 测空白"},
+  {n:"⑤ 测样品"},{n:"⑥ 标准曲线"},{n:"⑦ 报告"},
+];
+const ACTLBL=[
+  "确认样品 → 点火",
+  "点火",
+  "开灯稳定 → 测空白",
+  "吸入空白 → 调零",
+  "吸入样品 → 测吸光度",
+  "拟合曲线 → 定量",
+  "",
+];
+const BENCH=[
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">样品编号</div><div class="v">WS-2026-118</div></div>
+     <div class="kv"><div class="k">样品类型</div><div class="v">地表水</div></div>
+     <div class="kv"><div class="k">目标物</div><div class="v"><em>Cu</em> · 324.8nm</div></div>
+     <div class="kv"><div class="k">前处理</div><div class="v">过滤 · 硝酸酸化</div></div>
+   </div>
+   <div class="tipbox"><b>当前样品：</b><b id="bScen">痕量</b>（Cu <b id="bCuC">0.05</b> mg/L）。火焰原子吸收测的是"能被火焰变成基态原子的铜"。</div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">助燃气</div><div class="v">空气</div></div>
+     <div class="kv"><div class="k">燃气</div><div class="v">乙炔</div></div>
+     <div class="kv"><div class="k">点火顺序</div><div class="v"><em>先空气后乙炔</em></div></div>
+     <div class="kv"><div class="k">燃气比</div><div class="v" id="bFuel"><em>化学计量</em></div></div>
+   </div>
+   <div class="tipbox"><b>点火顺序是安全红线：</b>先开助燃气再开燃气，关火反过来。顺序错了就是回火。</div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">元素灯</div><div class="v"><em>Cu 空心阴极灯</em></div></div>
+     <div class="kv"><div class="k">共振线</div><div class="v">324.8 nm</div></div>
+     <div class="kv"><div class="k">灯电流</div><div class="v" id="bLamp"><em>4 mA</em></div></div>
+     <div class="kv"><div class="k">预热</div><div class="v">30 min（演示跳过）</div></div>
+   </div>
+   <div class="tipbox"><b>灯电流：</b>2mA 光太弱噪声大；8mA 谱线变宽自吸，灵敏度反而掉，灯还折寿。</div>`,
+  `<div class="tipbox"><b>空白调零：</b>吸入空白（1% 硝酸），把基线调到 0。空白漂了，后面全是错的。</div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">提升速率</div><div class="v">约 5 mL/min</div></div>
+     <div class="kv"><div class="k">读数方式</div><div class="v"><em>连续吸入取平台</em></div></div>
+   </div>
+   <div class="tipbox"><b>看曲线：</b>空白基线 → 吸入样品信号爬到平台 → 回空白。平台高度 = 吸光度。<span class="warnline">平台超 0.8（2.0nm 狭缝 0.5）就是弯了，稀释重测。</span></div>`,
+  `<svg id="calSvg" viewBox="0 0 360 210" style="width:100%;height:auto;background:#0d1117;border-radius:10px"></svg>
+   <table class="spec-table"><thead><tr><th>标准点(mg/L)</th><th>吸光度</th></tr></thead>
+   <tbody id="calBody"><tr><td colspan="2" style="color:var(--faint)">点击"拟合曲线"生成</td></tr></tbody></table>`,
+  `<div class="tipbox">7 步走完：样品 → 点火 → 调灯 → 空白 → 样品 → 曲线 → 报告。<b>燃气比 × 灯电流 × 狭缝</b>，三个旋钮决定你是检出还是噪声。</div>`,
+];
+
+let S={step:0,max:0,running:false,analyzed:false,raf:null,lit:false,lampOn:false,
+       phase:"blank",absLive:0,snap:null,justCleared:false};
+const $=id=>document.getElementById(id);
+
+/* ---------- 解说 ---------- */
+function narrate(){
+  const sc=SCENS[P.scen], v=verdict();
+  const N=[
+    `水样 <b>WS-2026-118</b>（地表水）。当前样品：<b>${sc.label}</b>，Cu <b>${sc.cu} mg/L</b>。目标：火焰原子吸收法测铜（GB 7475-87）。`,
+    `点火！顺序：<b>先空气后乙炔</b>。当前燃气比 <b>${FUEL[P.fuel].label}</b>（${FUEL[P.fuel].flame}）。${S.lit?"火焰已点燃。":"点击「点火」。"}`,
+    `Cu 空心阴极灯，<b>324.8nm</b>。灯电流 <b>${P.lamp} mA</b>${P.lamp==="8"?"——<span class=\"warn\">电流太大，谱线变宽，灵敏度打七折。</span>":P.lamp==="2"?"——光弱，噪声×2.5。":"，灯已稳定。"}`,
+    `吸入空白（1% 硝酸）调零。基线归零，后面才作数。`,
+    `吸入样品，信号爬到平台。当前灵敏度 <b>${Seff().toFixed(3)} A·L/mg</b>，平台吸光度 <b>${Ameas().toFixed(3)}</b>。`,
+    `五点标准曲线（0/0.5/1.0/2.0/4.0 mg/L）最小二乘拟合。${vLine(v)}`,
+    `${vLine(v)}`,
+  ];
+  let html=N[S.step];
+  if(S.justCleared&&S.step>=3){ html='<span class="warn">条件已更改，曲线已清空，请重新测定。</span><br>'+html; S.justCleared=false; }
+  $("narrate").innerHTML=html;
+}
+
+/* ---------- 仪表 ---------- */
+function setM(id,val,unit){ $(id).innerHTML=val+"<small>"+unit+"</small>"; }
+function refreshMetrics(){
+  setM("mAbs",S.absLive.toFixed(3),"");
+  setM("mS",Seff().toFixed(3),"A·L/mg");
+  const v=verdict(), mm=$("mSnM");
+  if(v.st==="overrange"){ setM("mSN","超线性",""); mm.className="metric warn"; }
+  else{ setM("mSN",v.sn<100?v.sn.toFixed(1):v.sn.toFixed(0),"");
+        mm.className="metric"+(v.sn<3?" warn":v.sn>=10?" good":""); }
+  $("mFlame").textContent=S.lit?FUEL[P.fuel].flame:"未点火";
+  $("mFlame").style.color=S.lit?"var(--txt)":"var(--faint)";
+}
+function flash(id){ const m=$(id).closest(".metric"); m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash"); }
+
+/* ---------- 火焰与光 ---------- */
+function updateFlame(){
+  const g=$("flameG"); if(!g) return;
+  g.style.display=S.lit?"":"none";
+  if(!S.lit) return;
+  const o=$("flameOut"), i=$("flameIn");
+  if(P.fuel==="lean"){ o.setAttribute("points","206,104 230,104 218,72"); o.setAttribute("fill","#59d6ff");
+    i.setAttribute("points","211,104 225,104 218,84"); }
+  else if(P.fuel==="rich"){ o.setAttribute("points","204,104 232,104 218,40"); o.setAttribute("fill","#ff9a3c");
+    i.setAttribute("points","210,104 226,104 218,62"); i.setAttribute("fill","#ffd75e"); }
+  else { o.setAttribute("points","206,104 230,104 218,52"); o.setAttribute("fill","#59d6ff");
+    i.setAttribute("points","211,104 225,104 218,70"); i.setAttribute("fill","#cfeeff"); }
+  $("flameStateT").textContent=FUEL[P.fuel].flame;
+}
+function updateLamp(){
+  const gl=$("lampGlow"); if(!gl) return;
+  gl.setAttribute("opacity", !S.lampOn?0.15 : P.lamp==="2"?"0.35":P.lamp==="4"?"0.6":"0.95");
+  $("beam1").setAttribute("opacity", S.lampOn?0.85:0.12);
+  if(!S.lampOn) $("beam2").setAttribute("opacity",0.12);
+}
+function setBeam(A){
+  if(!S.lampOn) return;
+  $("beam2").setAttribute("opacity", Math.pow(10,-A).toFixed(3));
+}
+
+/* ---------- 步骤导航 ---------- */
+function buildSeg(){
+  const seg=$("stepSeg");
+  STEPS.forEach((s,i)=>{ const b=document.createElement("button"); b.textContent=s.n;
+    b.onclick=()=>goStep(i); seg.appendChild(b); });
+}
+function paintSeg(){
+  [...$("stepSeg").children].forEach((b,i)=>{
+    b.classList.toggle("on",i===S.step);
+    b.classList.toggle("done",i<S.max||i<S.step);
+  });
+}
+const HLC={partLamp:"#ffb020",partNeb:"#59d6ff",partBurn:"#ff5252",partDet:"#3ddc84"};
+const STEP_HL=["partNeb","partBurn","partLamp","partNeb","partBurn","partDet",null];
+function highlight(id){
+  Object.keys(HLC).forEach(k=>{ const el=$(k); if(el) el.style.filter=(k===id)?`drop-shadow(0 0 7px ${HLC[k]})`:""; });
+}
+function goStep(n){
+  if(n>S.max+1||n<0||n>6) return;
+  if(S.running) return;
+  S.step=n; if(n>S.max) S.max=n;
+  render();
+}
+function render(){
+  highlight(STEP_HL[S.step]);
+  $("sceneTitle").textContent=STEPS[S.step].n;
+  $("bench").innerHTML=BENCH[S.step];
+  syncBench();
+  narrate(); refreshMetrics();
+  if(!S.analyzed&&!S.running) drawBaseline();
+  const ab=$("actBtn");
+  if(S.step===6){ ab.style.display="none"; $("skipBtn").style.display="none";
+    $("conclusionCard").style.display=""; showConclusion(); }
+  else{ ab.style.display=""; ab.disabled=false;
+    ab.textContent=S.step===5?(S.analyzed?"定量完成 → 查看报告":"← 回第④步重新测定"):ACTLBL[S.step];
+    $("skipBtn").style.display="none"; $("conclusionCard").style.display="none"; }
+  paintSeg();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function syncBench(){
+  const bs=$("bScen"); if(bs){ bs.textContent=SCENS[P.scen].label; $("bCuC").textContent=SCENS[P.scen].cu; }
+  const bf=$("bFuel"); if(bf) bf.innerHTML="<em>"+FUEL[P.fuel].label+"</em>";
+  const bl=$("bLamp"); if(bl) bl.innerHTML="<em>"+P.lamp+" mA</em>";
+  if(S.step===5&&S.analyzed){ drawCal(); fillCalTable(); }
+}
+
+/* ---------- 每步动作 ---------- */
+function act(){
+  if(S.running) return;
+  const n=S.step;
+  if(n===0){ goStep(1); }
+  else if(n===1){ S.lit=true; updateFlame(); narrate(); refreshMetrics(); setTimeout(()=>goStep(2),700); }
+  else if(n===2){ S.lampOn=true; updateLamp(); narrate(); setTimeout(()=>goStep(3),700); }
+  else if(n===3){ runSeq(2500,false); }
+  else if(n===4){ runSeq(8000,true); }
+  else if(n===5){ if(!S.analyzed) goStep(4); else goStep(6); }
+}
+
+/* ---------- 实时测定：空白→样品→空白 ---------- */
+const TIC={x0:30,x1:400,base:300,tmax:8,ymax:1.3};
+const tX=t=>TIC.x0+t/TIC.tmax*(TIC.x1-TIC.x0);
+const aY=a=>TIC.base-Math.min(a,TIC.ymax)/TIC.ymax*120;
+function snapAAS(){ return {A:Ameas(),noise:anoise()}; }
+function sigAt(ts,snap,withSample){
+  const inSample=withSample&&ts>=1.5&&ts<6;
+  const base=inSample?snap.A:0;
+  return base+snap.noise*2*Math.sin(ts*7.3)*Math.sin(ts*1.7+1);
+}
+function drawSweep(penT,snap,withSample){
+  const g=$("ticLive"); if(!g) return;
+  const xEnd=Math.min(tX(penT),TIC.x1);
+  let d=`M ${TIC.x0} ${TIC.base}`;
+  for(let x=TIC.x0;x<=xEnd;x+=2){
+    const ts=(x-TIC.x0)/(TIC.x1-TIC.x0)*TIC.tmax;
+    d+=` L ${x.toFixed(1)} ${aY(sigAt(ts,snap,withSample)).toFixed(1)}`;
+  }
+  d+=` L ${xEnd.toFixed(1)} ${TIC.base} Z`;
+  g.setAttribute("d",d);
+}
+function drawBaseline(){
+  const g=$("ticLive"); if(!g) return;
+  g.setAttribute("d",`M ${TIC.x0} ${TIC.base} L ${TIC.x1} ${TIC.base}`);
+  drawTicks();
+}
+function drawTicks(){
+  const NS="http://www.w3.org/2000/svg";
+  const g=$("ticLabels"); if(!g) return; g.innerHTML="";
+  [0,2,4,6,8].forEach(t=>{
+    const tx=document.createElementNS(NS,"text");
+    tx.setAttribute("x",tX(t)); tx.setAttribute("y",316);
+    tx.setAttribute("text-anchor","middle"); tx.setAttribute("fill","#5b6572");
+    tx.setAttribute("font-size","10"); tx.textContent=t; g.appendChild(tx);
+  });
+  [0,0.5,1.0].forEach(a=>{
+    const ty=document.createElementNS(NS,"text");
+    ty.setAttribute("x",24); ty.setAttribute("y",aY(a)+3);
+    ty.setAttribute("text-anchor","end"); ty.setAttribute("fill","#5b6572");
+    ty.setAttribute("font-size","9"); ty.textContent=a.toFixed(1); g.appendChild(ty);
+  });
+}
+function drawLabels(snap){
+  const NS="http://www.w3.org/2000/svg";
+  const g=$("ticLabels"); if(!g) return; drawTicks();
+  const mk=(x,y,txt,fill)=>{
+    const t=document.createElementNS(NS,"text");
+    t.setAttribute("x",x); t.setAttribute("y",y); t.setAttribute("text-anchor","middle");
+    t.setAttribute("fill",fill); t.setAttribute("font-size","11"); t.textContent=txt; g.appendChild(t);
+  };
+  mk(tX(3.7),aY(snap.A)-10,`平台 ${snap.A.toFixed(3)}`,"#ffb020");
+  if(bent()) mk(tX(3.7),aY(snap.A)-26,"超线性","#ff5252");
+}
+function runSeq(dur,withSample){
+  if(S.running) return;
+  S.running=true;
+  const ab=$("actBtn"); ab.disabled=true; ab.textContent=withSample?"测定中…":"调零中…";
+  $("skipBtn").style.display="";
+  const snap=snapAAS(); S.snap=snap;
+  const t0=performance.now();
+  const done=()=>{
+    cancelRun(); S.finishNow=null;
+    if(withSample){ drawSweep(TIC.tmax,snap,true); drawLabels(snap); S.analyzed=true; flash("mSN"); }
+    else drawSweep(TIC.tmax,snap,false);
+    S.absLive=withSample?snap.A:0; S.phase="blank";
+    setBeam(S.absLive); setM("mAbs",S.absLive.toFixed(3),"");
+    narrate(); refreshMetrics();
+    setTimeout(()=>goStep(S.step+1),600);
+  };
+  S.finishNow=done;
+  function frame(now){
+    const t=Math.min(1,(now-t0)/dur), ts=t*TIC.tmax;
+    S.phase=(withSample&&ts>=1.5&&ts<6)?"sample":"blank";
+    const A=S.phase==="sample"?snap.A:0;
+    S.absLive=A; setBeam(A); setM("mAbs",A.toFixed(3),"");
+    drawSweep(ts,snap,withSample);
+    if(t<1) S.raf=requestAnimationFrame(frame);
+    else done();
+  }
+  S.raf=requestAnimationFrame(frame);
+}
+function cancelRun(){
+  if(S.raf) cancelAnimationFrame(S.raf); S.raf=null;
+  S.running=false;
+  $("skipBtn").style.display="none";
+  const ab=$("actBtn"); if(ab) ab.disabled=false;
+}
+function clearRun(){
+  cancelRun();
+  S.analyzed=false; S.snap=null; S.justCleared=true; S.phase="blank"; S.absLive=0;
+  setBeam(0); drawBaseline();
+  const ab=$("actBtn");
+  if(ab&&S.step!==6) ab.textContent=S.step===5?"← 回第④步重新测定":ACTLBL[S.step];
+}
+</script>
+<script>
+"use strict";
+/* ================= 标准曲线绘制 ================= */
+function drawCal(){
+  const svg=$("calSvg"); if(!svg) return;
+  const NS="http://www.w3.org/2000/svg";
+  svg.innerHTML="";
+  const X=c=>40+c/4.5*300, Y=a=>180-Math.min(a,1.05)/1.05*160;
+  const {m,b,r2,ys}=calFit(), v=verdict();
+  const el=(t,at)=>{const e=document.createElementNS(NS,t);for(const k in at)e.setAttribute(k,at[k]);return e;};
+  svg.appendChild(el("line",{x1:40,y1:180,x2:340,y2:180,stroke:"#5b6572","stroke-width":1.5}));
+  svg.appendChild(el("line",{x1:40,y1:180,x2:40,y2:20,stroke:"#5b6572","stroke-width":1.5}));
+  [0,1,2,3,4].forEach(c=>{const t=el("text",{x:X(c),y:198,"text-anchor":"middle",fill:"#5b6572","font-size":10});t.textContent=c;svg.appendChild(t);});
+  [0,0.5,1.0].forEach(a=>{const t=el("text",{x:32,y:Y(a)+3,"text-anchor":"end",fill:"#5b6572","font-size":9});t.textContent=a.toFixed(1);svg.appendChild(t);});
+  const xt=el("text",{x:335,y:198,"text-anchor":"end",fill:"#5b6572","font-size":10});xt.textContent="mg/L";svg.appendChild(xt);
+  // 拟合直线
+  svg.appendChild(el("line",{x1:X(0),y1:Y(b),x2:X(4.5),y2:Y(m*4.5+b),stroke:"#ffb020","stroke-width":2}));
+  // 标准点
+  STDS.forEach((c,i)=>{
+    svg.appendChild(el("circle",{cx:X(c),cy:Y(ys[i]),r:4,fill:"#59d6ff"}));
+  });
+  // 样品落点
+  if(v.st==="quant"){
+    const sx=X(v.c), sy=Y(Ameas());
+    svg.appendChild(el("circle",{cx:sx,cy:sy,r:5,fill:"#b48cff",stroke:"#fff","stroke-width":1.5}));
+    const lb=el("text",{x:sx,y:sy-12,"text-anchor":"middle",fill:"#b48cff","font-size":11});lb.textContent=v.c.toFixed(2);svg.appendChild(lb);
+  } else if(v.st==="overrange"){
+    const lb=el("text",{x:190,y:40,"text-anchor":"middle",fill:"#ff5252","font-size":12,"font-weight":"700"});lb.textContent="样品超曲线范围";svg.appendChild(lb);
+  }
+  const r2t=el("text",{x:330,y:36,"text-anchor":"end",fill:"#8b95a3","font-size":11});
+  r2t.textContent=`A=${m.toFixed(3)}C${b>=0?"+":""}${b.toFixed(4)}  R²=${r2.toFixed(4)}`;svg.appendChild(r2t);
+}
+function fillCalTable(){
+  const tb=$("calBody"); if(!tb) return;
+  const {ys}=calFit();
+  tb.innerHTML=STDS.map((c,i)=>`<tr><td>${c.toFixed(1)}</td><td>${ys[i].toFixed(3)}</td></tr>`).join("");
+}
+
+/* ================= 结论 ================= */
+function showConclusion(){
+  const v=verdict(), sc=SCENS[P.scen], big=$("concBig");
+  $("qcR2").innerHTML=calFit().r2.toFixed(4)+" <small>≥0.995</small>";
+  if(v.st==="overrange"){
+    big.textContent="超线性"; big.style.color="var(--danger)";
+    $("concState").textContent="稀释后重测";
+    $("concText").innerHTML=`样品（<b>${sc.label}</b>，Cu ${sc.cu} mg/L）吸光度 <b>${Ameas().toFixed(2)}</b>，超出线性上限 ${Alin().toFixed(1)}，标准曲线已弯曲，定量作废。<br>正确做法：<b>稀释 10 倍</b>后重测（或转燃烧头/换次灵敏线 327.4nm）。`;
+  } else if(v.st==="nd"){
+    big.textContent="未检出"; big.style.color="var(--faint)";
+    $("concState").textContent="S/N < 3";
+    $("concText").innerHTML=`Cu：<span class="bad">未检出</span>（S/N=${v.sn.toFixed(1)}）。<b>未检出 ≠ 没有</b>，只是信号被噪声淹没了。<br>把灯电流降回 <b>4mA</b>、狭缝 <b>0.7nm</b>、燃气比<b>化学计量</b>，${sc.cu} mg/L 看得见。`;
+  } else if(v.st==="det"){
+    big.textContent="检出"; big.style.color="var(--amber)";
+    $("concState").textContent="半定量 · S/N<10";
+    $("concText").innerHTML=`Cu 检出，S/N=${v.sn.toFixed(1)}，只能<span class="bad">半定量</span>。<br>优化三个旋钮，把信噪比提到 10 以上再报数。`;
+  } else {
+    big.textContent=v.c.toFixed(2); big.style.color="var(--violet)";
+    $("concState").textContent="标准曲线定量 · S/N≥10";
+    $("concText").innerHTML=`Cu <b>${v.c.toFixed(2)} mg/L</b>（A=${Ameas().toFixed(3)}，S/N=${v.sn.toFixed(0)}，五点标准曲线定量，R²=${calFit().r2.toFixed(4)}）。<br>条件得当：<b>${sc.label}</b> × <b>${FUEL[P.fuel].label}</b> × <b>${P.lamp}mA</b> × <b>${P.slit}nm</b>，一次测准。`;
+  }
+}
+
+/* ================= 气溶胶连续流 + 火焰闪烁 ================= */
+const APATH=[[143,168],[143,96],[196,96],[218,96],[218,58]];
+const ASEG=APATH.slice(1).map((p,i)=>Math.hypot(p[0]-APATH[i][0],p[1]-APATH[i][1]));
+const ALEN=ASEG.reduce((a,b)=>a+b,0);
+function apos(d){
+  d=((d%ALEN)+ALEN)%ALEN;
+  for(let i=0;i<ASEG.length;i++){
+    if(d<=ASEG[i]){ const q=d/ASEG[i],a=APATH[i],b=APATH[i+1];
+      return [a[0]+(b[0]-a[0])*q, a[1]+(b[1]-a[1])*q]; }
+    d-=ASEG[i];
+  }
+  return APATH[APATH.length-1];
+}
+let aeroDots=[],lastAeroT=0;
+function initAero(){
+  const NS="http://www.w3.org/2000/svg";
+  const g=$("gasFlow");
+  for(let i=0;i<30;i++){
+    const c=document.createElementNS(NS,"circle");
+    c.setAttribute("r",(1.2+(i%3)*0.5).toFixed(1));
+    c.setAttribute("fill","#7d8ea3"); c.setAttribute("opacity","0.55");
+    g.appendChild(c);
+    aeroDots.push({el:c,d:i/30*ALEN,sp:55+(i%5)*4});
+  }
+  requestAnimationFrame(aeroTick);
+}
+function aeroTick(now){
+  const dt=Math.min(0.05,((now-lastAeroT)/1000)||0.016); lastAeroT=now;
+  const sample=S.phase==="sample";
+  aeroDots.forEach(o=>{
+    o.d=(o.d+o.sp*dt)%ALEN;
+    const [x,y]=apos(o.d);
+    o.el.setAttribute("cx",x.toFixed(1)); o.el.setAttribute("cy",y.toFixed(1));
+    o.el.setAttribute("fill",sample?"#ff9a3c":"#7d8ea3");
+  });
+  const fg=$("flameG");
+  if(fg&&S.lit){
+    const sy=1+0.05*Math.sin(now/90)+0.03*Math.sin(now/31);
+    fg.setAttribute("transform",`translate(218,104) scale(1,${sy.toFixed(3)}) translate(-218,-104)`);
+  }
+  requestAnimationFrame(aeroTick);
+}
+
+/* ================= 控件联动 ================= */
+function bindSeg(id,set,fmt){
+  const seg=$(id);
+  [...seg.children].forEach(b=>{
+    b.addEventListener("click",()=>{
+      set(b.dataset.v);
+      [...seg.children].forEach(x=>x.classList.toggle("on",x===b));
+      fmt(); updateFlame(); updateLamp();
+      if(S.running||S.analyzed) clearRun();
+      narrate(); refreshMetrics(); syncBench();
+      if(S.step===5&&S.analyzed){ drawCal(); fillCalTable(); }
+      if(S.step===6) showConclusion();
+    });
+  });
+}
+function setSegOn(id,val){
+  [...$(id).children].forEach(x=>x.classList.toggle("on",x.dataset.v===String(val)));
+}
+
+/* ================= 报告 ================= */
+function reportText(){
+  const v=verdict(), sc=SCENS[P.scen], {m,b,r2}=calFit();
+  const L=[];
+  L.push("原子吸收检测报告（演示）");
+  L.push("方法：火焰原子吸收分光光度法 · GB 7475-87（Cu 324.8nm）");
+  L.push("=".repeat(40));
+  L.push(`样品：WS-2026-118（地表水）· 类型：${sc.label}（Cu ${sc.cu} mg/L）`);
+  L.push(`条件：燃气比${FUEL[P.fuel].label} · 灯电流${P.lamp}mA · 狭缝${P.slit}nm`);
+  L.push(`灵敏度 ${Seff().toFixed(3)} A·L/mg · 噪声 ${anoise().toFixed(4)}`);
+  L.push(`标准曲线：A=${m.toFixed(3)}C${b>=0?"+":""}${b.toFixed(4)}，R²=${r2.toFixed(4)}`);
+  L.push("=".repeat(40));
+  if(v.st==="overrange") L.push(`Cu：超线性（A=${Ameas().toFixed(2)}>${Alin().toFixed(1)}）——稀释10倍后重测`);
+  else if(v.st==="nd")   L.push(`Cu：未检出（S/N=${v.sn.toFixed(1)}<3）`);
+  else if(v.st==="det")  L.push(`Cu：检出·半定量（S/N=${v.sn.toFixed(1)}）`);
+  else L.push(`Cu：${v.c.toFixed(2)} mg/L（A=${Ameas().toFixed(3)}，S/N=${v.sn.toFixed(0)}）`);
+  L.push("=".repeat(40));
+  L.push("质控：空白<DL；平行样 RSD 3.2%；加标回收率 98.5%");
+  L.push("备注：教学演示模型，不作为检测报告依据。");
+  return L.join("\n");
+}
+function printReport(){ $("rpBody").textContent=reportText(); $("rp").classList.add("on"); }
+function rpClose(){ $("rp").classList.remove("on"); }
+function rpCopy(){
+  const t=reportText();
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(t).then(()=>{$("rpCopyBtn").textContent="已复制 ✓";});
+}
+function resetAll(){
+  cancelRun(); S.finishNow=null;
+  P={scen:"trace",fuel:"stoich",lamp:"4",slit:"0.7"};
+  S={step:0,max:0,running:false,analyzed:false,raf:null,lit:false,lampOn:false,
+     phase:"blank",absLive:0,snap:null,justCleared:false};
+  setSegOn("scenSeg","trace");  $("scenVal").textContent="痕量";
+  setSegOn("fuelSeg","stoich"); $("fuelVal").textContent="化学计量";
+  setSegOn("lampSeg","4");      $("lampVal").textContent="4 mA";
+  setSegOn("slitSeg","0.7");    $("slitVal").textContent="0.7 nm";
+  updateFlame(); updateLamp();
+  render();
+}
+
+/* ================= 初始化 ================= */
+document.addEventListener("DOMContentLoaded",()=>{
+  buildSeg();
+  bindSeg("scenSeg",v=>P.scen=v,()=>$("scenVal").textContent=SCENS[P.scen].label);
+  bindSeg("fuelSeg",v=>P.fuel=v,()=>$("fuelVal").textContent=FUEL[P.fuel].label);
+  bindSeg("lampSeg",v=>P.lamp=v,()=>$("lampVal").textContent=P.lamp+" mA");
+  bindSeg("slitSeg",v=>P.slit=v,()=>$("slitVal").textContent=P.slit+" nm");
+  $("actBtn").addEventListener("click",act);
+  $("skipBtn").addEventListener("click",()=>{ if(S.finishNow){ const f=S.finishNow; S.finishNow=null; f(); } });
+  document.addEventListener("keydown",e=>{
+    if(e.key==="ArrowRight") goStep(S.step+1);
+    else if(e.key==="ArrowLeft") goStep(S.step-1);
+    else if(e.code==="Space"&&S.step<6){ e.preventDefault(); act(); }
+  });
+  updateFlame(); updateLamp();
+  render(); initAero();
+  setTimeout(()=>$("loader").classList.add("done"),700);
+});
+</script>
+
+<div id="rp" role="dialog" aria-modal="true" aria-label="检测报告">
+  <div class="rp-box">
+    <div class="rp-hd">
+      <div class="rp-ti">原子吸收检测报告（演示）</div>
+      <button class="rp-x" onclick="rpClose()" aria-label="关闭">×</button>
+    </div>
+    <div class="rp-bd" id="rpBody"></div>
+    <div class="rp-ft">
+      <button class="rp-b rp-b1" id="rpCopyBtn" onclick="rpCopy()">复制报告</button>
+      <button class="rp-b rp-b2" onclick="rpClose()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap">
+  <details class="how">
+    <summary>▸ 标准依据</summary>
+    <div class="f">GB 7475-87《水质 铜、锌、铅、镉的测定 原子吸收分光光度法》
+火焰法：空气-乙炔火焰，Cu 共振线 324.8nm
+相关：HJ 491（土壤 Pb/Cd · 石墨炉）· GB/T 17141（土壤 Pb/Cd）
+本页模型：火焰法，教学演示用。</div>
+  </details>
+
+  <div class="card" style="margin-top:18px">
+    <h3>延伸学习</h3>
+    <div class="tipbox" style="margin-top:0">
+      · <b>GC-MS 检测实验室</b> —— 有机物的仪器：色谱分离 + 质谱出峰<br>
+      · <b>COD 检测实验室</b> —— 湿化学 7 步：取样 → 消解 → 滴定 → 报告<br>
+      · 记住顺序：<b>样品浓度决定稀释倍数，燃气比决定火焰，灯电流决定噪声。</b>
+    </div>
+  </div>
+
+  <footer>
+    <span>ENVLAB · 原子吸收检测实验室 · 交互演示</span>
+    <span>联系作者：<a href="mailto:jinghao.song@gmail.com">jinghao.song@gmail.com</a></span>
+  </footer>
+</div>
+</body>
+</html>
