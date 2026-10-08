@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>一体化污水处理实验室 · A2O+MBR 交互版</title>
+<style>
+:root{
+  --bg:#0a0f1c; --panel:#111a2e; --panel2:#0d1526; --line:#1e2c4a;
+  --txt:#dbe6f7; --mut:#8fa3c4; --acc:#22d3ee; --grn:#34d399; --red:#f87171;
+  --amb:#fbbf24; --blu:#60a5fa;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--txt);font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;min-height:100vh}
+header{padding:18px 26px;border-bottom:1px solid var(--line);display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
+header h1{font-size:22px;letter-spacing:1px}
+header h1 .tag{color:var(--acc);font-size:15px;border:1px solid var(--acc);border-radius:6px;padding:2px 8px;margin-left:10px;vertical-align:2px}
+header p{color:var(--mut);font-size:13px;width:100%;margin-top:6px}
+.scenbar{display:flex;gap:10px;padding:14px 26px;flex-wrap:wrap;align-items:center}
+.scenbar .lbl{color:var(--mut);font-size:13px}
+.scen{cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--txt);border-radius:10px;padding:9px 16px;font-size:14px;transition:.15s}
+.scen:hover{border-color:var(--acc)}
+.scen.on{background:rgba(34,211,238,.14);border-color:var(--acc);color:#fff;box-shadow:0 0 12px rgba(34,211,238,.25)}
+main{display:grid;grid-template-columns:1fr 340px;gap:16px;padding:0 26px 20px}
+@media(max-width:1100px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:16px}
+.card h2{font-size:15px;margin-bottom:12px;color:#fff;display:flex;align-items:center;gap:8px}
+.card h2 .dot{width:8px;height:8px;border-radius:50%;background:var(--acc);box-shadow:0 0 8px var(--acc)}
+#flowwrap{position:relative}
+#flowsvg{width:100%;height:auto;display:block}
+.unit{cursor:pointer}
+.unit rect{fill:#14213a;stroke:#2b3d63;stroke-width:1.5;rx:10}
+.unit:hover rect,.unit.sel rect{stroke:var(--acc)}
+.unit text{fill:var(--txt);font-size:13px;text-anchor:middle}
+.unit .sub{fill:var(--mut);font-size:11px}
+.unit .badge{font-size:11px;font-weight:700}
+.pipe{stroke:#27406e;stroke-width:10;fill:none;stroke-linecap:round}
+.pipeflow{stroke:var(--acc);stroke-width:3;fill:none;stroke-linecap:round;opacity:.85}
+#unitinfo{margin-top:10px;background:var(--panel2);border:1px dashed #2b3d63;border-radius:10px;padding:10px 14px;font-size:13px;color:var(--mut);min-height:56px;line-height:1.7}
+#unitinfo b{color:var(--acc)}
+.ctl{margin-bottom:13px}
+.ctl .row{display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px}
+.ctl .row .v{color:var(--acc);font-weight:700;font-variant-numeric:tabular-nums}
+.ctl input[type=range]{width:100%;accent-color:var(--acc);cursor:pointer}
+.ctl .hint{font-size:11px;color:var(--mut);margin-top:2px}
+.gauges{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.g{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.g .nm{font-size:12px;color:var(--mut)}
+.g .vl{font-size:24px;font-weight:800;font-variant-numeric:tabular-nums;margin:2px 0}
+.g .std{font-size:11px;color:var(--mut)}
+.lamp{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.lamp.ok{background:var(--grn);box-shadow:0 0 8px var(--grn)}
+.lamp.bad{background:var(--red);box-shadow:0 0 8px var(--red);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:.4}}
+#eventlog{max-height:190px;overflow-y:auto;font-size:13px;line-height:1.9}
+#eventlog .t{color:var(--mut);font-size:11px;margin-right:8px}
+#eventlog .warn{color:var(--amb)} #eventlog .err{color:var(--red)} #eventlog .ok{color:var(--grn)}
+.choices{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.choice{cursor:pointer;border:1px solid var(--amb);background:rgba(251,191,36,.08);color:var(--txt);border-radius:10px;padding:9px 14px;font-size:13px}
+.choice:hover{background:rgba(251,191,36,.2)}
+.choice.done{opacity:.35;pointer-events:none}
+.kv{display:flex;justify-content:space-between;font-size:13px;padding:5px 0;border-bottom:1px dashed #1a2742}
+.kv:last-child{border:none}
+.kv .k{color:var(--mut)} .kv .v{font-weight:700;font-variant-numeric:tabular-nums}
+footer{padding:16px 26px 30px;color:var(--mut);font-size:12px;line-height:1.9}
+footer table{border-collapse:collapse;margin:8px 0;font-size:12px}
+footer th,footer td{border:1px solid var(--line);padding:4px 12px;text-align:center}
+footer th{background:var(--panel)}
+.note{background:rgba(251,191,36,.07);border:1px solid rgba(251,191,36,.35);border-radius:10px;padding:10px 14px;margin-top:10px}
+</style>
+</head>
+<body>
+<header>
+  <h1>一体化污水处理实验室 <span class="tag">A2O + MBR</span></h1>
+  <p>地埋式一体化设备 · 生活污水 → 格栅 → 调节池 → 缺氧池(A) → 好氧池(O) → MBR膜池 → 消毒 → 达标排放 &nbsp;|&nbsp; 拖动右侧参数，看出水水质实时变化；点上方的事故场景，亲手处置一次运行故障</p>
+</header>
+
+<div class="scenbar">
+  <span class="lbl">运行场景：</span>
+  <button class="scen on" data-s="base">基准运行</button>
+  <button class="scen" data-s="shock">进水冲击</button>
+  <button class="scen" data-s="aerfail">曝气故障</button>
+  <button class="scen" data-s="foul">膜污染</button>
+</div>
+
+<main>
+  <div>
+    <div class="card">
+      <h2><span class="dot"></span>工艺流程（点击池体查看说明）</h2>
+      <div id="flowwrap">
+      <svg id="flowsvg" viewBox="0 0 980 300">
+        <defs>
+          <marker id="arr" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+            <path d="M0,0 L8,4 L0,8 z" fill="#22d3ee"/>
+          </marker>
+        </defs>
+        <!-- pipes -->
+        <g id="pipes"></g>
+        <!-- units injected by JS -->
+        <g id="units"></g>
+        <!-- flow particles -->
+        <g id="dots"></g>
+      </svg>
+      </div>
+      <div id="unitinfo">点击上方任一处理单元，查看它的作用和关键控制点。</div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>出水水质仪表盘 <span style="font-size:12px;color:var(--mut)">（GB 18918-2002 一级A）</span></h2>
+      <div class="gauges" id="gauges"></div>
+      <div class="kv" style="margin-top:10px"><span class="k">跨膜压差 TMP</span><span class="v" id="tmpv">—</span></div>
+      <div class="kv"><span class="k">膜产水率（相对设计）</span><span class="v" id="fluxv">—</span></div>
+      <div class="kv"><span class="k">综合电耗估算</span><span class="v" id="powerv">—</span></div>
+    </div>
+
+    <div class="card">
+      <h2><span class="dot"></span>运行事件</h2>
+      <div id="eventlog"></div>
+      <div class="choices" id="choices"></div>
+    </div>
+  </div>
+
+  <div>
+    <div class="card">
+      <h2><span class="dot"></span>进水水质</h2>
+      <div class="ctl"><div class="row"><span>进水 COD</span><span class="v" id="v-codin">320 mg/L</span></div>
+        <input type="range" id="c-codin" min="150" max="650" value="320" step="10"><div class="hint">典型生活污水 250~400</div></div>
+      <div class="ctl"><div class="row"><span>进水氨氮</span><span class="v" id="v-nhin">35 mg/L</span></div>
+        <input type="range" id="c-nhin" min="15" max="60" value="35" step="1"><div class="hint">典型生活污水 25~45</div></div>
+    </div>
+    <div class="card">
+      <h2><span class="dot"></span>运行控制</h2>
+      <div class="ctl"><div class="row"><span>曝气强度</span><span class="v" id="v-aer">70 %</span></div>
+        <input type="range" id="c-aer" min="0" max="100" value="70" step="5"><div class="hint" id="h-do">好氧池 DO ≈ 2.9 mg/L（硝化需要 DO＞2）</div></div>
+      <div class="ctl"><div class="row"><span>内回流比（硝化液回流）</span><span class="v" id="v-rin">200 %</span></div>
+        <input type="range" id="c-rin" min="100" max="300" value="200" step="10"><div class="hint">越高脱氮越好，能耗也越高</div></div>
+      <div class="ctl"><div class="row"><span>污泥回流比</span><span class="v" id="v-rs">80 %</span></div>
+        <input type="range" id="c-rs" min="50" max="150" value="80" step="5"><div class="hint">维持生化池污泥浓度</div></div>
+      <div class="ctl"><div class="row"><span>除磷剂投加</span><span class="v" id="v-pac">12 mg/L</span></div>
+        <input type="range" id="c-pac" min="0" max="30" value="12" step="1"><div class="hint">生物除磷有限时化学辅助，保障 TP 达标</div></div>
+      <div class="ctl"><div class="row"><span>膜通量（相对设计值）</span><span class="v" id="v-flux">100 %</span></div>
+        <input type="range" id="c-flux" min="60" max="110" value="100" step="5"><div class="hint">长期超设计通量运行加速膜污染</div></div>
+    </div>
+    <div class="card">
+      <h2><span class="dot"></span>综合判定</h2>
+      <div id="verdict" style="font-size:18px;font-weight:800"></div>
+      <div style="font-size:12px;color:var(--mut);margin-top:8px;line-height:1.8" id="verdict-sub"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <b style="color:var(--txt)">模型说明（演示用简化模型，非设计计算）：</b><br>
+  硝化率 = min(0.98, DO/2.5×0.98)；COD 去除率 = min(0.97, 0.72+0.09×DO) × 1/(0.5+0.5×负荷率)；
+  TN 去除率 = min(0.88, 内回流/(内回流+60)×0.95)；TP = 进水TP×(1−0.8生物)×(1−化学助凝效率)；
+  MBR 出水 SS≈5 mg/L；TMP = 8 + 通量比×10 + 污染指数×25 (kPa)，50 kPa 报警。
+  <table>
+    <tr><th>指标</th><th>COD</th><th>氨氮</th><th>TN</th><th>TP</th><th>SS</th></tr>
+    <tr><td>一级A限值 (mg/L)</td><td>50</td><td>5（8）</td><td>15</td><td>0.5</td><td>10</td></tr>
+  </table>
+  <div class="note">玩的时候记住一条：<b style="color:var(--amb)">曝气不是万能的</b>——进水冲击靠"削峰"不靠"猛曝气"，氨氮超标先查 DO，膜出问题先看 TMP 趋势。真工程以设计文件和调试数据为准。</div>
+</footer>
+<script>
+// ---------- 状态 ----------
+const S = {
+  scen:'base',
+  codin:320, nhin:35,
+  aer:70, rin:200, rs:80, pac:12, flux:100,
+  foul:0.08,            // 膜污染指数 0~1
+  shockT:0,             // 冲击计时（用于"不管"恶化）
+  lockedAer:false
+};
+const STD = {cod:50, nh3:5, tn:15, tp:0.5, ss:10};
+
+// ---------- 模型 ----------
+function model(){
+  const DO = S.lockedAer ? 0.8 : 0.3 + S.aer/100*3.7;
+  const load = S.codin/320;
+  const nit = Math.min(0.98, DO/2.5*0.98);
+  const codR = Math.min(0.97, Math.min(0.97, 0.72+0.09*DO) * 1/(0.5+0.5*load));
+  const tnR = Math.min(0.88, (S.rin/(S.rin+60))*0.95);
+  const chem = Math.min(0.9, S.pac/20*0.9);
+  const out = {
+    cod: S.codin*(1-codR),
+    nh3: S.nhin*(1-nit),
+    tn: 48*(1-tnR) * (S.nhin/35),   // TN随进水氨氮联动
+    tp: 4.5*(1-0.8)*(1-chem) * (1),  // 基准进水TP 4.5
+    ss: S.foul>0.9 ? 25 : 5,
+    DO
+  };
+  // 冲击"不管"随时间恶化：污泥受冲击
+  if(S.scen==='shock' && S.shockT>0){
+    const d = Math.min(0.25, S.shockT*0.05);
+    out.cod = out.cod*(1+d)+8*S.shockT*0.1;
+  }
+  const fluxRatio = S.flux/100;
+  const tmp = 8 + fluxRatio*10 + S.foul*25;
+  const prodRate = Math.max(0.3, 1-0.35*S.foul) * fluxRatio;
+  const power = 0.15 + S.aer/100*0.55 + fluxRatio*0.1 + S.rin/100*0.03;
+  return {...out, tmp, prodRate, power};
+}
+
+// ---------- 仪表盘 ----------
+const GAUGES = [
+  {k:'cod', nm:'出水 COD', unit:'mg/L'},
+  {k:'nh3', nm:'出水氨氮', unit:'mg/L'},
+  {k:'tn',  nm:'出水总氮', unit:'mg/L'},
+  {k:'tp',  nm:'出水总磷', unit:'mg/L'},
+  {k:'ss',  nm:'出水 SS',  unit:'mg/L'},
+];
+const gwrap = document.getElementById('gauges');
+GAUGES.forEach(g=>{
+  const d=document.createElement('div'); d.className='g'; d.id='g-'+g.k;
+  d.innerHTML=`<div class="nm">${g.nm}</div><div class="vl">—</div><div class="std">限值 ${STD[g.k]} ${g.unit}</div>`;
+  gwrap.appendChild(d);
+});
+
+function render(){
+  const m = model();
+  let bad=[];
+  GAUGES.forEach(g=>{
+    const el=document.getElementById('g-'+g.k);
+    const v=m[g.k], ok=v<=STD[g.k];
+    if(!ok) bad.push(g.nm);
+    el.querySelector('.vl').innerHTML =
+      `<span class="lamp ${ok?'ok':'bad'}"></span>${v.toFixed(v<10?1:0)}<span style="font-size:12px;color:var(--mut)"> ${g.unit}</span>`;
+  });
+  document.getElementById('tmpv').textContent = m.tmp.toFixed(1)+' kPa'+(m.tmp>=50?' ⚠超报警线':'');
+  document.getElementById('tmpv').style.color = m.tmp>=50?'var(--red)':(m.tmp>=40?'var(--amb)':'var(--txt)');
+  document.getElementById('fluxv').textContent = Math.round(m.prodRate*100)+' %';
+  document.getElementById('powerv').textContent = m.power.toFixed(2)+' kWh/m³';
+  document.getElementById('h-do').textContent = `好氧池 DO ≈ ${m.DO.toFixed(1)} mg/L（硝化需要 DO＞2）`;
+  const vd=document.getElementById('verdict'), vs=document.getElementById('verdict-sub');
+  if(bad.length===0 && m.tmp<50){
+    vd.innerHTML='<span class="lamp ok"></span><span style="color:var(--grn)">出水达标</span>';
+    vs.textContent='五项指标全部满足一级A，TMP 正常。可以安心喝茶了。';
+  }else{
+    vd.innerHTML='<span class="lamp bad"></span><span style="color:var(--red)">出水超标</span>';
+    const extra = m.tmp>=50 ? '；TMP 达报警线' : '';
+    vs.textContent='超标项：'+bad.join('、')+extra+'。去"运行事件"里看看怎么办。';
+  }
+  // 流程图徽标
+  badge('O', 'DO '+m.DO.toFixed(1));
+  badge('MBR', 'TMP '+m.tmp.toFixed(0)+'kPa');
+  badge('EFF', bad.length? '超标':'达标', bad.length?'var(--red)':'var(--grn)');
+  badge('INF', 'COD '+S.codin);
+}
+
+// ---------- 滑杆 ----------
+function bind(id, key, fmt, after){
+  const c=document.getElementById('c-'+id), v=document.getElementById('v-'+id);
+  c.addEventListener('input', ()=>{
+    S[key]=+c.value; v.textContent=fmt(+c.value);
+    if(S.scen==='base'||true) logAuto();
+    render(); if(after)after();
+  });
+}
+function logAuto(){ /* 滑杆微调不刷屏 */ }
+bind('codin','codin', v=>v+' mg/L');
+bind('nhin','nhin', v=>v+' mg/L');
+bind('aer','aer', v=>v+' %');
+bind('rin','rin', v=>v+' %');
+bind('rs','rs', v=>v+' %');
+bind('pac','pac', v=>v+' mg/L');
+bind('flux','flux', v=>v+' %');
+function setCtl(id,val){ const c=document.getElementById('c-'+id); c.value=val; c.dispatchEvent(new Event('input')); }
+</script>
+<script>
+// ---------- 流程图 ----------
+const UNITS=[
+  {id:'INF', x:8,   w:70,  t:'进水', s:'生活污水', info:'<b>进水</b>：生活污水经管网汇入。看 COD/氨氮两个数——它们决定后面所有池子的负荷。'},
+  {id:'GE',  x:98,  w:70,  t:'格栅', s:'去大渣', info:'<b>格栅</b>：拦塑料袋、毛发等大块杂物。别小看它，膜池最怕毛发缠绕。'},
+  {id:'REG', x:188, w:96,  t:'调节池', s:'均质均量', info:'<b>调节池</b>：削峰填谷。水量水质波动先在这里缓冲——"进水冲击"场景的正确答案就藏在这里。'},
+  {id:'A',   x:304, w:96,  t:'缺氧池 A', s:'反硝化', info:'<b>缺氧池(A)</b>：缺氧环境+内回流带来的硝态氮，反硝化菌把氮变成氮气跑掉。脱氮的主战场，内回流比是关键旋钮。'},
+  {id:'O',   x:420, w:110, t:'好氧池 O', s:'曝气硝化', info:'<b>好氧池(O)</b>：曝气供氧，硝化菌把氨氮变成硝态氮，同时降解 COD。DO＜2 硝化就掉链子——"曝气故障"场景会教你。', badge:'DO'},
+  {id:'MBR', x:550, w:110, t:'MBR膜池', s:'泥水分离', info:'<b>MBR膜池</b>：0.1微米膜丝代替二沉池，出水 SS≈5。盯紧 TMP（跨膜压差）：涨得快=膜在喊救命。', badge:'TMP'},
+  {id:'DIS', x:680, w:80,  t:'消毒', s:'紫外/次钠', info:'<b>消毒</b>：紫外或次氯酸钠杀灭病原微生物，粪大肠菌群达标最后一道门。'},
+  {id:'EFF', x:780, w:90,  t:'出水', s:'达标排放', info:'<b>出水</b>：对照 GB 18918 一级A 五项限值。灯全绿=可以排放。', badge:'达标'},
+];
+const ug=document.getElementById('units'), pg=document.getElementById('pipes');
+UNITS.forEach((u,i)=>{
+  if(i<UNITS.length-1){
+    const x1=u.x+u.w, x2=UNITS[i+1].x;
+    pg.innerHTML+=`<line class="pipe" x1="${x1}" y1="110" x2="${x2}" y2="110"/>`;
+    pg.innerHTML+=`<line class="pipeflow" x1="${x1}" y1="110" x2="${x2}" y2="110" marker-end="url(#arr)"/>`;
+  }
+  const g=document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.setAttribute('class','unit'); g.dataset.id=u.id;
+  g.innerHTML=`<rect x="${u.x}" y="60" width="${u.w}" height="100" rx="10"/>
+    <text x="${u.x+u.w/2}" y="105">${u.t}</text>
+    <text class="sub" x="${u.x+u.w/2}" y="126">${u.s}</text>
+    ${u.badge?`<text class="badge" id="bdg-${u.id}" x="${u.x+u.w/2}" y="148" fill="#22d3ee"></text>`:''}`;
+  g.addEventListener('click',()=>{
+    document.querySelectorAll('.unit').forEach(e=>e.classList.remove('sel'));
+    g.classList.add('sel');
+    document.getElementById('unitinfo').innerHTML=u.info;
+  });
+  ug.appendChild(g);
+});
+function badge(id,txt,color){
+  const e=document.getElementById('bdg-'+id); if(!e)return;
+  e.textContent=txt; if(color)e.setAttribute('fill',color);
+}
+// 水流粒子：只在管道缝隙里跑，不压住池体文字
+const dg=document.getElementById('dots');
+const segs=[];
+UNITS.forEach((u,i)=>{
+  if(i<UNITS.length-1) segs.push([u.x+u.w+4, UNITS[i+1].x-4]);
+});
+const dots=[];
+for(let i=0;i<30;i++){
+  const c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+  c.setAttribute('r',3.6); c.setAttribute('fill','#22d3ee'); c.setAttribute('opacity','.85');
+  c.setAttribute('cy',110);
+  dg.appendChild(c);
+  dots.push({el:c, s:i%segs.length, t:Math.random(), sp:0.008+Math.random()*0.008});
+}
+(function anim(){
+  dots.forEach(d=>{
+    d.t+=d.sp;
+    if(d.t>=1){ d.t=0; d.s=(d.s+1+Math.floor(Math.random()*(segs.length-1)))%segs.length; }
+    const [x1,x2]=segs[d.s];
+    d.el.setAttribute('cx', x1+(x2-x1)*d.t);
+  });
+  requestAnimationFrame(anim);
+})();
+
+// ---------- 事件日志 ----------
+const elog=document.getElementById('eventlog');
+function log(msg, cls){
+  const t=new Date();
+  const hh=String(t.getHours()).padStart(2,'0'), mm=String(t.getMinutes()).padStart(2,'0'), ss=String(t.getSeconds()).padStart(2,'0');
+  const d=document.createElement('div');
+  d.innerHTML=`<span class="t">${hh}:${mm}:${ss}</span><span class="${cls||''}">${msg}</span>`;
+  elog.prepend(d);
+}
+
+// ---------- 场景 ----------
+const chwrap=document.getElementById('choices');
+function setChoices(list){
+  chwrap.innerHTML='';
+  list.forEach(c=>{
+    const b=document.createElement('button'); b.className='choice'; b.textContent=c.t;
+    b.onclick=()=>{ b.classList.add('done'); c.fn(); };
+    chwrap.appendChild(b);
+  });
+}
+const SCEN={
+  resetInf(){ setCtl('codin',320); setCtl('nhin',35); },
+  base(){
+    S.lockedAer=false; S.foul=0.08; S.shockT=0;
+    setCtl('codin',320); setCtl('nhin',35); setCtl('aer',70);
+    setCtl('rin',200); setCtl('rs',80); setCtl('pac',12); setCtl('flux',100);
+    document.getElementById('c-aer').disabled=false;
+    log('系统复位：各单元运行正常，进水 COD 320 / 氨氮 35。','ok');
+    setChoices([]);
+  },
+  shock(){
+    S.lockedAer=false; S.shockT=0; SCEN.resetInf();
+    setCtl('codin',620);
+    log('⚠ <b>事故</b>：夜间有餐饮废水偷排入管网，进水 COD 飙到 620 mg/L！出水 COD 告警。','err');
+    log('调度给你三个处置选项，选一个试试（可以重选场景再试别的）：','warn');
+    setChoices([
+      {t:'A. 把曝气开到最大', fn(){
+        setCtl('aer',100);
+        log('你把曝气开到 100%。DO 上去了，但污泥就这么多——<b>曝气不是万能的</b>，出水 COD 依然超标，能耗还翻倍。','err');
+      }},
+      {t:'B. 启用事故调节池削峰', fn(){
+        setCtl('codin',380);
+        log('事故调节池切入，冲击负荷被削峰均化，进水 COD 回落到 380。','ok');
+        setTimeout(()=>{ const m=model();
+          log(m.cod<=50?'出水 COD 回到 '+m.cod.toFixed(0)+'，<b>达标！</b>记住：对付冲击靠"削峰"不靠"猛曝气"。':'仍超标，试试再加点曝气。', m.cod<=50?'ok':'warn');
+          render(); },600);
+      }},
+      {t:'C. 先不管，看看再说', fn(){
+        S.shockT=6;
+        log('你选择观望。冲击负荷持续压垮污泥，出水越来越差……','err');
+        render();
+      }},
+    ]);
+    render();
+  },
+  aerfail(){
+    S.lockedAer=true; S.shockT=0; SCEN.resetInf();
+    document.getElementById('c-aer').disabled=true;
+    log('⚠ <b>事故</b>：鼓风机跳闸！好氧池 DO 跌到 0.8 mg/L，硝化菌开始"罢工"，出水氨氮直线上升。','err');
+    log('曝气滑杆已锁死（设备坏了拧不动），你怎么办？','warn');
+    setChoices([
+      {t:'A. 启动备用风机', fn(){
+        S.lockedAer=false; document.getElementById('c-aer').disabled=false;
+        setCtl('aer',75);
+        log('备用风机启动，DO 回升到 2.8 以上。','ok');
+        setTimeout(()=>{ const m=model();
+          log(m.nh3<=5?'出水氨氮 '+m.nh3.toFixed(1)+'，<b>达标！</b>关键设备一定要有备用。':'仍超标。', m.nh3<=5?'ok':'warn'); render(); },600);
+      }},
+      {t:'B. 进水减半运行', fn(){
+        setCtl('codin',160);
+        log('你把进水量砍了一半。COD 下来了——但氨氮去除靠的是 DO 不是负荷，<b>出水氨氮依然超标</b>。','warn');
+        render();
+      }},
+      {t:'C. 等维修师傅', fn(){
+        log('干等两小时，污泥开始发黑发臭。记住：<b>氨氮超标先查 DO</b>，等不是办法。','err');
+      }},
+    ]);
+    render();
+  },
+  foul(){
+    S.lockedAer=false; S.foul=0.85; SCEN.resetInf();
+    document.getElementById('c-aer').disabled=false;
+    log('⚠ <b>告警</b>：连续高通量运行 30 天，TMP 爬到 39 kPa，逼近 50 kPa 报警线，产水率只剩 70%。','err');
+    log('膜在喊救命。三个选项：','warn');
+    setChoices([
+      {t:'A. 在线化学清洗', fn(){
+        S.foul=0.15;
+        log('加药在线清洗完成，TMP 回落到 20 kPa 附近，产水率恢复 95%。','ok');
+        render();
+      }},
+      {t:'B. 降通量维持运行', fn(){
+        setCtl('flux',70);
+        log('通量降到 70%，TMP 稳住了——但产水量只剩一半，<b>治标不治本</b>，污染还在累积。','warn');
+        render();
+      }},
+      {t:'C. 不管，继续满负荷', fn(){
+        S.foul=1.0; render();
+        log('TMP 飙到 43 kPa 且继续爬升，膜丝出现断裂风险，出水 SS 飙到 25，<b>超标</b>。换一支膜组件够你心疼半年。','err');
+      }},
+    ]);
+    render();
+  }
+};
+document.querySelectorAll('.scen').forEach(b=>{
+  b.onclick=()=>{
+    document.querySelectorAll('.scen').forEach(e=>e.classList.remove('on'));
+    b.classList.add('on'); S.scen=b.dataset.s;
+    elog.innerHTML='';
+    SCEN[S.scen]();
+    render();
+  };
+});
+
+// init
+elog.innerHTML='';
+log('一体化设备上电，各单元进入运行状态。拖动右侧滑杆，或点上面的事故场景开始玩。','ok');
+render();
+</script>
+</body>
+</html>
