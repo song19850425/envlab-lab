@@ -52,10 +52,25 @@ def fetch_cea():
         d["tot_amt"] = d["listed_amt"] + d["block_amt"]
     return out
 
+CCER_INDEX = "https://www.ccer.com.cn/wcm/ccer/data/2502lshq.json"
+CCER_REFERER = "https://www.ccer.com.cn/wcm/ccer/html/2502lshq/index.html"
+
+def parse_ccer_article(url):
+    """解析一篇 CCER 日行情文章，返回 dict（含累计值）或 None。"""
+    page = get(url, referer=CCER_REFERER)
+    body = re.sub(r"<[^>]+>", "", re.search(r'<div id="zoom".*?</div>', page, re.S).group(0))
+    mc = re.search(r"累计成交量([\d,]+)吨，累计成交额([\d,\.]+)元", body)
+    cum = {"cum_vol": num(mc.group(1)), "cum_amt": num(mc.group(2))} if mc else {"cum_vol": None, "cum_amt": None}
+    m = re.search(r"成交量([\d,]+)吨，成交额([\d,\.]+)元，成交均价([\d\.]+)元/吨", body)
+    if m:
+        return {"vol": num(m.group(1)), "amt": num(m.group(2)), "avg": float(m.group(3)), **cum}
+    if "无成交" in body:
+        return {"vol": 0, "amt": 0, "avg": None, **cum}
+    return None
+
 def fetch_ccer(ccer_map):
     """抓取近 400 天内缺失的 CCER 日行情，返回 [dict]（含无成交日，avg=None）。"""
-    idx = get("https://www.ccer.com.cn/wcm/ccer/data/2502lshq.json",
-              referer="https://www.ccer.com.cn/wcm/ccer/html/2502lshq/index.html")
+    idx = get(CCER_INDEX, referer=CCER_REFERER)
     rows = json.loads(idx)["rows"]
     cutoff = (datetime.date.today() - datetime.timedelta(days=400)).isoformat()
     new = []
@@ -65,21 +80,16 @@ def fetch_ccer(ccer_map):
             continue
         url = "https://www.ccer.com.cn/wcm/ccer/html/" + r["url"]
         try:
-            page = get(url, referer="https://www.ccer.com.cn/wcm/ccer/html/2502lshq/index.html")
+            art = parse_ccer_article(url)
         except Exception as e:
             print(f"  [warn] 文章抓取失败 {pub}: {e}", file=sys.stderr)
             continue
-        body = re.sub(r"<[^>]+>", "", re.search(r'<div id="zoom".*?</div>', page, re.S).group(0))
-        m = re.search(r"成交量([\d,]+)吨，成交额([\d,\.]+)元，成交均价([\d\.]+)元/吨", body)
-        if m:
-            new.append({"date": pub, "vol": num(m.group(1)), "amt": num(m.group(2)),
-                        "avg": float(m.group(3))})
-            print(f"  CCER {pub}: 均价{m.group(3)} 成交量{m.group(1)}")
-        elif "无成交" in body:
-            new.append({"date": pub, "vol": 0, "amt": 0, "avg": None})
-            print(f"  CCER {pub}: 无成交")
-        else:
+        if art is None:
             print(f"  [warn] 解析失败 {pub}", file=sys.stderr)
+            continue
+        art["date"] = pub
+        new.append(art)
+        print(f"  CCER {pub}: " + ("无成交" if not art["avg"] else f"均价{art['avg']} 成交量{art['vol']:g}"))
     return sorted(new, key=lambda x: x["date"])
 
 def main():
@@ -106,12 +116,84 @@ def main():
         x.pop("cum_vol", None); x.pop("cum_amt", None)
     cea = sorted(cea_map.values(), key=lambda x: x["date"])[-400:]
     ccer = sorted(ccer_map.values(), key=lambda x: x["date"])
+    # 最新一条 CCER 若缺累计值，补抓一次（仅 1 个请求）
+    if ccer and not ccer[-1].get("cum_vol"):
+        try:
+            rows = json.loads(get(CCER_INDEX, referer=CCER_REFERER))["rows"]
+            r = next((x for x in rows if (x.get("publishedTime") or "")[:10] == ccer[-1]["date"]), None)
+            if r:
+                art = parse_ccer_article("https://www.ccer.com.cn/wcm/ccer/html/" + r["url"])
+                if art and art.get("cum_vol"):
+                    ccer[-1]["cum_vol"] = art["cum_vol"]
+                    ccer[-1]["cum_amt"] = art["cum_amt"]
+                    print(f"  已补最新日累计值：{art['cum_vol']:g} 吨")
+        except Exception as e:
+            print(f"  [warn] 累计值回填失败: {e}", file=sys.stderr)
     latest = max(max(cea_map), max(ccer_map))
     out = {"updated": latest, "stale": False,
            "source": "CEA: carbonmarket.cn / CCER: ccer.com.cn（自建每日管线）",
            "cea": cea, "ccer": ccer}
     json.dump(out, open(DATA_PATH, "w", encoding="utf-8"), ensure_ascii=False)
     print(f"已写入 {DATA_PATH}，数据截至 {latest}，CEA {len(cea)} 天 / CCER {len(ccer)} 天")
+
+    print("抓取 CCER 官方资讯...")
+    update_ccer_news()
+
+
+# ---------------- CCER 官方资讯（近期动态） ----------------
+NEWS_CHANNELS = [
+    ("2408scdt1", "市场动态"),
+    ("2311ptggc1", "平台公告"),
+]
+NEWS_PATH = os.path.join(REPO_ROOT, "EnvLab-交互实验集", "11-碳与碳市场", "ccer-news.json")
+
+def fetch_ccer_news():
+    """抓取 CCER 官方市场动态+平台公告，返回按日期倒序的资讯列表。"""
+    items = []
+    for code, cat in NEWS_CHANNELS:
+        try:
+            idx = get(f"https://www.ccer.com.cn/wcm/ccer/data/{code}.json",
+                      referer=f"https://www.ccer.com.cn/wcm/ccer/html/{code}/index.html")
+            rows = json.loads(idx)["rows"]
+        except Exception as e:
+            print(f"  [warn] 资讯频道 {code} 抓取失败: {e}", file=sys.stderr)
+            continue
+        for r in rows:
+            title = (r.get("title") or "").strip()
+            pub = (r.get("publishedTime") or "")[:10]
+            url = (r.get("url") or "").strip()
+            if not title or not pub or not url:
+                continue
+            # 跳过每日行情（已在行情看板覆盖）
+            if "交易行情" in title:
+                continue
+            items.append({
+                "date": pub,
+                "title": title,
+                "url": "https://www.ccer.com.cn/wcm/ccer/html/" + url,
+                "category": cat,
+            })
+    # 按日期去重倒序
+    seen, out = set(), []
+    for it in sorted(items, key=lambda x: x["date"], reverse=True):
+        key = (it["date"], it["title"])
+        if key in seen:
+            continue
+        seen.add(key)
+        out.append(it)
+    return out[:30]
+
+def update_ccer_news():
+    news = fetch_ccer_news()
+    if not news:
+        print("  [warn] 未抓到资讯，跳过写入", file=sys.stderr)
+        return False
+    payload = {"updated": news[0]["date"],
+               "source": "全国温室气体自愿减排交易系统（ccer.com.cn）官方资讯",
+               "items": news}
+    json.dump(payload, open(NEWS_PATH, "w", encoding="utf-8"), ensure_ascii=False)
+    print(f"  资讯 {len(news)} 条，最新 {news[0]['date']}：{news[0]['title'][:30]}")
+    return True
 
 if __name__ == "__main__":
     main()
