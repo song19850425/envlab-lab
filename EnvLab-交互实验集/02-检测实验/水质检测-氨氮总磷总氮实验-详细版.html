@@ -665,5 +665,15 @@ document.addEventListener("click",function(e){
 });
 })();</script>
 <script>(function(){var a=document.querySelectorAll("a.elmail");for(var i=0;i<a.length;i++){var u=a[i].getAttribute("data-u"),d=a[i].getAttribute("data-d");if(!u||!d)continue;var e=u+"@"+d;a[i].href="mailto:"+e;a[i].textContent=e;}})();</script>
+<!-- envlab-counter: 访问统计（构建时注入） -->
+<div data-envlab-counter style="max-width:900px;margin:0 auto 30px;padding:14px 16px 0;text-align:center;
+  font-size:12.5px;line-height:2;opacity:.62;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
+  <span>本页访问 <b id="busuanzi_value_page_pv">–</b> 次</span>
+  <span style="margin:0 10px">·</span>
+  <span>本站总访问 <b id="busuanzi_value_site_pv">–</b></span>
+  <span style="margin:0 10px">·</span>
+  <span>访客数 <b id="busuanzi_value_site_uv">–</b></span>
+</div>
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
 </body>
 </html>
