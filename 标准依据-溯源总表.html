@@ -184,7 +184,7 @@ q.addEventListener('input',function(){var v=this.value.trim().toLowerCase();
 <a id="bk" href="EnvLab-交互实验集/index.html" title="返回目录（Alt+Esc）" style="position:fixed;right:18px;bottom:18px;z-index:90;display:inline-flex;align-items:center;gap:8px;padding:10px 17px;border-radius:999px;background:rgba(19,26,46,.92);color:#e2e8f0;border:1px solid rgba(56,189,248,.42);font-size:13px;text-decoration:none;box-shadow:0 6px 22px rgba(0,0,0,.35)"><span aria-hidden="true">&#8592;</span><span>返回目录</span></a>
 <script>(function(){var b=document.getElementById("bk");if(!b)return;if(typeof document.addEventListener==="function")document.addEventListener("keydown",function(e){if(e.key==="Escape"&&e.altKey)location.href=b.getAttribute("href")});})();</script>
 <script>(function(){var a=document.querySelectorAll("a.elmail");for(var i=0;i<a.length;i++){var u=a[i].getAttribute("data-u"),d=a[i].getAttribute("data-d");if(!u||!d)continue;var e=u+"@"+d;a[i].href="mailto:"+e;a[i].textContent=e;}})();</script>
-<!-- envlab-counter: 访问统计（构建时注入） -->
+<!-- envlab-counter:start -->
 <div data-envlab-counter style="max-width:900px;margin:0 auto 30px;padding:14px 16px 0;text-align:center;
   font-size:12.5px;line-height:2;opacity:.62;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
   <span>本页访问 <b id="busuanzi_value_page_pv">–</b> 次</span>
@@ -194,4 +194,7 @@ q.addEventListener('input',function(){var v=this.value.trim().toLowerCase();
   <span>访客数 <b id="busuanzi_value_site_uv">–</b></span>
 </div>
 <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script data-goatcounter="https://envlab.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+<!-- envlab-counter:end -->
 </body></html>

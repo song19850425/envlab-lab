@@ -418,7 +418,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   <table><tr><th>步</th><th>操作环节</th><th>结果</th></tr>${rows}</table>
   <div class="stamp">EnvLab 仪器操作培训系统 · 依据受控操作规程构建（已脱敏）· 记录编号 ${rec.id}</div>
   <script>window.onload=function(){setTimeout(()=>window.print(),300)}<\/script>
-  <!-- envlab-counter: 访问统计（构建时注入） -->
+  <!-- envlab-counter:start -->
 <div data-envlab-counter style="max-width:900px;margin:0 auto 30px;padding:14px 16px 0;text-align:center;
   font-size:12.5px;line-height:2;opacity:.62;font-family:-apple-system,'PingFang SC','Microsoft YaHei',sans-serif">
   <span>本页访问 <b id="busuanzi_value_page_pv">–</b> 次</span>
@@ -428,6 +428,9 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
   <span>访客数 <b id="busuanzi_value_site_uv">–</b></span>
 </div>
 <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<script data-goatcounter="https://envlab.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+<!-- envlab-counter:end -->
 </body></html>`);
   w.document.close();
 }
