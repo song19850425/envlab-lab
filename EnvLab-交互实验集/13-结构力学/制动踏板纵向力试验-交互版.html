@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../../favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" sizes="180x180" href="../../favicon-180.png">
+<title>制动踏板纵向力试验 | EnvLab</title>
+<meta name="description" content="一只制动踏板能承受多大的纵向力？这是 QC/T 788-2018 规定的经典问题。本页把 1500N 纵向力试验做成交互模拟：改材料、改加载速率、改试验温度，看力-位移曲线怎么变、残余位移怎么涨，以及为什么「加严到 3000N、连做 5 次不裂」才算真正通过。">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter','PingFang SC','Microsoft YaHei',sans-serif;background:#0a0e17;color:#e2e8f0;overflow-x:hidden}
+:root{--ink:#0a0e17;--card:#131a2e;--border:rgba(255,255,255,.06);--accent:#f43f5e;--glow:#fb7185;--abg:rgba(244,63,94,.12);--green:#34d399;--rose:#fb7185;--blue:#38bdf8}
+#sp{position:fixed;top:0;left:0;height:3px;width:0%;background:linear-gradient(90deg,var(--accent),var(--glow));z-index:1000}
+.hr{min-height:74vh;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:40px 24px;background:linear-gradient(180deg,#0a0e17 0%,#2b0713 50%,#0a0e17 100%);position:relative}
+.hg{position:absolute;inset:0;background-image:radial-gradient(rgba(244,63,94,.06) 1px,transparent 1px);background-size:24px 24px;z-index:0}
+.hgl{position:absolute;top:-20%;right:-10%;width:320px;height:320px;background:radial-gradient(circle,rgba(244,63,94,.15),transparent 70%);border-radius:50%}
+.h1{font-size:clamp(28px,5vw,50px);font-weight:900;line-height:1.15;z-index:1}
+.h1 em{color:var(--glow);font-style:normal}
+.hb{display:inline-block;padding:5px 16px;border-radius:20px;background:var(--abg);color:var(--glow);font-size:11px;font-weight:600;margin-bottom:20px;border:1px solid rgba(244,63,94,.2);z-index:1}
+.hs{margin-top:14px;font-size:15px;color:#7c8ba1;z-index:1;max-width:620px;line-height:1.7}
+.hst{display:flex;gap:34px;margin-top:26px;flex-wrap:wrap;justify-content:center;z-index:1}
+.hst .n{font-size:28px;font-weight:800;color:var(--glow)}.hst .l{font-size:11px;color:#7c8ba1;margin-top:2px}
+.sec{max-width:940px;margin:0 auto;padding:72px 24px;opacity:0;transform:translateY(40px);transition:opacity .8s,transform .8s}.sec.visible{opacity:1;transform:translateY(0)}
+.sn{font-size:10px;font-weight:700;letter-spacing:3px;color:var(--accent)}
+.st{font-size:clamp(21px,3.4vw,32px);font-weight:800;line-height:1.2;margin-bottom:12px}
+.sd{font-size:14px;color:#94a3b8;line-height:1.75;max-width:720px;margin-bottom:22px}
+.sd b{color:#e2e8f0}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}@media(max-width:700px){.g2{grid-template-columns:1fr}}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}@media(max-width:700px){.g3{grid-template-columns:1fr}}
+.ic{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.ic .ii{font-size:20px;margin-bottom:6px}.ic .in{font-size:14px;font-weight:700;margin-bottom:5px}
+.ic .id{font-size:12px;color:#94a3b8;line-height:1.65}
+.ic .it{display:inline-block;padding:2px 8px;border-radius:6px;font-size:10px;font-weight:600;margin-top:8px;background:var(--abg);color:var(--glow)}
+.ic .fx{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--glow);background:rgba(244,63,94,.08);border-radius:6px;padding:6px 8px;margin-top:8px;line-height:1.6;overflow-x:auto}
+.lb{background:linear-gradient(180deg,#0a0e17,#2b0713);padding:60px 0}
+.lc{max-width:980px;margin:0 auto;padding:0 24px}
+.lh{display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:10px;align-items:center}
+.lt{font-size:12px;font-weight:700;color:var(--glow);letter-spacing:1px}
+.lbb{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:20px}
+.sts{display:inline-flex;align-items:center;gap:4px;padding:4px 12px;border-radius:12px;font-size:11px;font-weight:600}
+.si{background:rgba(255,255,255,.04);color:#7c8ba1}.sa{background:var(--abg);color:var(--glow)}.sok{background:rgba(52,211,153,.1);color:var(--green)}.sbad{background:rgba(251,113,133,.12);color:var(--rose)}
+.acts{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:12px 0}
+.btn{padding:9px 22px;border-radius:8px;border:none;font-size:12px;font-weight:600;cursor:pointer;transition:.25s;font-family:inherit}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.b1{background:linear-gradient(135deg,#f43f5e,#fb7185);color:#fff}.b1:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 6px 20px rgba(244,63,94,.3)}
+.b2{background:var(--card);color:#94a3b8;border:1px solid var(--border)}.b2:hover:not(:disabled){border-color:var(--accent);color:var(--glow)}
+.seq{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin:10px 0}
+.pb{padding:12px 8px;border-radius:10px;border:1px solid var(--border);background:rgba(255,255,255,.02);text-align:center;cursor:pointer;font-size:12px;font-weight:600;transition:.2s;color:#94a3b8;font-family:inherit}
+.pb:hover:not(:disabled){border-color:var(--accent)}
+.pb:disabled{cursor:not-allowed;opacity:.45}
+.pb.on{background:var(--abg);color:var(--glow);border-color:var(--accent)}
+.pb .po{font-size:9px;color:#7c8ba1;display:block;margin-top:3px}
+.fld{margin:10px 0}.fld label{font-size:11px;color:#94a3b8;display:block;margin-bottom:5px}
+.fld select{width:100%;padding:8px 10px;border-radius:6px;border:1px solid var(--border);background:#0a0e17;color:#e2e8f0;font-size:13px;font-family:inherit}
+input[type=range]{width:100%;accent-color:#f43f5e;margin-top:2px}
+.dp{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}@media(max-width:700px){.dp{grid-template-columns:repeat(2,1fr)}}
+.dv{padding:11px 8px;background:rgba(255,255,255,.02);border-radius:8px;text-align:center;border:1px solid var(--border)}
+.dv .dl{font-size:9.5px;color:#7c8ba1;line-height:1.3}.dv .dd{font-size:17px;font-weight:800;margin-top:3px;color:var(--glow)}
+.dv .du{font-size:9px;color:#7f90a8}
+.dv.bad .dd{color:var(--rose)}.dv.good .dd{color:var(--green)}
+#log{font-size:11.5px;line-height:1.65;padding:10px 12px;background:rgba(255,255,255,.02);border-radius:8px;border:1px solid var(--border);max-height:170px;overflow-y:auto;color:#94a3b8}
+#log b{color:#e2e8f0}
+.ft{text-align:center;padding:40px 24px;color:#7f90a8;font-size:12px;border-top:1px solid var(--border);line-height:1.8}
+.ft b{color:var(--glow)}
+.warn{font-size:12px;color:var(--rose);margin-top:8px;min-height:18px;line-height:1.6}
+#cv{width:100%;height:240px;display:block;border-radius:8px;background:rgba(255,255,255,.015);border:1px solid var(--border)}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:10.5px;color:#7c8ba1;margin-top:8px}
+.legend i{display:inline-block;width:14px;height:2px;vertical-align:middle;margin-right:5px}
+.note{background:rgba(244,63,94,.06);border:1px solid rgba(244,63,94,.18);border-left:3px solid var(--accent);border-radius:8px;padding:14px 16px;font-size:12.5px;color:#fda4af;line-height:1.7;margin:16px 0}
+.note b{color:#fecdd3}
+.note.blue{background:rgba(56,189,248,.07);border-color:rgba(56,189,248,.18);border-left-color:var(--blue);color:#bae6fd}
+.note.blue b{color:#e0f2fe}
+.note.green{background:rgba(52,211,153,.06);border-color:rgba(52,211,153,.18);border-left-color:var(--green);color:#a7f3d0}
+.note.green b{color:#d1fae5}
+.hint{font-size:11px;color:#7f90a8;margin-top:6px;line-height:1.6}
+.rule{display:flex;gap:12px;align-items:flex-start;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:10px}
+.rule .rn{font-size:11px;font-weight:800;color:var(--glow);background:var(--abg);border-radius:6px;padding:4px 9px;flex-shrink:0;margin-top:1px}
+.rule .rt{font-size:13px;font-weight:700;margin-bottom:3px}
+.rule .rd{font-size:12px;color:#94a3b8;line-height:1.65}
+.pb:focus-visible,.btn:focus-visible,select:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.kbdhint{font-size:11px;color:#7f90a8;margin-top:8px;line-height:1.6}
+.kbdhint kbd{display:inline-block;padding:1px 5px;border:1px solid var(--border);border-radius:4px;background:rgba(255,255,255,.04);font-family:ui-monospace,Consolas,monospace;font-size:10px;color:#e2e8f0}
+/* 断裂概率条 */
+.pmeta{margin:12px 0 4px;padding:12px 14px;background:rgba(244,63,94,.05);border:1px solid rgba(244,63,94,.16);border-radius:10px}
+.pmeta .plab{font-size:11px;color:#94a3b8;display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap}
+.pmeta .plab b{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+.pbar{height:7px;border-radius:4px;background:rgba(255,255,255,.07);overflow:hidden;margin-top:7px}
+.pfill{height:100%;width:30%;border-radius:4px;transition:width .3s,background .3s}
+.phint{font-size:10.5px;color:#7c8ba1;margin-top:6px;line-height:1.6}
+@media(prefers-reduced-motion:reduce){.sec{opacity:1!important;transform:none!important;transition:none!important}.pfill{transition:none}}
+/* 报告复核模块 */
+.audit{background:rgba(255,255,255,.02);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px}
+.audit h4{font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:4px}
+.audit .sh{font-size:11px;color:#7c8ba1;margin-bottom:10px;line-height:1.6}
+.aud-tb{width:100%;border-collapse:collapse;font-size:12px;margin-top:6px;font-variant-numeric:tabular-nums}
+.aud-tb th{background:rgba(255,255,255,.05);color:#94a3b8;font-weight:600;text-align:left;padding:6px 9px;border-bottom:1px solid var(--border);font-size:11px}
+.aud-tb td{padding:6px 9px;border-bottom:1px solid rgba(255,255,255,.05);color:#cbd5e1}
+.aud-tb tr:last-child td{border-bottom:none}
+.aud-tb td.n{text-align:right;font-family:ui-monospace,Consolas,monospace}
+.flag{display:inline-block;padding:1px 7px;border-radius:5px;font-size:10px;font-weight:700;white-space:nowrap}
+.flag.bad{background:rgba(244,63,94,.16);color:#fda4af;border:1px solid rgba(244,63,94,.4)}
+.flag.ok{background:rgba(52,211,153,.12);color:#6ee7b7;border:1px solid rgba(52,211,153,.35)}
+.flag.warn{background:rgba(251,191,36,.14);color:#fcd34d;border:1px solid rgba(251,191,36,.4)}
+@media(max-width:700px){.aud-tb{font-size:11px}.aud-tb th,.aud-tb td{padding:5px 6px}}
+/* ==== 模拟台步骤进度点 ==== */
+.pprog{display:flex;gap:6px;align-items:center;margin-top:6px}
+.pdot{width:22px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .25s}
+.pdot.on{background:var(--glow);box-shadow:0 0 8px rgba(251,113,133,.6)}
+/* ==== 下一步引导卡 ==== */
+.nudge{display:none;align-items:center;gap:12px;margin:12px 0 2px;padding:12px 15px;border-radius:11px;background:linear-gradient(90deg,rgba(244,63,94,.16),rgba(244,63,94,.05));border:1px solid rgba(244,63,94,.34);border-left:4px solid var(--glow)}
+.nudge.show{display:flex;animation:nIn .4s ease-out}
+@keyframes nIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.nudge .nicon{font-size:19px;line-height:1;flex:none;animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:translateY(0) scale(1)}50%{opacity:.65;transform:translateY(3px) scale(1.06)}}
+.nudge .nbody{flex:1;min-width:0}
+.nudge .nstep{font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--glow);margin-bottom:2px}
+.nudge .ntext{font-size:13.5px;font-weight:700;color:#f1f5f9;line-height:1.5}
+.nudge .nsub{font-size:11px;color:#94a3b8;line-height:1.55;margin-top:2px}
+.nudge .ngo{flex:none}
+.nudge .ngo button{padding:8px 16px;border-radius:8px;border:none;font-size:12px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#f43f5e,#fb7185);color:#fff;font-family:inherit;white-space:nowrap;transition:transform .18s,box-shadow .18s}
+.nudge .ngo button:hover{transform:translateY(-1px);box-shadow:0 5px 16px rgba(244,63,94,.42)}
+.nudge .ngo button:focus-visible{outline:2px solid #fda4af;outline-offset:2px}
+@media(max-width:700px){.nudge{flex-wrap:wrap}.nudge .ngo{width:100%}.nudge .ngo button{width:100%}}
+/* 当前该点的按钮：脉冲描边 */
+.pb.next,.btn.next{position:relative;animation:nb 1.9s ease-in-out infinite}
+@keyframes nb{0%,100%{box-shadow:0 0 0 0 rgba(251,113,133,.55);border-color:var(--accent)}50%{box-shadow:0 0 0 7px rgba(251,113,133,0);border-color:var(--glow)}}
+.pb.next .po{color:var(--glow)}
+/* 首次上手遮罩 */
+.once{position:fixed;inset:0;z-index:2147482000;display:none;align-items:center;justify-content:center;padding:24px;background:rgba(4,7,14,.82);cursor:pointer}
+.once.show{display:flex;animation:oIn .25s ease-out}
+@keyframes oIn{from{opacity:0}to{opacity:1}}
+.once .ocard{max-width:440px;width:100%;background:#131a2e;border:1px solid rgba(244,63,94,.34);border-radius:16px;padding:26px 26px 22px;box-shadow:0 24px 70px rgba(0,0,0,.6);cursor:default;position:relative}
+.once .otitle{font-size:17px;font-weight:800;color:#f1f5f9;margin-bottom:6px;display:flex;align-items:center;gap:9px}
+.once .odesc{font-size:13px;color:#94a3b8;line-height:1.75;margin-bottom:16px}
+.once .olist{display:flex;flex-direction:column;gap:9px;margin-bottom:18px}
+.once .oitem{display:flex;gap:11px;align-items:flex-start;font-size:12.5px;color:#cbd5e1;line-height:1.6}
+.once .onum{width:21px;height:21px;border-radius:50%;background:rgba(244,63,94,.16);color:var(--glow);font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;flex:none;margin-top:1px;border:1px solid rgba(244,63,94,.3)}
+.once .oitem b{color:#f1f5f9}
+.once .oact{display:flex;gap:9px}
+.once .oact button{padding:10px 20px;border-radius:8px;border:none;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit}
+.once .ob1{background:linear-gradient(135deg,#f43f5e,#fb7185);color:#fff;flex:1}
+.once .ob1:hover{box-shadow:0 5px 18px rgba(244,63,94,.4)}
+.once .ob2{background:rgba(255,255,255,.06);color:#94a3b8;border:1px solid var(--border)}
+.once .ox{position:absolute;right:14px;top:12px;background:none;border:none;color:#7c8ba1;font-size:22px;line-height:1;cursor:pointer;padding:4px}
+.once .ox:hover{color:#e2e8f0}
+@media(prefers-reduced-motion:reduce){.nudge,.once{animation:none}.nudge .nicon,.pb.next{animation:none}}
+/* ==== 快速跳转到模拟台（浮动按钮） ==== */
+#jump{position:fixed;left:22px;bottom:22px;z-index:9990;display:inline-flex;align-items:center;gap:8px;padding:11px 18px 11px 15px;border-radius:999px;font-size:13.5px;font-weight:700;letter-spacing:.02em;text-decoration:none;line-height:1;cursor:pointer;opacity:0;visibility:hidden;transform:translateY(14px);transition:opacity .22s,transform .22s,visibility .22s;background:linear-gradient(135deg,rgba(244,63,94,.95),rgba(251,113,133,.95));color:#fff;border:1px solid rgba(255,255,255,.22);box-shadow:0 6px 22px rgba(244,63,94,.42)}
+#jump.on{opacity:1;visibility:visible;transform:translateY(0)}
+#jump:hover{transform:translateY(-2px);box-shadow:0 8px 26px rgba(244,63,94,.55)}
+#jump:focus-visible{outline:2px solid #fda4af;outline-offset:3px}
+#jump .jp-a{font-size:15px;line-height:1}
+@media(max-width:720px){#jump{left:14px;bottom:14px;padding:10px 15px 10px 13px;font-size:12.5px}}
+@media(prefers-reduced-motion:reduce){#jump{transition:none;transform:none}#jump.on{transform:none}}
+@media print{#jump{display:none!important}}
+/* ==== Hero 内的下行动 ==== */
+.jumpbtn{display:inline-flex;align-items:center;gap:7px;margin-top:22px;padding:11px 24px;border-radius:999px;font-size:13px;font-weight:700;background:linear-gradient(135deg,#f43f5e,#fb7185);color:#fff;border:none;cursor:pointer;z-index:2;font-family:inherit;box-shadow:0 6px 22px rgba(244,63,94,.4);transition:transform .2s,box-shadow .2s}
+.jumpbtn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(244,63,94,.55)}
+.jumpbtn:focus-visible{outline:2px solid #fda4af;outline-offset:3px}
+.jumpbtn .ja{animation:bob 1.8s ease-in-out infinite}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(3px)}}
+@media(prefers-reduced-motion:reduce){.jumpbtn .ja{animation:none}}
+/* ==== 模拟台步骤进度点 ==== */
+.pprog{display:flex;gap:6px;align-items:center;margin-top:6px}
+.pdot{width:22px;height:4px;border-radius:2px;background:rgba(255,255,255,.12);transition:background .25s}
+.pdot.on{background:var(--glow);box-shadow:0 0 8px rgba(251,113,133,.6)}
+</style>
+</head>
+<body>
+<div id="sp"></div>
+<a id="jump" href="#s4" title="跳转到交互模拟台"><span class="jp-a" aria-hidden="true">&#11015;</span><span>进入模拟台</span></a>
+
+<div class="once" id="onceMask" role="dialog" aria-modal="true" aria-labelledby="onceTitle">
+  <div class="ocard">
+    <button class="ox" id="onceX" type="button" aria-label="关闭提示">&times;</button>
+    <div class="otitle" id="onceTitle"><span aria-hidden="true">&#128640;</span> 三步上手这个模拟台</div>
+    <div class="odesc">这是一个按 <b style="color:#f1f5f9">QC/T 788-2018</b> 做的制动踏板纵向力试验。规则只有一条：<b style="color:#f1f5f9">五步必须按顺序做</b>，跳步会被拦住——这正是标准要求的严谨。</div>
+    <div class="olist">
+      <div class="oitem"><span class="onum">1</span><span>点最上面第 1 个按钮<b>「状态调节与安装」</b>，其余四个会自动解锁</span></div>
+      <div class="oitem"><span class="onum">2</span><span>每完成一步，页面会<b style="color:#f1f5f9">自动提示下一步</b>并把按钮高亮，照着做即可</span></div>
+      <div class="oitem"><span class="onum">3</span><span>加载有 <b style="color:#f1f5f9">30% 概率断裂</b>——断了就换新试件重做，断裂件不计入有效数据</span></div>
+    </div>
+    <div class="oact">
+      <button class="ob1" id="onceGo" type="button">开始试验</button>
+      <button class="ob2" id="onceSkip" type="button">先看原理</button>
+    </div>
+  </div>
+</div>
+
+<section class="hr">
+  <div class="hg"></div><div class="hgl"></div>
+  <div class="hb">EnvLab · 汽车零部件力学性能 · 结构件台架试验</div>
+  <h1 class="h1">制动踏板<br><em>纵向力试验</em></h1>
+  <div class="hs">一只制动踏板能扛住多大的纵向力？脚踝能施加的力是有限的，但<b style="color:#fda4af">一次紧急制动的冲击载荷可能是它的数倍</b>。<br>这项试验的全部意义，就是回答"在远超人体极限的载荷下，踏板会不会断"。</div>
+  <div class="hst">
+    <div><span class="n">1500</span><span class="l">标准纵向力 / N</span></div>
+    <div><span class="n">5.0</span><span class="l">永久变形上限 / mm</span></div>
+    <div><span class="n">5</span><span class="l">重复次数</span></div>
+    <div><span class="n">3000</span><span class="l">加严验证 / N</span></div>
+  </div>
+  <button class="jumpbtn" onclick="goLab()"><span class="ja" aria-hidden="true">&#11015;</span> 直接进入交互模拟台</button>
+  <div style="margin-top:12px;font-size:12px;color:#7c8ba1;z-index:1">下方约 3 屏为原理讲解 · 模拟台在第 4 屏</div>
+</section>
+
+<section class="sec" id="s1">
+  <div class="sn">01 · 开篇引入</div>
+  <div class="st">为什么车企愿意花几万块<br>去测一只踏板</div>
+  <div class="sd">2019 年，福特 Mustang 因为<b>制动踏板支架断裂</b>发起召回。失效分析给出的结论是脆性过载——支架在紧急制动时的悬架冲击载荷作用下，从枢轴位置断掉。一个零件的断裂，直接对应一条召回、一次诉讼、几十万辆车的返修。</div>
+  <div class="sd">而这个零件在设计上并不"强壮"：为了减重，踏板大量使用增强尼龙、压铸铝。为了成本，连接方式大量使用<b>点焊与铆接</b>。真正的问题不是"它会不会断"，而是<b>你能不能证明它不会断</b>。</div>
+  <div class="g3">
+    <div class="ic"><div class="ii">💥</div><div class="in">载荷远超人体极限</div><div class="id">脚踝可施加的力约几百牛，而紧急制动时踏板承受的是整车惯量经转向系放大后的载荷。QC/T 788 规定的 1500N 已远超脚力上限。</div><span class="it">载荷来源</span></div>
+    <div class="ic"><div class="ii">🔩</div><div class="in">薄弱点在连接，不在本体</div><div class="id">失效往往从焊趾、铆孔、卡扣起裂。踏板本体拉伸强度合格，不代表连接处能撑住——这是断裂力学的老规矩。</div><span class="it">失效规律</span></div>
+    <div class="ic"><div class="ii">📉</div><div class="in">刚度下降是预警</div><div class="id">踏板在完全断裂前，通常先出现"踩起来变软"。残余位移是刚度退化的直接量化指标——它比"是否断裂"更早暴露问题。</div><span class="it">早期信号</span></div>
+  </div>
+</section>
+
+<section class="sec" id="s2">
+  <div class="sn">02 · 科学原理</div>
+  <div class="st">三个量，撑起整个试验</div>
+  <div class="sd">这个实验的全部数据，都能从下面三个概念里推出来。理解了它们，模拟台里的曲线你就能自己预测。</div>
+  <div class="g2">
+    <div class="ic">
+      <div class="ii">📈</div><div class="in">① 力-位移曲线</div>
+      <div class="id">横轴是踏板纵向位移，纵轴是施加的纵向力。加载初期曲线近似直线，斜率就是<b>纵向刚度</b>；超过屈服后曲线弯折；卸载时不回到原点，缺口即永久变形。</div>
+      <div class="fx">F = k · δ　（弹性段，k 为纵向刚度 N/mm）</div>
+    </div>
+    <div class="ic">
+      <div class="ii">↩️</div><div class="in">② 残余位移</div>
+      <div class="id">卸载到零后踏板回不到原始位置，剩下的那一点点位移就是残余位移。它对应的是塑性变形、内部微裂纹、连接松动——全部是不可逆的损伤累积。</div>
+      <div class="fx">δ残余 = δ加载峰值 − δ回弹量</div>
+    </div>
+    <div class="ic">
+      <div class="ii">🎯</div><div class="in">③ 判据两条，同时满足</div>
+      <div class="id">标准要求：永久变形<b>不大于 5.0 mm</b>，<b>同时</b>加载部位不应出现裂纹或损坏。只有"没断"是不够的——变形超限同样判不合格。</div>
+      <div class="fx">合格 ⇔ 残余位移 ≤ 5.0 mm 且 无裂纹</div>
+    </div>
+    <div class="ic">
+      <div class="ii">🔁</div><div class="in">④ 为什么要重复 5 次</div>
+      <div class="id">断裂是<b>离散事件</b>，不是必然事件。同批 5 件试件在同样载荷下，可能 1 件都不裂，也可能当场断掉——真实试验中标准工况下也有约 <b>30%</b> 的单件断裂率。单次结果只是一次抽样，不足以代表整批。</div>
+      <div class="fx">P(5 件全部不断) = (1 − 0.30)⁵ ≈ <b>17%</b>　→　单件测 1 次，远不能保证整批安全</div>
+    </div>
+  </div>
+  <div class="note">
+    <b>关于 1500N 与 3000N：</b>QC/T 788-2018 规定的纵向力为 1500N（力作用线垂直于踏板面并通过其几何中心，保持 5 秒，重复 5 次）。而 2025 年 8 月中国汽车工业协会就电子制动踏板团体标准征求意见时，行业普遍反映 1500N 偏低，标准起草说明中明确提到企业希望提高载荷——征求意见稿提出 2000±20N 方案。<br><br>
+    正因如此，<b>把载荷加严到 3000N 做验证</b>成为车企的常规做法：不是为了满足标准，而是为了在标准之上留出余量。行业里流传一句实话——<b>标准是及格线，3000N 不裂才是真安全</b>。
+  </div>
+</section>
+
+<section class="sec" id="s3">
+  <div class="sn">03 · 实验流程</div>
+  <div class="st">五步，加载之前的事最多</div>
+  <div class="sd">现场最常见的失败不是"测出来不合格"，而是"测的根本不是标准要求的那个东西"。以下是标准要求的完整流程，模拟台会按同样顺序阻断你。</div>
+  <div class="g2">
+    <div class="ic"><div class="ii">1️⃣</div><div class="in">试件状态调节与安装</div><div class="id">试件在标准环境中放置至少 24 小时做状态调节，安装须采用车辆实际安装状态。<b>用夹具强行固定会人为提高刚度</b>——这是最常见的作弊式误差。</div></div>
+    <div class="ic"><div class="ii">2️⃣</div><div class="in">加载点与方向定位</div><div class="id">力作用线须垂直于踏板面并通过几何中心。偏心加载会引入附加弯矩，让读数失真——测出来的不是纵向变形，是"纵向+扭转"的混合量。</div></div>
+    <div class="ic"><div class="ii">3️⃣</div><div class="in">按规定载荷加载并保持</div><div class="id">纵向力加至规定值，保持 5 秒后卸载。保持时间不足会让黏弹性材料（橡胶垫、尼龙衬套）来不及充分变形，残余位移被低估。</div></div>
+    <div class="ic"><div class="ii">4️⃣</div><div class="in">卸载并读取残余位移</div><div class="id">完全卸载后读取踏板几何中心位置相对初始位置的偏移量。<b>读数必须在完全卸载后进行</b>，带载读数会把弹性回弹算进去，系统性偏高。</div></div>
+    <div class="ic" style="grid-column:1/-1"><div class="ii">5️⃣</div><div class="in">重复 5 次，并做外观检查</div><div class="id">更换试件重复上述步骤，累计 5 件。同时检查加载部位有无裂纹、断裂、明显变形。<b>5 次结果取均值作为报告值</b>；外观检查是独立判定项，不能因为数值合格就跳过。</div></div>
+    <div class="ic" style="grid-column:1/-1"><div class="ii">💥</div><div class="in">中途断裂怎么办</div><div class="id">试件在加载中断裂时，<b>本次结果作废、该件不计入 5 次有效数据</b>，须换新试件重做。但断裂本身是失效证据，必须在报告中如实记录断口位置与形貌——<b>不能悄悄换一根接着测</b>，那样等于把不合格藏起来了。</div></div>
+  </div>
+</section>
+
+<section class="lb" id="s4">
+<div class="lc">
+  <div class="lh">
+    <div>
+      <div class="lt">🔬 制动踏板纵向力试验 · 交互模拟台</div>
+      <div class="pprog" aria-hidden="true">
+        <span class="pdot" id="pd1"></span><span class="pdot" id="pd2"></span><span class="pdot" id="pd3"></span><span class="pdot" id="pd4"></span><span class="pdot" id="pd5"></span>
+        <span style="font-size:10.5px;color:#7c8ba1;margin-left:4px" id="pdTxt">进度 0/5 · 从 STEP 1 开始</span>
+      </div>
+    </div>
+    <span class="sts si" id="sts" role="status" aria-live="polite">⏳ 未开始</span>
+  </div>
+  <div class="lbb">
+
+    <div style="font-size:11px;color:#94a3b8;margin-bottom:4px">① 按顺序完成五步试验（顺序错误会被阻断）</div>
+    <div class="seq" role="group" aria-label="五步试验流程，必须按顺序完成">
+      <button class="pb" id="p1" onclick="step1()" aria-describedby="seqhint">状态调节与安装<span class="po">step 1</span></button>
+      <button class="pb" id="p2" onclick="step2()" disabled aria-describedby="seqhint">加载点定位<span class="po">step 2</span></button>
+      <button class="pb" id="p3" onclick="runLoad()" disabled aria-describedby="step3btn">加载至规定纵向力<span class="po">step 3</span></button>
+      <button class="pb" id="p4" onclick="step4()" disabled aria-describedby="seqhint">卸载测残余位移<span class="po">step 4</span></button>
+      <button class="pb" id="p5" onclick="step5()" disabled aria-describedby="seqhint">累计 5 次并判定<span class="po">step 5</span></button>
+    </div>
+    <div class="kbdhint" id="seqhint">键盘操作：<kbd>Tab</kbd> 在五步之间切换，<kbd>Enter</kbd> 或 <kbd>空格</kbd> 执行当前步。未解锁的步骤会保持灰色不可点——顺序错了会被拦住。</div>
+
+    <div class="nudge" id="nudge" role="status" aria-live="polite">
+      <div class="nicon" id="nIcon" aria-hidden="true">&#10148;</div>
+      <div class="nbody">
+        <div class="nstep" id="nStep">下一步</div>
+        <div class="ntext" id="nText">—</div>
+        <div class="nsub" id="nSub">—</div>
+      </div>
+      <div class="ngo"><button id="nGo" type="button">立即执行</button></div>
+    </div>
+
+    <div class="pmeta">
+      <div class="plab">
+        <span>🎲 本次加载的<b>断裂概率</b>（同批试件的离散性）</span>
+        <b id="pFracTxt">30%</b>
+      </div>
+      <div class="pbar"><div class="pfill" id="pFill"></div></div>
+      <div class="phint" id="pHint">点「执行加载」时才会掷点。在标准工况（钢件·合格连接·常温）下基准为 <b>30%</b>；载荷逼近屈服、材料偏弱、连接松动或高温都会显著推高。</div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px" class="g2">
+      <div>
+        <div class="fld">
+          <label>加载纵向力 F　<b id="fTxt" style="color:#fb7185">1500 N</b></label>
+          <input type="range" id="fIn" min="1000" max="3600" step="100" value="1500" oninput="onParam()">
+          <div class="hint">QC/T 788-2018 规定 1500N。行业常见加严档位：2000N（电子踏板团标征求意见稿）、2700N（GM 2007 踏板模块规范制动方向载荷）、3000N（车企自加严验证档）。</div>
+        </div>
+        <div class="fld">
+          <label>踏板本体材料</label>
+          <select id="mat" onchange="onParam()">
+            <option value="steel" selected>冷轧钢 Q235（冲压+焊接）</option>
+            <option value="alu">压铸铝合金 ADC12</option>
+            <option value="nylon">增强尼龙 PA66-GF30</option>
+            <option value="pp">玻纤增强聚丙烯 PP-GF40</option>
+          </select>
+          <div class="hint">钢的刚度与屈服强度最高；增强塑料比强度可以，成本低，但<b style="color:#fda4af">高温下刚度衰减明显</b>——这是塑料踏板最典型的失效模式。</div>
+        </div>
+        <div class="fld">
+          <label>连接方式（踏板与支架）</label>
+          <select id="join" onchange="onParam()">
+            <option value="weld">点焊（3～4 点）</option>
+            <option value="rivet" selected>铆接 + 塑料卡扣</option>
+            <option value="bond">结构胶粘接</option>
+            <option value="rivet_bad">铆接松动（人为缺陷）</option>
+          </select>
+          <div class="hint">连接处永远是薄弱环节。选"铆接松动"可以复现失效：同样的载荷下，刚度骤降、残余位移暴涨。</div>
+        </div>
+        <div class="fld">
+          <label>试验温度</label>
+          <select id="temp" onchange="onParam()">
+            <option value="23">常温 23±5 ℃</option>
+            <option value="80">高温 80 ℃</option>
+            <option value="120">高温 120 ℃（太阳暴晒后舱内）</option>
+          </select>
+          <div class="hint">高温下工程塑料的模量可下降 50% 以上，金属也有热软化。夏季南方城市地表温度超 60℃ 并不罕见——高温试验是真实工况，不是实验室刁难。</div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;color:#94a3b8;margin-bottom:6px">实时读数（随参数联动）</div>
+        <div class="dp" style="grid-template-columns:1fr 1fr">
+          <div class="dv"><div class="dl">纵向刚度 k</div><div class="dd" id="oK">—</div><div class="du">N/mm</div></div>
+          <div class="dv" id="dvLoad"><div class="dl">加载峰值位移</div><div class="dd" id="oLoad">—</div><div class="du">mm</div></div>
+          <div class="dv" id="dvRes"><div class="dl">本次残余位移</div><div class="dd" id="oRes">—</div><div class="du">mm</div></div>
+          <div class="dv"><div class="dl">5 次均值</div><div class="dd" id="oAvg">—</div><div class="du">mm</div></div>
+        </div>
+        <canvas id="cv" width="900" height="480" role="img" aria-label="力-位移曲线，横轴为踏板纵向位移，纵轴为纵向载荷，含弹性段、屈服段、卸载回弹段与 5.0mm 判据标注线；若本次试件断裂，曲线会在中途崩落并标注断裂点"></canvas>
+        <div class="legend">
+          <span><i style="background:#fb7185"></i>加载路径</span>
+          <span><i style="background:#38bdf8"></i>卸载路径</span>
+          <span><i style="background:#ef4444"></i>断裂崩落</span>
+          <span><i style="background:#34d399;height:0;border-top:2px dashed #34d399"></i>5.0 mm 判据线</span>
+        </div>
+      </div>
+    </div>
+
+  <div class="acts" style="margin-top:16px">
+    <button class="btn b1" id="step3btn" onclick="runLoad()" disabled>⬆ 执行加载（step 3）</button>
+    <button class="btn b2" id="swapBtn" onclick="swapSpecimen()" disabled>🔄 更换试件·重做本次</button>
+    <button class="btn b2" id="resetBtn" onclick="resetAll()">🔄 重置试验</button>
+  </div>
+
+    <div id="log" style="margin-top:8px" role="log" aria-live="polite" aria-label="试验操作记录"></div>
+    <div class="warn" id="warn" role="alert" aria-live="assertive"></div>
+
+    <div class="audit">
+      <h4>📋 报告数据复核模块</h4>
+      <div class="sh">下面这组数据来自一份公开的第三方检测报告截图（制动踏板纵向力 1500N 试验）。<b>逐行核对一下，会发现三个问题。</b></div>
+      <table class="aud-tb">
+        <tr><th>样品编号</th><th style="text-align:right">位移量 / mm</th><th>报告判定</th><th style="text-align:right">对 5.0mm 判据</th></tr>
+        <tr><td>01001</td><td class="n">2.04</td><td><span class="flag ok">符合</span></td><td class="n"><span class="flag ok">合格</span></td></tr>
+        <tr><td>01002</td><td class="n">4.07</td><td><span class="flag ok">符合</span></td><td class="n"><span class="flag warn">临界</span></td></tr>
+        <tr><td>01003</td><td class="n">5.95</td><td><span class="flag ok">符合</span></td><td class="n"><span class="flag bad">超限</span></td></tr>
+        <tr><td>01004</td><td class="n">2.28</td><td><span class="flag ok">符合</span></td><td class="n"><span class="flag ok">合格</span></td></tr>
+      </table>
+      <div class="note" style="margin:12px 0 0">
+        <b>❶ 01003 号样品的 5.95 mm 已超过 5.0 mm 判据，却判了"符合"。</b><br>
+        这是最严重的一处。按 QC/T 788-2018，永久变形大于 5.0mm 即不合格，与"是否断裂"是两个独立判定项。截图可见部分只列出 4 行（01001–01004），而标题写"5 次检测"——<b>第 5 个数据要么缺失，要么就在被裁掉的部分</b>。
+      </div>
+      <div class="note blue" style="margin:12px 0 0">
+        <b>❷ 均值 2.61 mm 与表内数据算术平均对不上。</b><br>
+        表内 4 个可见数据：(2.04 + 4.07 + 5.95 + 2.28) ÷ 4 = <b>3.585 mm</b>，而非报告文字所述的 2.61 mm。要凑出 2.61 mm，第 5 个数需为 <b>-2.00 mm</b>——物理上不可能。说明报告均值与所列数据不同源，或存在未披露的中间数据被剔除。
+      </div>
+      <div class="note green" style="margin:12px 0 0">
+        <b>❸ 单次超限但判定"符合"——这在实务中怎么理解？</b><br>
+        可能的真实情况有几种：① 第 5 件才是有效报告值，其余为预试件；② 位移量指的是别的定义（如弹性位移而非永久变形）；③ 报告确实存在判定错误。<b>无论是哪种，检测报告的复核逻辑都是一样的：先对齐数据定义，再逐条比对判据，最后确认统计口径。</b>拿到第三方报告不知道从哪查起，就从这三步查起。
+      </div>
+    </div>
+  </div>
+</div>
+</section>
+
+<section class="sec" id="s5">
+  <div class="sn">04 · 总结与黄金法则</div>
+  <div class="st">五条红线，考场和现场都会考</div>
+  <div class="g2">
+    <div class="ic"><div class="ii">1️⃣</div><div class="in">永久变形和裂纹是两个判定</div><div class="id">没断 ≠ 合格。残余位移超过 5.0mm 同样判不合格。报告中"符合"二字必须拆开看：位移多少、有无裂纹，两个结论要分别核对。</div><span class="it">判定红线</span></div>
+    <div class="ic"><div class="ii">2️⃣</div><div class="in">必须完全卸载后读数</div><div class="id">带载读数会把弹性回弹算进残余位移，系统性偏高。这是自己动手做最常见的操作误差来源之一。</div><span class="it">读数红线</span></div>
+    <div class="ic"><div class="ii">3️⃣</div><div class="in">夹具不能人为加固</div><div class="id">必须采用车辆实际安装状态。用夹具把踏板焊死或螺栓全紧固，读数会好看很多，但那测的是一个不存在的零件。</div><span class="it">安装红线</span></div>
+    <div class="ic"><div class="ii">4️⃣</div><div class="in">塑料件必须做高温</div><div class="id">增强尼龙/PP 在 120℃ 下模量可掉一半以上。常温合格不代表夏天能用。高温试验不是可选项，是塑料踏板的必选项。</div><span class="it">工况红线</span></div>
+    <div class="ic"><div class="ii">5️⃣</div><div class="in">断裂件不能悄悄换一根</div><div class="id">断裂件不计入有效数据、须换新试件重做，但<b>断裂本身是失效证据，必须写进报告</b>。更关键的是：<b>有效数据不足 5 件时不得判符合</b>——这是签发报告的硬底线。</div><span class="it">数据红线</span></div>
+  </div>
+  <div class="note">
+    <b>这个试验真正要练的能力</b>：不是记住 1500N 和 5.0mm 这两个数字，而是拿到一份报告时能迅速判断——<b>它的数据定义是什么、统计口径是什么、判据用对没有</b>。会算位移量的人很多，会问"这个 2.61mm 是怎么来的"的人很少。后者才是签发报告该有的状态。
+  </div>
+  <div class="sd" style="margin-top:18px">
+    标准依据：QC/T 788-2018《汽车踏板装置性能要求及台架试验方法》（纵向位移与强度条款）；QC/T 564-2018《乘用车行车制动器性能要求及台架试验方法》（制动器总成台架试验）。<br>
+    本页物理模型：以实车踏板总成纵向等效刚度（400 N/mm 量级，含衬套与卡扣间隙）与屈服判据构建的简化力学模型，用于教学演示趋势；模型含位移超限中止保护。<b>数值与曲线不作为工程设计、检测判定或报告签发的依据。</b>
+  </div>
+</section>
+
+<footer class="ft">
+  <b>EnvLab 高校课程配套</b> · 汽车零部件力学性能 · 结构件台架试验<br>
+  <span style="font-size:11px;color:#6b7d94">交互范式参考自实验集<a href="../08-大气污染控制/旋风除尘器性能测定-交互版.html" style="color:#7f90a8"> 旋风除尘器性能测定</a></span>
+  <div style="margin-top:10px;font-size:12px;line-height:1.9">&#128231; 联系作者：<a class="elmail" href="#" data-u="jinghao.song" data-d="gmail.com" style="color:inherit;text-decoration:underline">载入中…</a><noscript><span>jinghao.song [at] gmail.com</span></noscript></div>
+</footer>
+<div class="elqr" style="margin:18px 0 0;text-align:center;font-size:12px;line-height:1.7"><a href="../../assets/wechat-qrcode.png" target="_blank" rel="noopener" data-elqr-zoom title="点击放大二维码" style="display:inline-block;color:inherit;text-decoration:none;cursor:zoom-in"><img src="../../assets/wechat-qrcode.png" alt="微信公众号「小宋的环保笔记」二维码" width="112" height="112" loading="lazy" decoding="async" style="display:block;width:112px;height:112px;margin:0 auto;padding:6px;background:#fff;border:1px solid rgba(128,128,128,.25);border-radius:8px;box-sizing:content-box"><span style="display:block;margin-top:7px;opacity:.85">微信公众号 · 小宋的环保笔记</span></a></div>
+
+<script>
+const $=id=>document.getElementById(id);
+
+/* ============ 材料与连接参数 ============ */
+/* k: 纵向等效刚度 (N/mm，含衬套/卡扣间隙)，sy: 屈服载荷 (N)，pl: 塑性率（残余/峰值），tf: 高温刚度保持率 */
+/* 刚度取值以实车踏板总成的等效刚度量级为参照（400 N/mm 上下），非单块钢板裸件刚度 */
+const MAT={
+  steel:{name:'冷轧钢 Q235',k:430,sy:2900,pl:0.055,tf:{23:1,80:0.95,120:0.90},em:'钢在 120℃ 下强度损失仅约 10%，高温风险很低'},
+  alu:{name:'压铸铝合金 ADC12',k:310,sy:2050,pl:0.105,tf:{23:1,80:0.88,120:0.78},em:'铝合金模量约为钢的 1/3，刚度天然偏低'},
+  nylon:{name:'增强尼龙 PA66-GF30',k:225,sy:1500,pl:0.170,tf:{23:1,80:0.72,120:0.46},em:'PA66 是吸湿性材料，高温+吸湿双重作用下模量腰斩'},
+  pp:{name:'玻纤增强聚丙烯 PP-GF40',k:170,sy:1200,pl:0.215,tf:{23:1,80:0.66,120:0.38},em:'PP 熔点约 160℃，120℃ 已接近软化区，高温风险最高'}
+};
+const JOIN={
+  weld:{name:'点焊（3～4 点）',mk:1.00,my:1.06,mp:0.85,jd:'焊点熔透充分时刚度接近本体，是连接方式里表现最好的'},
+  rivet:{name:'铆接 + 塑料卡扣',mk:0.92,my:1.00,mp:1.00,jd:'塑料卡扣在载荷下会先于金属件蠕变，是隐性变形源'},
+  bond:{name:'结构胶粘接',mk:0.85,my:0.92,mp:1.20,jd:'胶层模量远低于金属，变形量被放大；胶层老化后这一项恶化明显'},
+  rivet_bad:{name:'铆接松动（人为缺陷）',mk:0.58,my:0.72,mp:1.75,jd:'预紧力不足使接触面在载荷下相对滑移，刚度骤降——典型的人为失效'}
+};
+const D_STOP=8.0; /* 位移达到该值即判定试件已失效，加载终止（真实试验中止保护） */
+
+const P0={pl:1.0};
+let S={s1:false,s2:false,s3:false,s4:false,s5:false};
+let curParam=null, doneRuns=[], loadPeak=null, brokenCnt=0;
+
+function log(t,ok){const el=$('log');const d=document.createElement('div');
+  d.innerHTML=(ok===true?'✅ ':ok===false?'⛔ ':'• ')+t;el.appendChild(d);el.scrollTop=el.scrollHeight;}
+function setSts(t,cls){const e=$('sts');e.className='sts '+cls;e.textContent=t;
+  /* 状态一变就刷新步骤进度点与下一步引导（所有步骤都会调用 setSts） */
+  try{syncProgress();}catch(err){}
+  /* 引导卡渲染后，若目标不在视口内则滚过去 */
+  try{
+    const box=$('nudge');
+    if(box&&box.classList.contains('show')){
+      const r=box.getBoundingClientRect();
+      if(r.top<60||r.bottom>window.innerHeight-40)queueScrollToNext();
+    }
+  }catch(err){}
+}
+let _scrollQueued=false;
+function queueScrollToNext(){
+  if(_scrollQueued)return;
+  _scrollQueued=true;
+  setTimeout(()=>{_scrollQueued=false;scrollToNext();},260);
+}
+function warn(t){$('warn').textContent=t;if(t)setTimeout(()=>{if($('warn').textContent===t)$('warn').textContent='';},7000);}
+
+function params(){
+  return {F:+$('fIn').value, mat:$('mat').value, join:$('join').value, temp:+$('temp').value};
+}
+function calc(p){
+  const m=MAT[p.mat], j=JOIN[p.join], tf=m.tf[p.temp]||1;
+  const k=m.k*j.mk*tf;
+  const sy=m.sy*j.my*tf;
+  const pl=P0.pl*m.pl*j.mp*(1+(1-tf)*1.1);
+  const dRaw=p.F/k;
+  const stop=dRaw>=D_STOP;                 /* 位移超限 → 试件失效，加载中止 */
+  const dPeak=Math.min(dRaw,D_STOP);
+  const over=Math.max(0,(p.F-sy)/sy);
+  /* 残余位移上限受中止位移约束：失效后残余不可能超过中止时的总位移 */
+  const resid=Math.min(dPeak*pl+over*dPeak*0.55, dPeak);
+  const crack=stop || over>0.62 || (k<170 && dPeak>5.0);
+  return {k,sy,pl,dPeak,resid,crack,stop,over,matName:m.name,joinName:j.name};
+}
+function key(p){return [p.F,p.mat,p.join,p.temp].join('|');}
+
+/* ============ 断裂概率模型 ============ */
+/* 断裂是离散失效事件：同一批试件每件结果不同，正是"必须做 5 次"的根本原因。
+   基准 FRAC_BASE = 30%，对应「钢件 · 铆接合格连接 · 常温 · 载荷远低于屈服」。
+   其余工况以此为 1.0 基准等比放大，保证标准工况读数恰为 30%。 */
+const FRAC_BASE=0.30;
+const MAT_FRAC={steel:1.00,alu:1.55,nylon:2.30,pp:3.00};   /* 材料抗断裂系数（1.0=钢件基准） */
+const JOIN_FRAC={weld:0.70,rivet:1.00,bond:1.25,rivet_bad:1.80};
+function fracProb(p,c){
+  const r=p.F/c.sy;                        /* 载荷 / 屈服载荷 */
+  let pr=FRAC_BASE;
+  pr*=MAT_FRAC[p.mat]*JOIN_FRAC[p.join];
+  /* 载荷逼近屈服：≤0.6 倍不推高，0.6→1.0 线性上升，≥1.0 急剧上升 */
+  pr*= (r<=0.6) ? 1 : (r<1 ? 1+(r-0.6)*1.6 : 1.64+(r-1)*2.2);
+  /* 高温加速：按刚度保持率的衰减量放大（23℃ 基准） */
+  const tf=(MAT[p.mat].tf[p.temp]||1);
+  pr*= (1+(1-tf)*2.2);
+  return Math.max(0.02,Math.min(0.95,pr));
+}
+
+/* ============ 力-位移曲线绘制 ============ */
+function drawCurve(c,p){
+  const cv=$('cv'), ctx=cv.getContext('2d');
+  const dpr=window.devicePixelRatio||1;
+  const W=cv.clientWidth||600, H=240;
+  cv.width=W*dpr; cv.height=H*dpr;
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  ctx.clearRect(0,0,W,H);
+  const PL=48,PR=16,PT=14,PB=34;
+  const gw=W-PL-PR, gh=H-PT-PB;
+  const xmax=Math.max(6.5,c.dPeak*1.45);
+  const X=d=>PL+(d/xmax)*gw;
+  const Y=f=>PT+(1-f)*gh;
+  const fmax=Math.max(2000,p.F*1.15);
+
+  ctx.strokeStyle='rgba(255,255,255,.07)'; ctx.lineWidth=1;
+  for(let f=0;f<=1.0001;f+=0.25){ctx.beginPath();ctx.moveTo(PL,Y(f));ctx.lineTo(PL+gw,Y(f));ctx.stroke();}
+  const dstep=xmax>10?2:1;
+  for(let d=0;d<=xmax;d+=dstep){ctx.beginPath();ctx.moveTo(X(d),PT);ctx.lineTo(X(d),PT+gh);ctx.stroke();}
+  ctx.fillStyle='#7c8ba1'; ctx.font='10px Inter,sans-serif';
+  ctx.textAlign='right'; ctx.textBaseline='middle';
+  for(let f=0;f<=1.0001;f+=0.25)ctx.fillText(Math.round(f*fmax),PL-7,Y(f));
+  ctx.textAlign='center'; ctx.textBaseline='top';
+  for(let d=0;d<=xmax+0.01;d+=dstep)ctx.fillText(d.toFixed(0),X(d),PT+gh+7);
+  ctx.fillStyle='#7f90a8'; ctx.textAlign='center'; ctx.fillText('纵向位移 δ (mm)',PL+gw/2,PT+gh+20);
+  ctx.save(); ctx.translate(12,PT+gh/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillStyle='#7f90a8';
+  ctx.fillText('纵向力 F (N)',0,0); ctx.restore();
+
+  /* 加载路径：弹性段 → 屈服后弯折 → 达到目标力停止 */
+  const brokenNow=(loadPeak&&loadPeak.broken);
+  /* 断裂件：曲线在达到目标力前的中途位置就崩落 */
+  const fracFrac=brokenNow?0.72:1.0;   /* 断裂发生在约 72% 行程处 */
+  const dEnd=c.dPeak*fracFrac;
+  ctx.strokeStyle='#fb7185'; ctx.lineWidth=2.2; ctx.lineJoin='round';
+  ctx.beginPath(); ctx.moveTo(X(0),Y(0));
+  const relD=c.sy/c.k;
+  const pts=[];
+  for(let i=0;i<=160;i++){
+    const d=dEnd*i/160;
+    let f;
+    if(d<=relD) f=d*c.k;
+    else {
+      const ex=(d-relD)/(Math.max(dEnd-relD,1e-6));
+      f=c.sy+(p.F-c.sy)*Math.pow(ex,0.55);
+    }
+    f=Math.min(f,p.F);
+    pts.push([d,f]);
+    if(i===0)ctx.moveTo(X(d),Y(f/p.F));else ctx.lineTo(X(d),Y(f/p.F));
+  }
+  ctx.stroke();
+  if(brokenNow){
+    /* 断裂：曲线在中断点急剧崩落（载荷掉落）——与是否超判据无关 */
+    const last=pts[pts.length-1];
+    ctx.strokeStyle='#ef4444'; ctx.lineWidth=2.4;
+    ctx.beginPath(); ctx.moveTo(X(last[0]),Y(last[1]/p.F));
+    ctx.lineTo(X(Math.min(last[0]*1.10,xmax)),Y(0.02));
+    ctx.stroke();
+    ctx.fillStyle='#ef4444'; ctx.beginPath();
+    ctx.arc(X(last[0]),Y(last[1]/p.F),4.2,0,7); ctx.fill();
+    ctx.font='10.5px Inter,sans-serif'; ctx.textAlign='right'; ctx.textBaseline='bottom';
+    ctx.fillText('✕ 断裂 @'+Math.round(last[1])+'N',X(last[0])-7,Y(last[1]/p.F)-5);
+  } else if(c.crack){
+    const last=pts[pts.length-1];
+    ctx.strokeStyle='#fb7185'; ctx.lineWidth=2.2;
+    ctx.beginPath(); ctx.moveTo(X(last[0]),Y(last[1]/p.F));
+    ctx.lineTo(X(Math.min(last[0]*1.14,xmax)),Y(last[1]/p.F*0.42));
+    ctx.stroke();
+  }
+
+  /* 卸载路径：斜率回到初始弹性模量，止于残余位移（断裂件无卸载过程） */
+  if(p.F>0&&!brokenNow){
+    const rb=c.resid;
+    ctx.strokeStyle='#38bdf8'; ctx.lineWidth=2; ctx.setLineDash([5,4]);
+    ctx.beginPath();
+    ctx.moveTo(X(c.dPeak),Y(p.F/p.F));
+    ctx.lineTo(X(rb),Y(0));
+    ctx.stroke(); ctx.setLineDash([]);
+  }
+
+  /* 判据线 5.0mm */
+  if(xmax>=5){
+    ctx.strokeStyle='#34d399'; ctx.lineWidth=1.2; ctx.setLineDash([6,5]);
+    ctx.beginPath(); ctx.moveTo(X(5),PT); ctx.lineTo(X(5),PT+gh); ctx.stroke();
+    ctx.setLineDash([]);
+    /* 判据线标签贴顶，横向避让右侧文字区 */
+    ctx.fillStyle='#34d399'; ctx.font='10px Inter,sans-serif';
+    ctx.textAlign=X(5)>PL+gw-70?'right':'left'; ctx.textBaseline='top';
+    ctx.fillText('5.0 mm 判据',X(5)+(X(5)>PL+gw-70?-4:4),PT+2);
+  }
+
+  /* 残余位移标记（断裂件无卸载过程，不显示） */
+  if(!brokenNow&&c.resid>0.05&&c.resid<xmax){
+    ctx.fillStyle='#fb7185'; ctx.beginPath();
+    ctx.arc(X(c.resid),Y(0),3.6,0,7); ctx.fill();
+    ctx.font='10.5px Inter,sans-serif';
+    ctx.textAlign=X(c.resid)>PL+gw*0.62?'right':'left'; ctx.textBaseline='bottom';
+    ctx.fillText('δ残余 = '+c.resid.toFixed(2)+' mm',X(c.resid)+(X(c.resid)>PL+gw*0.62?-6:6),PT+gh-6);
+  }
+  /* 弹性/塑性构成说明：钢件残余极小正说明以弹性变形为主 */
+  if(!brokenNow&&c.resid>0.02&&c.dPeak>0.3){
+    const pct=(c.resid/c.dPeak*100);
+    ctx.font='10px Inter,sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillStyle=pct<8?'#7c8ba1':'#fb7185';
+    ctx.fillText('塑性占比 '+pct.toFixed(pct<8?1:0)+'% · '+(pct<8?'以弹性变形为主':'损伤明显'),PL+4,PT+2);
+  }
+  /* 屈服点标注 */
+  if(c.sy<p.F*1.35&&c.sy>0){
+    const syD=Math.min(c.sy/c.k,c.dPeak*1.05);
+    ctx.strokeStyle='rgba(251,191,36,.5)'; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(X(syD),PT); ctx.lineTo(X(syD),PT+gh); ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#fbbf24'; ctx.font='9.5px Inter,sans-serif';
+    ctx.textAlign=X(syD)>PL+gw*0.7?'right':'left'; ctx.textBaseline='top';
+    ctx.fillText('屈服 ≈'+Math.round(c.sy)+'N',X(syD)+(X(syD)>PL+gw*0.7?-4:4),PT+gh-30);
+  }
+  if(brokenNow){
+    ctx.fillStyle='#ef4444'; ctx.font='11.5px Inter,sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText('✕ 试件断裂 · 本次作废',PL+4,PT+2);
+  } else if(c.crack){
+    ctx.fillStyle='#fb7185'; ctx.font='11px Inter,sans-serif';
+    ctx.textAlign='left'; ctx.textBaseline='top';
+    ctx.fillText('⚠ 出现裂纹/已失效',PL+4,PT+2);
+  }
+}
+
+function render(){
+  const p=params(), c=calc(p);
+  $('fTxt').textContent=p.F+' N';
+  $('oK').textContent=Math.round(c.k);
+  $('oLoad').textContent=c.dPeak.toFixed(2);
+  /* 断裂件没有卸载过程，无残余位移可言 */
+  const brokenNow=(loadPeak&&loadPeak.broken);
+  $('oRes').textContent=loadPeak?(brokenNow?'—':loadPeak.resid.toFixed(2)):'—';
+  if(doneRuns.length){
+    const avg=doneRuns.reduce((a,b)=>a+b,0)/doneRuns.length;
+    $('oAvg').textContent=avg.toFixed(2);
+  } else $('oAvg').textContent='—';
+  $('dvLoad').className='dv'+(c.dPeak>6?' bad':c.dPeak>4?'':' good');
+  $('dvRes').className='dv'+(!loadPeak?'':(brokenNow?' bad':(loadPeak.resid>5?' bad':loadPeak.resid>4?'':' good')));
+  /* 断裂件的残余位移卡片加文字说明 */
+  const rl=$('oRes').parentNode.querySelector('.dl');
+  rl.textContent=brokenNow?'本次残余位移（断裂·无）':'本次残余位移';
+  /* 断裂概率条 */
+  const pr=fracProb(p,c);
+  $('pFracTxt').textContent=(pr*100).toFixed(0)+'%';
+  const fill=$('pFill');
+  fill.style.width=(pr*100).toFixed(1)+'%';
+  const col=pr>=0.6?'#ef4444':pr>=0.4?'#fb923c':pr>=0.25?'#fbbf24':'#34d399';
+  fill.style.background='linear-gradient(90deg,'+col+','+col+'aa)';
+  $('pFracTxt').style.color=col;
+  $('pHint').innerHTML= probHint(p,c,pr);
+  drawCurve(c,p);
+  syncProgress();
+}
+function probHint(p,c,pr){
+  const r=p.F/c.sy;
+  if(r>=1)return '<b style="color:#fb7185">载荷已达/超过屈服载荷（'+p.F+'N vs '+Math.round(c.sy)+'N），断裂风险最高。</b>此时结果高度离散，重复 5 次正是为了兜住这类波动。';
+  if(r>=0.75)return '载荷已达屈服载荷的 <b>'+(r*100).toFixed(0)+'%</b>，接近塑性区，断裂概率明显上升。';
+  if(p.temp>23)return '高温 <b>'+p.temp+'℃</b> 下材料韧性下降，断裂概率已放大 '+((MAT[p.mat].tf[p.temp]&&1+(1-(MAT[p.mat].tf[p.temp]))*2.2)).toFixed(2)+' 倍。';
+  if(p.join==='rivet_bad')return '铆接松动属于连接缺陷，断裂概率已放大至基准的 <b>1.75 倍</b>——典型的装配失效而非材料问题。';
+  return '当前为标准工况：载荷仅为屈服值的 <b>'+(r*100).toFixed(0)+'%</b>，材料与连接均正常。基准断裂概率 <b>30%</b>——同批试件每件结果不同，这正是必须重复 5 次的原因。';
+}
+
+function onParam(){
+  const p=params();
+  if(S.s3&&curParam&&key(p)!==curParam){
+    log('试验参数已改变（载荷／材料／连接／温度），已加载的数据作废，请从 STEP 1 重新开始','bad');
+    setSts('⚠️ 参数已变，需重做','sbad');
+    warn('⚠️ 条件变了，之前的数据不能用了——现场也是这样：换了材料或温度，整轮试验必须重来。');
+    doReset(false);
+  }
+  render();
+}
+
+function step1(){
+  if(S.s1)return;
+  S.s1=true;$('p1').classList.add('on');$('p2').disabled=false;
+  setSts('🟡 试件已安装','sa');
+  log('试件状态调节完成（常温 23±5℃ 放置 ≥24 h），按车辆实际安装状态装夹',true);
+  const p=params();
+  if(p.temp>23)log('注意：当前设置为高温试验，高温状态调节时间需另行规定，状态调节记录不能沿用常温数据',false);
+  warn('');
+}
+function step2(){
+  if(!S.s1){warn('请先完成 STEP 1 状态调节与安装');return;}
+  if(S.s2)return;
+  S.s2=true;$('p2').classList.add('on');$('p3').disabled=false;$('step3btn').disabled=false;
+  curParam=key(params());
+  setSts('🟡 加载点已定位','sa');
+  const c=calc(params());
+  log('加载点定位完成：作用线垂直于踏板面并通过几何中心。当前纵向刚度 k = <b>'+Math.round(c.k)+' N/mm</b>，屈服载荷约 <b>'+Math.round(c.sy)+' N</b>',true);
+  const p=params();
+  if(Math.abs(c.sy-p.F)/p.F<0.18)
+    warn('⚠️ 当前载荷 '+p.F+'N 已接近材料的屈服载荷（约 '+Math.round(c.sy)+'N）——此时位移对载荷极其敏感，读数波动会很大。');
+  if(p.join==='rivet_bad')
+    warn('⚠️ 铆接松动状态下刚度仅 '+Math.round(c.k)+' N/mm。同样的载荷，刚度不足会让位移明显放大——这是"设备/装配问题"而非"材料问题"。');
+}
+function runLoad(){
+  if(!S.s2){warn('⚠️ 必须先完成 STEP 2 加载点定位');log('顺序错误：未定位加载点即开始加载，已阻断',false);return;}
+  if(S.s3&&S.s4)return;
+  const p=params(), c=calc(p);
+  if(!S.s3){
+    S.s3=true;$('p3').classList.add('on');$('p4').disabled=false;
+    /* ---- 掷点：同批试件的断裂是离散事件 ---- */
+    const prob=fracProb(p,c);
+    const broken=Math.random()<prob;
+    loadPeak={resid:broken?c.dPeak:c.resid,crack:broken?true:c.crack,stop:c.stop,k:c.k,broken,prob};
+    log('加载至纵向力 <b>'+p.F+' N</b>，保持 5 s 后卸载',true);
+    if(broken){
+      brokenCnt++;
+      setSts('🔴 加载中断·试件断裂','sbad');
+      log('🎲 掷点命中：本次断裂概率 <b>'+(prob*100).toFixed(0)+'%</b>，试件在加载中断裂。载荷无法达到目标值，<b>本次结果作废，须更换试件重做</b>','bad');
+      warn('⛔ 试件在加载过程中断裂。断裂属于离散失效——同一批试件每件结果不同，这正是标准要求重复 5 次的原因。本件作废，需换新试件重新加载。');
+      $('step3btn').disabled=true;
+      $('p4').disabled=true;
+      $('swapBtn').disabled=false;
+      if(doneRuns.length+brokenCnt>=5){
+        $('p5').disabled=false;
+        setSts('🔴 已满 5 次·可判定','sa');
+        if(doneRuns.length===0)warn('⛔ 已连续断裂 '+brokenCnt+' 件、有效数据为 0。若再断裂即达 5 次——此时应判<b>整批失效</b>，不是"数据不够"。');
+        else warn('⛔ 累计已达 5 次试验（有效 '+doneRuns.length+' 件 / 断裂 '+brokenCnt+' 件）。可直接点 STEP 5 判定——<b>有效数据不足 5 件时不得判符合</b>。');
+      }
+      render();
+      return;
+    }
+    if(c.stop){
+      setSts('🔴 加载中止','sbad');
+      log('位移达到 <b>'+D_STOP+' mm</b> 上限，加载中止——试件已发生严重变形/断裂，继续加载无意义。实际试验中止保护也是这个逻辑','bad');
+      warn('⛔ 加载中止：位移已达 '+D_STOP+' mm，试件严重变形或已断裂。真实试验中止保护也是这个逻辑，但中止不代表合格——此时应直接判为失效并分析断口。');
+    } else {
+      setSts('🟡 已加载至目标力','sa');
+      $('swapBtn').disabled=true;
+      warn('⏳ 载荷已达峰值但尚未卸载。残余位移必须在<b>完全卸载后</b>读取——现在去点 STEP 4。');
+    }
+    render();
+    return;
+  }
+  // 已加载，等待 step4
+}
+function step4(){
+  if(!S.s3){warn('⚠️ 必须先按 STEP 3 加载至规定纵向力');log('顺序错误：未加载即读残余位移，已阻断',false);return;}
+  if(S.s4)return;
+  const p=params(), c=calc(p), r=loadPeak||{resid:c.resid,crack:c.crack};
+  S.s4=true;$('p4').classList.add('on');
+  doneRuns.push(r.resid);
+  log('卸载后读取残余位移：有效第 <b>'+doneRuns.length+'</b> 件 δ残余 = <b>'+r.resid.toFixed(2)+' mm</b>'+(r.crack?'，加载部位<b>出现裂纹</b>':'')+(doneRuns.length+brokenCnt>=5?'':'，请继续下一件试件'),r.resid<=5&&!r.crack);
+  if(r.resid>5)warn('⚠️ 第 '+doneRuns.length+' 次残余位移 '+r.resid.toFixed(2)+' mm 已超过 5.0 mm 判据——本件不合格。注意：即便外观无裂纹也不能判符合。');
+  else if(r.crack)warn('⚠️ 残余位移在判据内，但加载部位出现裂纹——同样不合格。裂纹与变形是两个独立判定项。');
+  else if(r.resid>4)warn('⚠️ 残余位移 '+r.resid.toFixed(2)+' mm 已进入 4～5 mm 临界带，继续加载有超限风险。');
+  if(doneRuns.length+brokenCnt>=5){
+    setSts('🟡 已满 5 次，待判定','sa');
+    $('p5').disabled=false;
+    $('p5').classList.add('on');
+    $('step3btn').disabled=true;
+  } else {
+    setSts('🟡 已完成 '+doneRuns.length+'/5 次','sa');
+    $('step3btn').disabled=false;
+    S.s3=false;S.s4=false;
+    $('p3').classList.remove('on');$('p4').classList.remove('on');
+  }
+  render();
+}
+function swapSpecimen(){
+  if(!loadPeak||!loadPeak.broken){warn('仅在试件断裂需要重做时使用');return;}
+  log('已更换新试件（断裂件不计入有效数据）。有效数据 '+doneRuns.length+' 件 / 已断裂 '+brokenCnt+' 件', 'bad');
+  S.s3=false; S.s4=false;
+  loadPeak=null;
+  $('p3').classList.remove('on'); $('p4').classList.remove('on');
+  $('p3').disabled=false; $('p4').disabled=true;
+  if(doneRuns.length+brokenCnt<5){$('step3btn').disabled=false;}
+  $('swapBtn').disabled=true;
+  setSts('🟡 已换新试件，可重新加载','sa');
+  warn('已更换新试件，请重新执行加载。断裂件不计入有效数据——但它本身已是失效证据，应在报告中记录。');
+  render();
+}
+function step5(){
+  if(doneRuns.length+brokenCnt<5){warn('⚠️ 必须先累计完成 5 次试验才能判定');log('顺序错误：未满 5 次即要求判定，已阻断',false);return;}
+  if(S.s5)return;
+  S.s5=true;$('p5').classList.add('on');
+  const p=params(), c=calc(p);
+  /* 全部断裂：无可用均值数据，直接判整批失效 */
+  if(doneRuns.length===0){
+    setSts('🔴 整批失效·5 次全部断裂','sbad');
+    log('累计 5 次试验中 <b>'+brokenCnt+' 次</b>全部断裂，<b>无有效数据可计算均值</b> → 判定：<b>不符合</b>','bad');
+    warn('⛔ 连续 5 件试件全部断裂，整批判失效。此时不是"数据不够"，而是<b>这批试件（或该工况）根本不满足要求</b>——应停止试验，转入失效分析（断口金相、连接工艺、材料批次）。');
+    $('step3btn').disabled=true; $('swapBtn').disabled=true;
+    render(); return;
+  }
+  const avg=doneRuns.reduce((a,b)=>a+b,0)/doneRuns.length;
+  const mx=Math.max(...doneRuns);
+  const cracked=loadPeak&&loadPeak.crack;
+  /* 有效数据未满 5 次（期间有断裂件）→ 不得判符合 */
+  const pass=avg<=5&&mx<=5&&!cracked&&doneRuns.length>=5&&brokenCnt===0;
+  setSts(pass?'🟢 试验通过':'🔴 判定不合格',pass?'sok':'sbad');
+  const extra=brokenCnt>0?('；期间有 <b>'+brokenCnt+'</b> 件断裂（有效数据仅 '+doneRuns.length+' 件）'):'';
+  log('5 次试验完成：均值 = <b>'+avg.toFixed(2)+' mm</b>，最大值 = <b>'+mx.toFixed(2)+' mm</b>'+extra+(cracked?'，出现裂纹':'')+' → 判定：<b>'+(pass?'符合':'不符合')+'</b>',pass);
+  if(!pass&&brokenCnt>0&&doneRuns.length<5)
+    warn('⛔ 判定不符合：5 次试验中 '+brokenCnt+' 件断裂，有效数据不足 5 件，<b>不具备出具符合结论的条件</b>。');
+  else if(!pass)warn('⛔ 判定不符合。'+(mx>5?'存在单次超 5.0mm 的数据：':'达到 5.0mm 判据线：')+'报告结论必须如实反映，不能因为"看起来还行"就判符合。');
+  else if(mx>4.5)warn('⚠️ 通过，但最大残余位移已达 '+mx.toFixed(2)+' mm，接近判据上限。这类"擦边通过"的样品在加严载荷下很可能失效。');
+  else warn('✅ 判定符合。注意：本页模拟的是 '+Math.round(c.k)+' N/mm 刚度下的表现，换材料或换温度结论会变。');
+  $('step3btn').disabled=true;
+  $('swapBtn').disabled=true;
+  render();
+}
+function doReset(clearLog){
+  S={s1:false,s2:false,s3:false,s4:false,s5:false};
+  curParam=null; doneRuns=[]; loadPeak=null; brokenCnt=0;
+  ['p1','p2','p3','p4','p5'].forEach((id,i)=>{const b=$(id);b.classList.remove('on');b.disabled=i!==0;});
+  $('step3btn').disabled=true;
+  $('swapBtn').disabled=true;
+  setSts('⏳ 未开始','si');
+  if(clearLog!==false)$('log').innerHTML='';
+  warn('');
+  render();
+}
+function resetAll(){
+  doReset(true);
+  $('fIn').value=1500; $('mat').value='steel'; $('join').value='rivet'; $('temp').value='23';
+  render();
+}
+
+/* ============ 页面框架逻辑 ============ */
+function goLab(){
+  const t=$('s4');
+  if(!t)return;
+  const y=t.getBoundingClientRect().top+(window.pageYOffset||document.documentElement.scrollTop);
+  window.scrollTo({top:y-8,behavior:'smooth'});
+  setTimeout(()=>{try{$('p1').focus({preventScroll:true});}catch(e){}},520);
+  /* 首次进入且没看过上手提示时，主动弹一次 */
+  setTimeout(()=>{
+    let seen=false;
+    try{seen=localStorage.getItem('envlab_pedal_onboarded')==='1';}catch(e){}
+    const m=$('onceMask');
+    if(!seen&&m&&!m.classList.contains('show'))m.classList.add('show');
+  },600);
+}
+/* 步骤进度点 */
+function syncProgress(){
+  const n=[S.s1,S.s2,S.s3,S.s4,S.s5].filter(Boolean).length;
+  for(let i=1;i<=5;i++){
+    const d=$('pd'+i);
+    if(d)d.classList.toggle('on',S['s'+i]);
+  }
+  const t=$('pdTxt');
+  const eff=doneRuns.length+brokenCnt;
+  let head='';
+  if(S.s5){
+    const pass=(doneRuns.length>=5&&brokenCnt===0);
+    head='进度 5/5 · 已完成判定'+(pass?'':'（未通过）');
+  } else if(n>0){
+    head='进度 '+n+'/5 · 下一步：'+NEXT[n].name;
+  } else {
+    head='进度 0/5 · 从 STEP 1 开始（点上面第 1 个按钮）';
+  }
+  if(eff>0&&!S.s5)head+='（已试验 '+eff+' 次）';
+  if(t)t.textContent=head;
+  renderNudge();
+}
+/* ============ 下一步引导 ============ */
+/* 每一步完成后要做什么：谁、叫什么、为什么、点了会怎样 */
+const NEXT=[
+  {id:'p1',name:'状态调节与安装',sub:'试件在标准环境放置 ≥24 h，按车辆实际安装状态装夹。不按实际装夹会人为提高刚度。',why:'先确认试件状态与安装方式',
+   icon:'①',step:'STEP 1 / 5 · 现在开始',act:'点上方的「状态调节与安装」按钮'},
+  {id:'p2',name:'加载点定位',sub:'力作用线须垂直于踏板面并通过几何中心。偏心加载会引入附加弯矩，读数失真。',why:'确认加载位置，避免偏心受力',
+   icon:'②',step:'STEP 2 / 5 · 上一步已完成',act:'点上方的「加载点定位」按钮'},
+  {id:'step3btn',name:'执行加载',sub:'加载至目标纵向力并保持 5 s。注意：本次有断裂风险，断裂则须换新试件重做。',why:'真正施加纵向载荷（含 30% 断裂概率）',
+   icon:'③',step:'STEP 3 / 5 · 加载到目标力',act:'点下方的「⬆ 执行加载（step 3）」按钮'},
+  {id:'p4',name:'卸载并读取残余位移',sub:'完全卸载后才能读数。带载读数会把弹性回弹算进残余位移，系统性偏高。',why:'必须在完全卸载后读残余位移',
+   icon:'④',step:'STEP 4 / 5 · 卸载后读数',act:'点上方的「卸载测残余位移」按钮'},
+  {id:'p5',name:'累计 5 次并判定',sub:'5 次试验取均值作为报告值；有效数据不足 5 件不得判符合。',why:'按标准口径出结论',
+   icon:'⑤',step:'STEP 5 / 5 · 出具判定',act:'点上方的「累计 5 次并判定」按钮'}
+];
+function renderNudge(){
+  const box=$('nudge');
+  if(!box)return;
+  /* 找出当前该做的一步 */
+  let idx=-1;
+  for(let i=0;i<5;i++){ if(!S['s'+(i+1)]){ idx=i; break; } }
+  /* 断裂后需要换件重做：把引导指回 step3 */
+  if(loadPeak&&loadPeak.broken&&!S.s3)idx=2;
+  /* step3 特殊：已加载待卸载时，指向 step4 */
+  if(S.s3&&!S.s4)idx=3;
+  /* step4 已完成但未满 5 次：指向继续加载 */
+  if(S.s4&&(doneRuns.length+brokenCnt)<5&&!loadPeak)idx=2;
+  if(S.s5){ box.classList.remove('show'); return; }
+  if(idx<0){ box.classList.remove('show'); return; }
+  const t=NEXT[idx];
+  $('nIcon').innerHTML=t.icon;
+  $('nStep').textContent=t.step;
+  $('nText').textContent=t.name;
+  $('nSub').innerHTML='<b style="color:#fcd34d">'+t.act+'</b>　'+t.why+'。'+t.sub;
+  const go=$('nGo');
+  if(go){
+    /* 引导卡按钮只做"跳过去并聚焦"，不代替真实操作按钮——避免两个入口造成困惑 */
+    go.textContent='带我去看';
+    go.onclick=function(){
+      scrollToNext();
+      setTimeout(()=>{const el=$(NEXT[idx].id);if(el)try{el.focus({preventScroll:true});}catch(e){}},500);
+    };
+  }
+  box.classList.add('show');
+  /* 按钮脉冲高亮 */
+  ['p1','p2','p3','p4','p5','step3btn'].forEach(id=>{const b=$(id);if(b)b.classList.remove('next');});
+  const tb=$(t.id);
+  if(tb&&!tb.disabled)tb.classList.add('next');
+}
+/* 完成后自动滚动到下一步 */
+function scrollToNext(){
+  let idx=-1;
+  for(let i=0;i<5;i++){ if(!S['s'+(i+1)]){ idx=i; break; } }
+  if(loadPeak&&loadPeak.broken&&!S.s3)idx=2;
+  if(S.s3&&!S.s4)idx=3;
+  if(S.s4&&(doneRuns.length+brokenCnt)<5&&!loadPeak)idx=2;
+  if(idx<0)return;
+  const t=NEXT[idx];
+  const el=$(t.id)||$('p3');
+  if(!el)return;
+  const r=el.getBoundingClientRect();
+  const need=r.top<90||r.bottom>window.innerHeight-90;
+  if(need){
+    const y=r.top+(window.pageYOffset||document.documentElement.scrollTop)-140;
+    window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+  }
+  setTimeout(()=>{try{el.focus({preventScroll:true});}catch(e){}},480);
+}
+/* 首次上手遮罩 */
+function showOnce(goLab){
+  const m=$('onceMask');
+  if(!m||!m.classList.contains('show'))return;
+  m.classList.remove('show');
+  try{localStorage.setItem('envlab_pedal_onboarded','1');}catch(e){}
+  if(goLab)setTimeout(()=>goLabNow(),120);
+}
+function goLabNow(){
+  goLab();
+  setTimeout(()=>{const b=$('p1');if(b)try{b.focus({preventScroll:true});}catch(e){}},560);
+}
+function openOnce(){
+  const m=$('onceMask');
+  if(m)m.classList.add('show');
+}
+const sp=$('sp');
+addEventListener('scroll',()=>{const h=document.documentElement;sp.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');}),{threshold:.12});
+document.querySelectorAll('.sec').forEach(s=>io.observe(s));
+addEventListener('resize',()=>render());
+/* 浮动"进入模拟台"按钮：滚过 Hero 后出现，进入模拟台后隐藏 */
+(function(){
+  const j=document.getElementById('jump'), k=document.getElementById('bk'), lab=document.getElementById('s4');
+  const f=()=>{
+    const y=window.pageYOffset||document.documentElement.scrollTop;
+    const past=y>300;
+    /* 用文档坐标判断是否已进入模拟台区间 */
+    const top=lab?lab.getBoundingClientRect().top+y:1e9;
+    const bot=top+(lab?lab.offsetHeight:0);
+    const inLabNow=y>=top-40&&y<bot;
+    if(j){
+      j.classList.toggle('on',past&&!inLabNow);
+      j.style.visibility=(past&&!inLabNow)?'visible':'hidden';
+    }
+    if(k){k.classList.toggle('on',y>260);}
+  };
+  window.addEventListener('scroll',f,{passive:true});f();
+  window.addEventListener('resize',f);
+})();
+render();
+syncProgress();
+
+/* ============ 首次上手：进入模拟台时弹一次 ============ */
+(function(){
+  const m=$('onceMask');
+  if(!m)return;
+  let seen=false;
+  try{seen=localStorage.getItem('envlab_pedal_onboarded')==='1';}catch(e){}
+  /* 首次进入模拟台（IntersectionObserver）时弹一次，之后用 localStorage 记住 */
+  if(!seen&&window.IntersectionObserver){
+    const lab=document.getElementById('s4');
+    if(lab){
+      const io2=new IntersectionObserver(es=>{
+        es.forEach(e=>{
+          if(e.isIntersecting&&!seen){
+            seen=true;
+            setTimeout(()=>{ if(m.classList.contains('show'))return; m.classList.add('show'); },380);
+            io2.disconnect();
+          }
+        });
+      },{threshold:.18});
+      io2.observe(lab);
+    }
+  }
+  const bind=(id,fn)=>{const b=$(id);if(b)b.addEventListener('click',fn);};
+  bind('onceGo',()=>showOnce(true));
+  bind('onceSkip',()=>showOnce(false));
+  bind('onceX',()=>showOnce(false));
+  m.addEventListener('click',e=>{if(e.target===m)showOnce(false);});
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&m.classList.contains('show'))showOnce(false);
+  });
+})();
+</script>
+<script data-elqr-script>(function(){
+if(window.__elqrZoom)return;window.__elqrZoom=1;
+var ALT="微信公众号「小宋的环保笔记」二维码",CAP="微信公众号 · 小宋的环保笔记",HINT="点击空白处或按 Esc 关闭";
+var ov=null,prev=null;
+function close(){
+  var o=ov;if(!o)return;ov=null;
+  o.style.opacity="0";
+  setTimeout(function(){if(o.parentNode)o.parentNode.removeChild(o);},180);
+  document.removeEventListener("keydown",onKey);
+  if(prev&&prev.focus){try{prev.focus();}catch(e){}}
+  prev=null;
+}
+function onKey(e){if(e.key==="Escape"||e.keyCode===27)close();}
+function build(src){
+  var o=document.createElement("div");
+  o.setAttribute("role","dialog");
+  o.setAttribute("aria-modal","true");
+  o.setAttribute("aria-label","微信公众号二维码");
+  o.style.cssText="position:fixed;left:0;top:0;width:100%;height:100%;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;background:rgba(0,0,0,.78);cursor:zoom-out;opacity:0;transition:opacity .16s ease-out";
+  var b=document.createElement("div");
+  b.style.cssText="text-align:center;cursor:default";
+  var im=document.createElement("img");
+  im.src=src;im.alt=ALT;
+  im.style.cssText="display:block;width:420px;max-width:92vw;height:auto;width:min(66vw,66vh);background:#fff;padding:16px;border-radius:14px;box-sizing:border-box;box-shadow:0 20px 60px rgba(0,0,0,.5)";
+  var c=document.createElement("div");
+  c.textContent=CAP;
+  c.style.cssText="margin-top:16px;font-size:14px;line-height:1.7;color:#fff;opacity:.92";
+  var h=document.createElement("div");
+  h.textContent=HINT;
+  h.style.cssText="margin-top:6px;font-size:12px;line-height:1.7;color:#fff;opacity:.72";
+  var x=document.createElement("button");
+  x.type="button";x.setAttribute("aria-label","关闭");x.innerHTML="&times;";
+  x.style.cssText="position:fixed;top:18px;right:22px;width:42px;height:42px;padding:0;font-size:26px;line-height:1;color:#fff;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);border-radius:50%;cursor:pointer;font-family:inherit";
+  b.appendChild(im);b.appendChild(c);b.appendChild(h);
+  o.appendChild(b);o.appendChild(x);
+  o.addEventListener("click",function(e){if(e.target===o||e.target===x)close();});
+  document.body.appendChild(o);
+  return o;
+}
+function open(src,trigger){
+  prev=trigger||null;
+  ov=ov||build(src);
+  var im=ov.querySelector("img");
+  if(im&&im.getAttribute("src")!==src)im.setAttribute("src",src);
+  document.addEventListener("keydown",onKey);
+  setTimeout(function(){if(ov)ov.style.opacity="1";},10);
+  var btn=ov.querySelector("button");
+  if(btn&&btn.focus){try{btn.focus();}catch(e){}}
+}
+document.addEventListener("click",function(e){
+  var t=e.target;
+  while(t&&t!==document){
+    if(t.getAttribute&&t.getAttribute("data-elqr-zoom")!==null)break;
+    t=t.parentNode;
+  }
+  if(!t||t===document||!t.getAttribute)return;
+  e.preventDefault();
+  open(t.getAttribute("href"),t);
+});
+})();</script>
+<a id="bk" href="../index.html" title="返回实验集总目录（Alt+Esc）"><span class="bk-a" aria-hidden="true">&#8592;</span><span class="bk-t">返回目录</span></a>
+<script>(function(){var b=document.getElementById("bk");if(!b)return;var f=function(){var y=window.pageYOffset||document.documentElement.scrollTop;if(y>260)b.classList.add("on");else b.classList.remove("on")};window.addEventListener("scroll",f,{passive:true});f();document.addEventListener("keydown",function(e){if(e.key==="Escape"&&e.altKey)location.href=b.getAttribute("href")});})();</script><script>(function(){var a=document.querySelectorAll("a.elmail");for(var i=0;i<a.length;i++){var u=a[i].getAttribute("data-u"),d=a[i].getAttribute("data-d");if(!u||!d)continue;var e=u+"@"+d;a[i].href="mailto:"+e;a[i].textContent=e;}})();</script>
+</body>
+</html>
