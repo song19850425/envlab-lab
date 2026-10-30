@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Interactive fermentation lab: change aeration and agitation to set kLa, balance oxygen supply against uptake, and keep dissolved oxygen above the critical level.">
+<title>Fermentation Oxygen Control: kLa & Dissolved Oxygen</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='8' fill='none' stroke='%2359d6ff' stroke-width='1.6'/%3E%3Ccircle cx='12' cy='12' r='4' fill='none' stroke='%23ffb020' stroke-width='1.6'/%3E%3Cpath d='M12 4v2M12 18v2M4 12h2M18 12h2' stroke='%233ddc84' stroke-width='1.6'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+  --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+  --amber:#ffb020; --amber-dim:#8a5c10;
+  --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84; --violet:#b48cff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;overflow-x:hidden}
+#loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .6s ease}
+#loader.done{opacity:0;pointer-events:none}
+#loader .spin{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--amber);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+@keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+.metric.flash{animation:mflash .9s ease}
+@keyframes spinImp{0%,100%{transform:rotate(0)}50%{transform:rotate(6deg)}}
+.imp{animation:spinImp 1.8s ease-in-out infinite;transform-origin:50% 50%}
+@keyframes rise{0%{transform:translateY(0);opacity:.2}100%{transform:translateY(-30px);opacity:.9}}
+.bub{animation:rise 2.2s ease-in-out infinite}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+header.lab-head{padding:26px 4px 6px}
+.kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+h1.title .thin{color:var(--dim);font-weight:300}
+.sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+.oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;border-left:3px solid var(--amber);padding-left:14px;max-width:680px}
+.oneliner b{color:var(--amber)}
+.stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+@media (max-width:900px){.stage{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;overflow:hidden;margin-bottom:18px}
+.card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+svg.scene,canvas{width:100%;height:auto;display:block;background:radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+canvas{margin-top:10px;cursor:crosshair}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+.metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+.metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+.metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+#narrate{min-height:110px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px}
+#narrate b{color:var(--cyan);font-family:var(--mono)}
+#narrate .warn{color:var(--danger);font-weight:700}
+#narrate .ok{color:var(--ok);font-weight:700}
+.ctl{margin-bottom:12px}
+.ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+.ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+input[type=range]{width:100%;accent-color:var(--amber);background:transparent;height:26px}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{width:16px;height:16px;border-radius:50%;background:var(--amber);margin-top:-6px;border:none}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;font-family:var(--mono);transition:all .15s}
+.seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+.seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);box-shadow:0 0 0 1px var(--amber-dim) inset}
+.seg button.on small{color:var(--amber)}
+.seg button.done{color:var(--ok);border-color:#1e4d33}
+.seg button:active{transform:scale(.97)}
+#bench{margin-top:14px;min-height:120px}
+.tipbox{font-size:13px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:10px}
+.tipbox b{color:var(--txt)}
+.tipbox .warnline{color:var(--amber)}
+.actionrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn-act{flex:1;min-width:180px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206;border:none;border-radius:10px;letter-spacing:.1em;transition:transform .12s, box-shadow .12s}
+.btn-act:hover{box-shadow:0 4px 16px rgba(255,176,32,.35)}
+.btn-act:active{transform:scale(.98)}
+.btn-act:disabled{opacity:.45;cursor:default;box-shadow:none}
+.btn-ghost{padding:13px 18px;font-size:14px;cursor:pointer;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:10px}
+.btn-ghost:hover{color:var(--txt);border-color:var(--faint)}
+#conclusionCard{border-left:3px solid var(--violet)}
+.bigresult{text-align:center;padding:18px 0 6px}
+.bigresult .n{font-family:var(--mono);font-size:52px;font-weight:800;color:var(--violet)}
+.bigresult .u{font-size:14px;color:var(--dim)}
+.bigresult .c{font-size:13px;color:var(--faint);margin-top:6px;letter-spacing:.2em}
+.conc-text{font-size:14.5px;line-height:1.9;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}
+.conc-text b{color:var(--cyan);font-family:var(--mono)}
+.conc-text .bad{color:var(--danger);font-weight:700}
+.conc-text .good{color:var(--ok);font-weight:700}
+.spec-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.spec-table th{font-size:11px;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);letter-spacing:.1em}
+.spec-table td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--txt);font-family:var(--mono);font-size:13px}
+.redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+@media (max-width:700px){.redlines{grid-template-columns:1fr}}
+.rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.rl .d{font-size:12px;color:var(--dim);line-height:1.7}
+details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+details.how summary::-webkit-details-marker{display:none}
+details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--faint)}
+.tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+@media print{#loader,#rp{display:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>Starting the fermenter…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">BIO · VIRTUAL LAB 02</div>
+    <div class="kicker">Bioprocess engineering · Fermentation engineering · Oxygen transfer</div>
+    <h1 class="title">Fermentation Dissolved-Oxygen Control<span class="thin">Lab</span></h1>
+    <div class="sub">DO CONTROL · kLa · OXYGEN TRANSFER</div>
+    <p class="oneliner"><b>Aerobic fermentation is a tug of war between oxygen supply and oxygen demand: aeration rate and agitation speed set kLa (the oxygen-supply capacity), while biomass sets the oxygen uptake rate. Once DO falls below the critical value, cells switch at once to anaerobic metabolism.</b><br>dC/dt = kLa(C* − C) − qO2·X · Dissolved oxygen DO · Critical DO 1.5 mg/L.</p>
+  </header>
+  <section class="seo-intro" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:18px;line-height:1.75;font-size:14.5px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">About this lab</h2>
+    <p><strong>Demo:</strong> Aerobic fermentation lives or dies on oxygen transfer. Oxygen must cross from gas bubbles into the liquid, and the volumetric mass-transfer coefficient kLa measures how fast that transfer can happen. In this interactive lab you set the aeration rate (vvm) and the agitation speed (rpm), which together fix kLa, while the oxygen uptake rate qO2·X is set by biomass. Dissolved oxygen then settles at a steady state, C_ss = C* − qO2·X/kLa, where C* is the saturation concentration. If that steady state falls below the critical dissolved oxygen of 1.5 mg/L, cells switch to anaerobic metabolism and by-products accumulate. After any parameter change, dissolved oxygen approaches its new steady state exponentially, with a time constant of 1/kLa, so a larger kLa means a faster response as well as a higher steady state.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">Browse the full set: <a href="index-en.html" style="color:var(--cyan)">Interactive Virtual Labs</a> · <a href="01-Microbial-Growth-Monod.html" style="color:var(--cyan)">microbial growth curve and Monod kinetics</a> · <a href="04-Bioreactor-ScaleUp.html" style="color:var(--cyan)">bioreactor scale-up criteria</a></p>
+  </section>
+
+  <div class="stage">
+    <div class="card">
+      <h3>Bench · <span id="sceneTitle" style="color:var(--amber)">1 · Inoculation and start-up</span></h3>
+      <svg class="scene" id="rig" viewBox="0 0 420 190" role="img" aria-label="Fermenter oxygen-supply diagram">
+        <rect x="150" y="30" width="120" height="120" rx="6" fill="#14202e" stroke="#59d6ff" stroke-width="2"/>
+        <g class="imp">
+          <path d="M210 70 L186 58 M210 70 L234 58 M210 70 L198 92 M210 70 L222 92" stroke="#ffb020" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="210" cy="70" r="5" fill="#ffb020"/>
+        </g>
+        <circle cx="206" cy="112" r="2.6" fill="#59d6ff" class="bub"/>
+        <circle cx="216" cy="104" r="2.2" fill="#59d6ff" class="bub"/>
+        <circle cx="200" cy="94" r="2" fill="#59d6ff" class="bub"/>
+        <rect x="148" y="148" width="124" height="5" rx="3" fill="#232b38"/>
+        <path d="M165 28 L163 8 M255 28 L257 8" stroke="#8b95a3" stroke-width="3"/>
+        <text x="210" y="168" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">Mechanically stirred fermenter · Air → bubbles → liquid film → cells</text>
+        <text x="210" y="182" text-anchor="middle" fill="#5b6572" font-size="9" font-family="inherit">Oxygen-transfer path: gas phase → gas–liquid interface C* → bulk liquid C → cells (uptake qO2·X)</text>
+      </svg>
+      <canvas id="doCanvas" width="820" height="420" style="width:100%;height:auto"></canvas>
+      <div id="bench"></div>
+      <div class="actionrow">
+        <button class="btn-act" id="actBtn">Start</button>
+        <button class="btn-ghost" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Live instruments</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">Dissolved oxygen DO</div><div class="v" id="mDO">–<small>mg/L</small></div><div class="sub2" id="mDOSub">–</div></div>
+          <div class="metric" id="mSc"><div class="k">Volumetric oxygen-transfer coefficient kLa</div><div class="v" id="mKla">–<small>h⁻¹</small></div><div class="sub2">Aeration + agitation</div></div>
+          <div class="metric"><div class="k">Oxygen uptake rate qO2·X</div><div class="v" id="mQ">–<small>mg/L/h</small></div><div class="sub2">Biomass × specific oxygen uptake</div></div>
+          <div class="metric" id="mPc"><div class="k">Oxygen-supply balance</div><div class="v" id="mB">–</div><div class="sub2" id="mBSub">Critical DO = 1.5</div></div>
+        </div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">Aeration rate vvm</span><span class="val" id="vvmVal">1.0 vvm</span></div>
+          <input type="range" id="vvmRange" min="20" max="200" step="10" value="100">
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">Agitation speed</span><span class="val" id="rpmVal">600 rpm</span></div>
+          <input type="range" id="rpmRange" min="100" max="900" step="50" value="600">
+        </div>
+        <h3>Steps</h3>
+        <div class="seg" id="stepSeg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="conclusionCard" style="display:none">
+    <h3>Conclusion · Oxygen supply–demand balance</h3>
+    <div class="bigresult">
+      <div class="n" id="resBig">–</div>
+      <div class="u" id="resUnit">mg/L (steady-state dissolved oxygen)</div>
+      <div class="c" id="resState">–</div>
+    </div>
+    <div class="conc-text" id="concText">…</div>
+    <div class="actionrow">
+      <button class="btn-act" onclick="resetAll()">Adjust parameters and try again</button>
+      <button class="btn-ghost" onclick="document.getElementById('howBox').open=true">See the model equations</button>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 1 · Critical DO is a gate</div><div class="d">For most aerobic microbes the critical DO is 1–2 mg/L; below it respiration is limited and by-products accumulate (lactate/ethanol). Controlling DO is not a case of higher is better: too high wastes energy, foams, and supersaturates CO2 — holding 1–2 times the critical value is enough.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 2 · kLa is not a single aeration knob</div><div class="d">kLa is set jointly by aeration rate, agitation, antifoam and vessel geometry. Agitation breaks large bubbles into small ones and extends their residence time, often beating simply adding more air. In high-biomass fermentation oxygen demand is huge — adding air without speeding up agitation still leaves the culture oxygen-starved.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 3 · Agitation power is the main cost</div><div class="d">Agitation power P ∝ n³d⁵, so doubling speed multiplies power eightfold. In industry the order "DO falls → add air first, then raise speed, and only then touch feeding" is deliberate — every step costs money. DO probes must be calibrated regularly; drift fools the whole control loop.</div></div>
+  </div>
+
+  <details class="how" id="howBox">
+    <summary>▸ Model and equations (deterministic demo, no random numbers fitted to results)</summary>
+    <div class="f">Oxygen-transfer dynamic balance: dC/dt = kLa·(C* − C) − qO2·X      [mg/L/h]
+Saturation dissolved oxygen C* = 7.5 mg/L (37 °C, atmospheric pressure, demo)
+kLa = 50·vvm + 20 + 30·(rpm/600)      [h⁻¹] (coupled aeration + agitation demo equation)
+Oxygen uptake rate = qO2·X, qO2 = 60 mgO2/g biomass/h, X = 5 g/L (fixed demo)
+Steady-state solution: C_ss = C* − qO2·X / kLa
+Step response: C(t) = C_ss − (C_ss − C0)·e^(−kLa·t)
+Critical DO = 1.5 mg/L (below this, oxygen-limited)
+This page is a deterministic demo: vvm and rpm are adjustable; the DO response is reproducible.</div>
+    <p>The demo model uses typical aerobic-fermentation parameters (the kLa correlation is a teaching demo; in engineering, empirical correlations such as the P/V method are used).For teaching demo use only, not as a process-control basis. </p>
+  </details>
+  <section class="seo-faq" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:18px;line-height:1.75;font-size:14px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">Frequently asked questions</h2>
+      <p style="margin-bottom:10px"><strong>What is kLa?</strong><br>The volumetric oxygen-transfer coefficient: it combines the transfer coefficient and the bubble area per volume, so it measures the fermenter's overall capacity to supply oxygen.</p>
+      <p style="margin-bottom:10px"><strong>How do aeration and agitation change kLa?</strong><br>More air and faster stirring both raise kLa in this demo — stirring also breaks large bubbles into small ones and lengthens their residence time, which often beats adding air alone.</p>
+      <p style="margin-bottom:10px"><strong>What is the critical dissolved oxygen?</strong><br>The level below which respiration becomes oxygen-limited, here 1.5 mg/L. Below it, cells switch to anaerobic metabolism and lactate or ethanol accumulate.</p>
+      <p style="margin-bottom:10px"><strong>Why does dissolved oxygen respond exponentially after a change?</strong><br>Because the balance dC/dt = kLa(C* − C) − qO2·X is first-order in C, so the gap to the new steady state shrinks with time constant 1/kLa.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">See also: <a href="index-en.html" style="color:var(--cyan)">All interactive labs</a></p>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ============ Model (deterministic) ============ */
+const CSTAR = 7.5, QO2 = 60, XFIX = 5, DO_CRIT = 1.5;
+let P = { vvm: 1.0, rpm: 600 };
+const $ = id => document.getElementById(id);
+const kla = () => 50 * P.vvm + 20 + 30 * (P.rpm / 600);
+const demand = () => QO2 * XFIX;
+const steadyDO = () => Math.max(0, CSTAR - demand() / kla());
+function doResponse(t0, C0){ // Deterministic response after a step from the current state
+  const css = steadyDO();
+  return { css, curve: t => css - (css - C0) * Math.exp(-kla() * t), k: kla() };
+}
+
+/* ============ State machine ============ */
+const STEPS = [
+  { t: "Inoculation and start-up", s: "Charge and sterilise the fermenter → inoculate → start agitation and aeration, with the DO probe monitoring online.", bench: "Prepare: \n① Sterilise the vessel (empty/media sterilisation)\n② Inoculate 5%\n③ Start agitation + aeration\n④ Calibrate the online DO electrode" },
+  { t: "Measure steady-state DO", s: "Steady-state DO at the current aeration/agitation: C_ss = C* − qO2X/kLa.", bench: "" },
+  { t: "Judge the balance", s: "DO above the critical 1.5 mg/L → oxygen supply is enough; below → oxygen-limitation warning.", bench: "" },
+  { t: "Adjust oxygen supply", s: "DO low: add aeration first, then raise agitation; DO high: do the reverse — every step costs energy.", bench: "" },
+  { t: "Step response", s: "After changing parameters, watch DO approach the new steady state exponentially, with time constant = 1/kLa.", bench: "" },
+  { t: "Report", s: "Record the vvm/rpm → kLa → DO relationship and fix the process operating window.", bench: "" }
+];
+let step = 0;
+let c0 = 2.0; // Current DO starting point (step demo)
+
+function renderSeg(){
+  const el = $("stepSeg");
+  el.innerHTML = STEPS.map((s, i) =>
+    `<button data-i="${i}" class="${i < step ? "done" : i === step ? "on" : ""}">${i + 1} · ${s.t}<small>${i < step ? "Done" : i === step ? "In progress" : "To do"}</small></button>`
+  ).join("");
+  [...el.children].forEach(b => b.onclick = () => { if(+b.dataset.i <= step){ step = +b.dataset.i; renderSeg(); narrate(); } });
+  $("sceneTitle").textContent = `${step + 1} · ${STEPS[step].t}`;
+  $("actBtn").textContent = step >= 5 ? "Finish" : "Next step";
+}
+function narrate(){
+  const n = $("narrate");
+  const k = kla(), d = demand(), ss = steadyDO();
+  if (step <= 1) n.innerHTML = STEPS[step].s;
+  else if (step === 2) n.innerHTML = `Steady-state DO: C_ss = C* − qO2X/kLa = <b>${ss.toFixed(1)} mg/L</b> (kLa=${k.toFixed(0)} h⁻¹, oxygen uptake ${d} mg/L/h). `;
+  else if (step === 3) n.innerHTML = ss >= DO_CRIT ? `<span class='ok'>DO = ${ss.toFixed(1)} ≥ critical 1.5 — oxygen supply enough, cells in normal aerobic metabolism.</span>` : `<span class='warn'>DO = ${ss.toFixed(1)} &lt; critical 1.5 — oxygen-limited! Cells switch to anaerobic metabolism and by-products accumulate.</span>`;
+  else if (step === 4) n.innerHTML = `Adjustment advice: ${ss < DO_CRIT ? "Add aeration first (kLa ∝ 50·vvm), then raise agitation (kLa ∝ 30·rpm) — only if both fail, consider lowering biomass or oxygen enrichment." : "DO in surplus: lower aeration or speed to save energy, or raise biomass to lift yield."}`;
+  else if (step === 5) n.innerHTML = `After the step, DO approaches the new steady state as e^(−kLa·t), time constant τ = 1/kLa = <b>${(1 / k).toFixed(2)} h</b> — the larger kLa, the faster the response.`;
+  else n.innerHTML = `Report: vvm = ${P.vvm.toFixed(1)}, rpm=${P.rpm} → kLa=${k.toFixed(0)} h⁻¹, DO_ss=${ss.toFixed(1)} mg/L${ss < DO_CRIT ? " (oxygen-limited, process not viable)" : " (oxygen supply sufficient, process viable)"}. `;
+}
+function flash(id){
+  const el = $(id); if(!el) return;
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+}
+function refreshMetrics(){
+  const k = kla(), d = demand(), ss = steadyDO();
+  $("mDO").textContent = ss.toFixed(1);
+  $("mDOSub").textContent = "Steady-state value C_ss";
+  $("mKla").textContent = k.toFixed(0);
+  $("mQ").textContent = d;
+  $("mB").textContent = ss >= DO_CRIT ? "Oxygen supply enough" : "Oxygen-limited";
+  $("mB").classList.toggle("good", ss >= DO_CRIT);
+  $("mB").classList.toggle("warn", ss < DO_CRIT);
+  $("mBSub").textContent = ss >= DO_CRIT ? "Above critical 1.5" : "Below critical 1.5";
+  flash("mDO"); flash("mKla"); flash("mQ"); flash("mB");
+}
+
+/* ============ Canvas DO response ============ */
+const W_ = 820, H_ = 420;
+const cv = $("doCanvas"), ctx = cv.getContext("2d");
+function drawCanvas(){
+  ctx.clearRect(0, 0, W_, H_);
+  const l = { l: 56, r: W_ - 20, t: 24, b: 42 };
+  const tmax = 3; // h
+  const ss = steadyDO(), k = kla();
+  const c0v = c0, css = ss;
+  const doMax = Math.max(8, css * 1.15);
+  const X = t => l.l + t / tmax * (l.r - l.l);
+  const Y = c => H_ - l.b - c / doMax * (H_ - l.t - l.b);
+  ctx.font = "10px ui-monospace,monospace"; ctx.fillStyle = "#5b6572"; ctx.strokeStyle = "#232b38";
+  for (let t = 0; t <= 3; t += 0.5){ const x = X(t); ctx.beginPath(); ctx.moveTo(x, l.t); ctx.lineTo(x, H_ - l.b); ctx.stroke(); ctx.fillText(t.toFixed(1), x - 6, H_ - l.b + 16); }
+  for (let i = 0; i <= 4; i++){ const c = i * doMax / 4, y = Y(c); ctx.beginPath(); ctx.moveTo(l.l, y); ctx.lineTo(l.r, y); ctx.stroke(); ctx.fillText(c.toFixed(1), 6, y + 4); }
+  ctx.fillStyle = "#8b95a3"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText("Time t (h)", l.l + 140, H_ - 8);
+  ctx.fillText("DO step response (from " + c0v.toFixed(1) + " mg/L)", l.l + 8, l.t - 6);
+  ctx.save(); ctx.translate(14, H_ / 2 + 6); ctx.rotate(-Math.PI / 2); ctx.fillText("DO (mg/L)", -32, 0); ctx.restore();
+  // Critical line
+  ctx.strokeStyle = "#ff5252"; ctx.setLineDash([5, 4]);
+  ctx.beginPath(); ctx.moveTo(l.l, Y(DO_CRIT)); ctx.lineTo(l.r, Y(DO_CRIT)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = "#ff5252"; ctx.font = "10.5px -apple-system,Microsoft YaHei";
+  ctx.fillText("Critical DO = 1.5", l.r - 92, Y(DO_CRIT) - 6);
+  // Response curve
+  ctx.strokeStyle = "#59d6ff"; ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  for (let t = 0; t <= tmax; t += 0.02){
+    const c = css - (css - c0v) * Math.exp(-k * t);
+    const x = X(t), y = Y(Math.max(0, c));
+    t === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  // Steady-state dashed line
+  ctx.strokeStyle = "#b48cff"; ctx.setLineDash([4, 4]);
+  ctx.beginPath(); ctx.moveTo(l.l, Y(css)); ctx.lineTo(l.r, Y(css)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = "#b48cff"; ctx.font = "10.5px -apple-system,Microsoft YaHei";
+  ctx.fillText(`Steady-state DO = ${css.toFixed(1)}`, l.r - 110, Y(css) - 6);
+  // Start and end points
+  ctx.fillStyle = "#ffb020";
+  ctx.beginPath(); ctx.arc(X(0), Y(c0v), 5, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(X(tmax), Y(Math.max(0, css)), 5, 0, 7); ctx.fill();
+  ctx.fillStyle = "#ffb020"; ctx.font = "11px ui-monospace,monospace";
+  ctx.fillText(`τ=1/kLa=${(1 / k).toFixed(2)}h`, l.r - 120, H_ - l.b + 16);
+  // Right: supply–demand diagram
+  const rx = 480;
+  ctx.fillStyle = "#8b95a3"; ctx.font = "13px -apple-system,Microsoft YaHei";
+  ctx.fillText("Oxygen supply vs demand (mg/L/h)", rx, 36);
+  const d = demand();
+  const kDraw = Math.min(220, k * 2);
+  const dDraw = Math.min(220, d);
+  // Oxygen-supply bar
+  ctx.fillStyle = "#59d6ff"; ctx.fillRect(rx, 56, 100, 10);
+  ctx.fillStyle = "#59d6ff"; ctx.fillRect(rx + 130, 56, 100, 10);
+  // Two-bar comparison
+  ctx.fillStyle = "#59d6ff";
+  ctx.fillRect(rx, 70, kDraw, 26);
+  ctx.fillStyle = "#e8eef4"; ctx.font = "11px ui-monospace,monospace";
+  ctx.fillText("kLa·(C*−C) ≈ " + (k * Math.max(1, CSTAR - steadyDO())).toFixed(0), rx + 6, 88);
+  ctx.fillStyle = "#ff5252";
+  ctx.fillRect(rx, 110, dDraw, 26);
+  ctx.fillStyle = "#e8eef4"; ctx.font = "11px ui-monospace,monospace";
+  ctx.fillText("qO2·X = " + d, rx + 6, 128);
+  ctx.fillStyle = "#8b95a3"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText("Supply bar (blue) vs demand bar (red)", rx, 160);
+  ctx.fillText("Supply > demand → high steady-state DO; otherwise it is pulled down", rx, 180);
+  ctx.fillStyle = "#ffb020"; ctx.font = "12px -apple-system,Microsoft YaHei";
+  ctx.fillText(`DO_ss = ${steadyDO().toFixed(1)} mg/L`, rx, 210);
+}
+
+/* ============ Actions ============ */
+$("actBtn").onclick = () => {
+  if (step < 5) step++;
+  if (step === 4){ renderConclusion(); }
+  renderSeg(); narrate();
+};
+$("resetBtn").onclick = resetAll;
+function resetAll(){
+  P = { vvm: 1.0, rpm: 600 }; c0 = 2.0;
+  step = 0;
+  $("vvmRange").value = 100; $("rpmRange").value = 600;
+  $("conclusionCard").style.display = "none";
+  renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+}
+$("vvmRange").oninput = e => {
+  P.vvm = +e.target.value / 100;
+  $("vvmVal").textContent = P.vvm.toFixed(1) + " vvm";
+  c0 = steadyDO();
+  refreshMetrics(); narrate(); drawCanvas();
+};
+$("rpmRange").oninput = e => {
+  P.rpm = +e.target.value;
+  $("rpmVal").textContent = P.rpm + " rpm";
+  c0 = steadyDO();
+  refreshMetrics(); narrate(); drawCanvas();
+};
+function renderConclusion(){
+  const k = kla(), d = demand(), ss = steadyDO();
+  $("conclusionCard").style.display = "";
+  $("resBig").textContent = ss.toFixed(1);
+  $("resState").textContent = `vvm=${P.vvm.toFixed(1)} · rpm=${P.rpm} · kLa=${k.toFixed(0)} h⁻¹`;
+  $("concText").innerHTML = `Steady-state dissolved oxygen DO_ss = C* − qO2X/kLa = <b>${ss.toFixed(1)} mg/L</b> (kLa=<b>${k.toFixed(0)} h⁻¹</b>, oxygen uptake ${d} mg/L/h). <br>${ss >= DO_CRIT ? "<span class='good'>Oxygen supply sufficient — process viable, cells in aerobic metabolism.</span>" : "<span class='bad'>Oxygen-limited! DO below the critical 1.5 — cells switch to anaerobic metabolism, lactate/ethanol accumulate, and yield collapses.</span>"}<br>Operating order: DO falls → add aeration first → then raise agitation → only then touch feeding or lower biomass.<br>Engineering note: agitation power P ∝ n³d⁵ (doubling speed multiplies power eightfold); calibrate the DO electrode regularly, or drift will fool the control.`;
+}
+
+/* ============ Initialization ============ */
+window.addEventListener("load", () => {
+  setTimeout(() => $("loader").classList.add("done"), 700);
+  renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+});
+</script>
+</body>
+</html>
