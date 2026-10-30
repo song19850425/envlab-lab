@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Interactive fluid friction lab: vary flow rate and pipe diameter, read pressure drop, and plot friction factor against Reynolds number in both flow regimes.">
+<title>Fluid Friction Lab: Darcy Friction Factor vs Reynolds Number</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2 12h20' stroke='%2359d6ff' stroke-width='2'/%3E%3Ccircle cx='7' cy='12' r='3' fill='%2311151d' stroke='%23ffb020'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+  --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+  --amber:#ffb020; --amber-dim:#8a5c10;
+  --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84; --violet:#b48cff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;overflow-x:hidden}
+#loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .6s ease}
+#loader.done{opacity:0;pointer-events:none}
+#loader .spin{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--amber);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+@keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+.metric.flash{animation:mflash .9s ease}
+@keyframes dashFlow{to{stroke-dashoffset:-20}}
+.flowline{stroke-dasharray:7 5;animation:dashFlow 1.1s linear infinite}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+header.lab-head{padding:26px 4px 6px}
+.kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+h1.title .thin{color:var(--dim);font-weight:300}
+.sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+.oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;border-left:3px solid var(--amber);padding-left:14px;max-width:680px}
+.oneliner b{color:var(--amber)}
+.stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+@media (max-width:900px){.stage{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;overflow:hidden;margin-bottom:18px}
+.card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+svg.scene,canvas{width:100%;height:auto;display:block;background:radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+canvas{margin-top:10px}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+.metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+.metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+.metric.warn .v{color:var(--danger)}
+.metric.good .v{color:var(--ok)}
+.metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+#narrate{min-height:110px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px}
+#narrate b{color:var(--cyan);font-family:var(--mono)}
+#narrate .warn{color:var(--danger);font-weight:700}
+#narrate .ok{color:var(--ok);font-weight:700}
+.ctl{margin-bottom:12px}
+.ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+.ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+input[type=range]{width:100%;accent-color:var(--amber);background:transparent;height:26px}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{width:16px;height:16px;border-radius:50%;background:var(--amber);margin-top:-6px;border:none}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;font-family:var(--mono);transition:all .15s}
+.seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+.seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);box-shadow:0 0 0 1px var(--amber-dim) inset}
+.seg button.on small{color:var(--amber)}
+.seg button.done{color:var(--ok);border-color:#1e4d33}
+.seg button:active{transform:scale(.97)}
+kbd.kbd{font-family:var(--mono);font-size:10px;color:var(--faint);border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:1px 5px;margin-left:6px;background:#0d1117;white-space:nowrap}
+#bench{margin-top:14px;min-height:120px}
+.tipbox{font-size:13px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:10px}
+.tipbox b{color:var(--txt)}
+.tipbox .warnline{color:var(--amber)}
+.kv-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:600px){.kv-grid{grid-template-columns:1fr}}
+.kv{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px}
+.kv .k{font-size:11px;color:var(--faint)}
+.kv .v{font-family:var(--mono);font-size:16px;font-weight:700;color:var(--txt);margin-top:2px}
+.kv .v em{font-style:normal;color:var(--amber)}
+.actionrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn-act{flex:1;min-width:180px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206;border:none;border-radius:10px;letter-spacing:.1em;transition:transform .12s, box-shadow .12s}
+.btn-act:hover{box-shadow:0 4px 16px rgba(255,176,32,.35)}
+.btn-act:active{transform:scale(.98)}
+.btn-act:disabled{opacity:.45;cursor:default;box-shadow:none}
+.btn-ghost{padding:13px 18px;font-size:14px;cursor:pointer;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:10px}
+.btn-ghost:hover{color:var(--txt);border-color:var(--faint)}
+#conclusionCard{border-left:3px solid var(--violet)}
+.bigresult{text-align:center;padding:18px 0 6px}
+.bigresult .n{font-family:var(--mono);font-size:52px;font-weight:800;color:var(--violet)}
+.bigresult .u{font-size:14px;color:var(--dim)}
+.bigresult .c{font-size:13px;color:var(--faint);margin-top:6px;letter-spacing:.2em}
+.conc-text{font-size:14.5px;line-height:1.9;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}
+.conc-text b{color:var(--cyan);font-family:var(--mono)}
+.conc-text .bad{color:var(--danger);font-weight:700}
+.conc-text .good{color:var(--ok);font-weight:700}
+.redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+@media (max-width:700px){.redlines{grid-template-columns:1fr}}
+.rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.rl .d{font-size:12px;color:var(--dim);line-height:1.7}
+details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+details.how summary::-webkit-details-marker{display:none}
+details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--faint)}
+.tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+@media print{#loader{display:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>Setting up the flow…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">CHEME · VIRTUAL LAB 02</div>
+    <div class="kicker">Chemical engineering principles · Momentum transfer · Straight-pipe resistance</div>
+    <h1 class="title">Fluid Flow Resistance<span class="thin">Lab</span></h1>
+    <div class="sub">FLUID FRICTION LAB · λ-Re DIAGRAM</div>
+    <p class="oneliner"><b>If the flow rate doubles, how many times does the pressure drop rise?</b>How does the friction factor λ really vary with Re? The data points draw it for you.<br>Water at 25 °C · Horizontal straight pipe · U-tube manometer.</p>
+  </header>
+  <section class="seo-intro" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:18px;line-height:1.75;font-size:14.5px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">About this lab</h2>
+    <p><strong>Demo:</strong> The Darcy friction factor links pressure drop to flow in a straight pipe. In this interactive lab, water at 25 °C flows through a horizontal test pipe, and a U-tube manometer reads the frictional pressure drop. You set the flow rate and choose a pipe diameter, then back-calculate the friction factor λ from the Darcy-Weisbach equation, Δpf = λ(L/d)(ρu²/2), and plot it against the Reynolds number. In laminar flow λ falls as 64/Re, so the log-log line has slope −1. In turbulent flow in a smooth pipe it follows the Blasius relation, 0.3164/Re^0.25, with slope −0.25. Between Re 2000 and 4000 the transition zone is unstable and points scatter. By collecting at least eight points across both regimes, you can test whether measured points fall on the two theory lines, and see why doubling the flow roughly quadruples the pressure drop in turbulent flow.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">Browse the full set: <a href="index-en.html" style="color:var(--cyan)">Interactive Virtual Labs</a> · <a href="02-Fermentation-Oxygen-KLa.html" style="color:var(--cyan)">fermentation oxygen transfer (kLa)</a> · <a href="04-Bioreactor-ScaleUp.html" style="color:var(--cyan)">bioreactor scale-up criteria</a></p>
+  </section>
+
+  <div class="stage">
+    <div class="card">
+      <h3>Bench · <span id="sceneTitle" style="color:var(--amber)">1 · Start-up</span></h3>
+      <svg class="scene" id="rigSvg" viewBox="0 0 420 190" role="img" aria-label="Fluid friction experiment rig">
+        <rect x="10" y="30" width="60" height="80" rx="6" fill="#151b25" stroke="#ffb020" stroke-width="2"/>
+        <text x="40" y="58" text-anchor="middle" fill="#ffb020" font-size="11" font-family="inherit">Overhead tank</text>
+        <text x="40" y="88" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">Constant level</text>
+        <path d="M70 70 H100 V100 H130" stroke="#59d6ff" stroke-width="2.5" fill="none"/>
+        <path d="M70 70 H100 V100 H130" stroke="#bcdff0" stroke-width="1.5" fill="none" class="flowline" opacity=".5"/>
+        <circle cx="130" cy="100" r="7" fill="none" stroke="#ff5252" stroke-width="2"/>
+        <text x="130" y="124" text-anchor="middle" fill="#ff5252" font-size="9" font-family="inherit">Valve</text>
+        <path d="M137 100 H230" stroke="#59d6ff" stroke-width="2.5"/>
+        <path d="M137 100 H230" stroke="#bcdff0" stroke-width="1.5" fill="none" class="flowline" opacity=".5"/>
+        <rect x="230" y="84" width="120" height="32" rx="6" fill="#151b25" stroke="#b48cff" stroke-width="2"/>
+        <text x="290" y="102" text-anchor="middle" fill="#b48cff" font-size="10" font-family="inherit">Test straight pipe · L = 2 m</text>
+        <path d="M350 100 H410" stroke="#59d6ff" stroke-width="2.5"/>
+        <path d="M350 100 H410" stroke="#bcdff0" stroke-width="1.5" fill="none" class="flowline" opacity=".5"/>
+        <rect x="330" y="8" width="48" height="60" rx="4" fill="#151b25" stroke="#3ddc84" stroke-width="1.5"/>
+        <text x="354" y="40" text-anchor="middle" fill="#3ddc84" font-size="9" font-family="inherit">U-tube</text>
+        <text x="354" y="56" text-anchor="middle" fill="#8b95a3" font-size="8" font-family="inherit">Manometer</text>
+        <rect id="hgL" x="336" y="49" width="15" height="17" fill="#3ddc84" opacity=".55" style="transition:y .5s,height .5s"/>
+        <rect id="hgR" x="363" y="47" width="15" height="19" fill="#3ddc84" opacity=".55" style="transition:y .5s,height .5s"/>
+        <line x1="290" y1="84" x2="338" y2="30" stroke="#5b6572" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <line x1="290" y1="116" x2="374" y2="66" stroke="#5b6572" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <text x="210" y="170" text-anchor="middle" fill="#8b95a3" font-size="10" font-family="inherit">Flowmeter → return water</text>
+        <rect x="150" y="156" width="120" height="12" rx="3" fill="#0d1117" stroke="#5b6572"/>
+        <rect id="flowFill" x="150" y="156" width="60" height="12" rx="3" fill="#59d6ff" opacity="0.55"/>
+      </svg>
+      <canvas id="lrCanvas" width="820" height="330" style="width:100%;height:auto"></canvas>
+      <div id="bench"></div>
+      <div class="actionrow">
+        <button class="btn-act" id="actBtn">Start</button>
+        <button class="btn-ghost" id="resetBtn">Clear data and redo</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Live instruments</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">Flow rate Q</div><div class="v" id="mQ">–<small>m³/h</small></div><div class="sub2">Valve opening</div></div>
+          <div class="metric"><div class="k">Velocity u</div><div class="v" id="mU">–<small>m/s</small></div><div class="sub2">u = Q/A</div></div>
+          <div class="metric" id="mReM"><div class="k">Reynolds number Re</div><div class="v" id="mRe">–</div><div class="sub2">&lt;2000 Laminar below 2000 · Transition 2000–4000 · Turbulent above 4000</div></div>
+          <div class="metric" id="mLamM"><div class="k">Friction factor λ</div><div class="v" id="mLam">–</div><div class="sub2">Back-calculated from the Darcy-Weisbach equation</div></div>
+        </div>
+        <div class="kv-grid" style="margin-bottom:14px">
+          <div class="kv"><div class="k">Pressure drop Δpf</div><div class="v" id="mDp">–<small> Pa</small></div></div>
+          <div class="kv"><div class="k">Manometer reading</div><div class="v" id="mHg">–<small> mmHg</small></div></div>
+        </div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">Flow rate Q</span><span class="val" id="qVal">2.00 m³/h</span></div>
+          <input type="range" id="qRange" min="0.2" max="6.0" step="0.1" value="2.0">
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">Pipe diameter d</span><span class="val" id="dVal">DN50</span></div>
+          <div class="seg" id="dSeg">
+            <button data-v="25">DN25<small>High velocity</small></button>
+            <button data-v="50" class="on">DN50<small>Common choice</small></button>
+            <button data-v="75">DN75<small>Low velocity</small></button>
+          </div>
+        </div>
+        <div class="actionrow">
+          <button class="btn-ghost" id="recBtn" style="flex:1">Read pressure drop · Record data point (<span id="recCount">0</span>/12) </button>
+        </div>
+        <h3>Steps</h3>
+        <div class="seg" id="stepSeg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="conclusionCard" style="display:none">
+    <h3>λ-Re conclusion · Darcy-Weisbach equation</h3>
+    <div class="bigresult">
+      <div class="n" id="resBig">–</div>
+      <div class="u" id="resUnit">valid data points</div>
+      <div class="c" id="resState">–</div>
+    </div>
+    <div class="conc-text" id="concText">…</div>
+    <div class="actionrow">
+      <button class="btn-act" onclick="resetAll()">Measure another set</button>
+      <button class="btn-ghost" onclick="document.getElementById('howBox').open=true">See the model equations</button>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 1 · Open the valve before starting the pump</div><div class="d">Starting a pump with the outlet valve fully closed dead-heads it: the pump overloads and pipe joints can blow off. A centrifugal pump is started with the outlet valve nearly closed, but a reciprocating pump must have its outlet valve fully open (or it will burst).</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 2 · Incomplete venting</div><div class="d">Air bubbles in the manometer impulse lines make readings read high and fluctuate — vent fully before measuring, and read only once the liquid column is stable.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 3 · Do not force-fit the transition zone</div><div class="d">For 2000 &lt; Re &lt; 4000 the friction factor is unstable and scattered data points are normal; do not force them into the laminar or turbulent formula. In engineering, avoid this range where possible.</div></div>
+  </div>
+
+  <details class="how" id="howBox">
+    <summary>▸ Model and equations (deterministic demo, no random numbers fitted to results)</summary>
+    <div class="f">Darcy-Weisbach equation: Δpf = λ · (L/d) · (ρu²/2)
+Re = ρ·u·d/μ        Water at 25 °C: ρ = 997 kg/m³, μ = 8.94×10⁻⁴ Pa·s
+Laminar zone (Re &lt; 2000): λ = 64/Re            — slope −1
+Turbulent smooth pipe (Re &gt; 4000): λ = 0.3164/Re^0.25 (Blasius) — slope −0.25
+Transition zone (2000 ≤ Re ≤ 4000): λ is unstable, approximated as 0.03; scattered data points are normal
+Manometer: 1 mmHg = 133.3 Pa (mercury column)
+This page is a deterministic demo: λ is calculated from Re using the equations above, then Δpf is back-calculated — consistent with hand calculation.</div>
+    <p>The demo model follows the fluid-flow resistance apparatus of chemical engineering principles (a horizontal straight pipe, L = 2 m, water at 25 °C).For teaching demo use only, not as an engineering basis. </p>
+  </details>
+  <section class="seo-faq" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:18px;line-height:1.75;font-size:14px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">Frequently asked questions</h2>
+      <p style="margin-bottom:10px"><strong>What does the friction factor λ tell you?</strong><br>It condenses wall friction into one number: given λ, pipe length, diameter and velocity, the Darcy-Weisbach equation predicts the frictional pressure drop.</p>
+      <p style="margin-bottom:10px"><strong>Why does the λ-Re plot use log-log axes?</strong><br>Because λ spans orders of magnitude and follows power laws — 64/Re in laminar flow and Re^-0.25 in turbulent flow — which appear as straight lines with slopes −1 and −0.25.</p>
+      <p style="margin-bottom:10px"><strong>What happens if I double the flow rate?</strong><br>Velocity doubles, so in turbulent flow the pressure drop rises roughly fourfold, since Δpf scales with velocity squared at nearly constant λ.</p>
+      <p style="margin-bottom:10px"><strong>Why do points scatter between Re 2000 and 4000?</strong><br>That is the transition zone, where flow is intermittently laminar and turbulent, so λ is unstable and no single formula fits well.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">See also: <a href="index-en.html" style="color:var(--cyan)">All interactive labs</a></p>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ============ Model (deterministic) ============ */
+const RHO = 997, MU = 8.94e-4, L = 2;
+let P = { d: 0.05, Q: 2.0 };
+const area = () => Math.PI * P.d * P.d / 4;
+const u = () => P.Q / 3600 / area();
+const Re = () => RHO * u() * P.d / MU;
+function lambda(){
+  const re = Re();
+  if(re < 2000) return 64 / re;
+  if(re <= 4000) return 0.03;
+  return 0.3164 / Math.pow(re, 0.25);
+}
+const dPf = () => lambda() * (L / P.d) * (RHO * u() * u() / 2);
+let points = [];   // {Re, lambda}
+function regime(){
+  const re = Re();
+  return re < 2000 ? "Laminar" : (re <= 4000 ? "Transition" : "Turbulent");
+}
+
+/* ============ Plot (log-log λ-Re) ============ */
+const W_ = 820, H_ = 330, pad = { l: 52, r: 16, t: 16, b: 36 };
+const cv = document.getElementById("lrCanvas"), ctx = cv.getContext("2d");
+const XMIN = 3, XMAX = 5, YMIN = -2.1, YMAX = -1;   // log10 ranges: Re 1e3–1e5, λ 0.0079–0.1
+function lx(re){ return pad.l + (Math.log10(re) - XMIN) / (XMAX - XMIN) * (W_ - pad.l - pad.r); }
+function ly(lam){ return H_ - pad.b - (Math.log10(lam) - YMIN) / (YMAX - YMIN) * (H_ - pad.t - pad.b); }
+
+function drawLR(){
+  ctx.clearRect(0,0,W_,H_);
+  ctx.font = "10px ui-monospace,monospace";
+  ctx.strokeStyle = "#232b38"; ctx.fillStyle = "#5b6572";
+  // Grid: decade lines
+  for(let e=XMIN;e<=XMAX;e++){
+    for(let m=1;m<10;m++){
+      if(m===1){ ctx.beginPath(); ctx.moveTo(lx(Math.pow(10,e)),sy0()); ctx.lineTo(lx(Math.pow(10,e)),H_-pad.b); ctx.stroke(); }
+      else { ctx.beginPath(); ctx.moveTo(lx(Math.pow(10,e)*m),sy0()); ctx.lineTo(lx(Math.pow(10,e)*m),H_-pad.b); ctx.strokeStyle="#1a212c"; ctx.stroke(); ctx.strokeStyle="#232b38"; }
+    }
+    ctx.fillText("10^"+e, lx(Math.pow(10,e))-12, H_-pad.b+14);
+  }
+  for(let e=YMIN;e<=YMAX;e++){
+    ctx.beginPath(); ctx.moveTo(pad.l, ly(Math.pow(10,e))); ctx.lineTo(W_-pad.r, ly(Math.pow(10,e))); ctx.stroke();
+    ctx.fillText("10^"+e, 4, ly(Math.pow(10,e))+4);
+  }
+  ctx.fillStyle = "#8b95a3"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText("Re (log)", W_/2-30, H_-6);
+  ctx.save(); ctx.translate(14, H_/2+6); ctx.rotate(-Math.PI/2);
+  ctx.fillText("λ (log)", -40, 0); ctx.restore();
+
+  // Transition-zone shading, 2000–4000
+  ctx.fillStyle = "rgba(255,176,32,.08)";
+  ctx.fillRect(lx(2000), pad.t, lx(4000)-lx(2000), H_-pad.t-pad.b);
+  ctx.fillStyle = "#8a5c10"; ctx.font = "10px -apple-system,Microsoft YaHei";
+  ctx.fillText("Transition", lx(2600), pad.t+10);
+
+  // Laminar theory line λ=64/Re (Re 100–2000)
+  ctx.strokeStyle = "#3ddc84"; ctx.lineWidth = 2; ctx.setLineDash([]);
+  ctx.beginPath();
+  for(let re=100;re<=2000;re+=50) ctx.lineTo(lx(re), ly(64/re));
+  ctx.stroke();
+  ctx.fillStyle = "#3ddc84"; ctx.fillText("Laminar λ=64/Re (slope −1)", lx(700), ly(64/700)-8);
+  // Turbulent Blasius line (4000–1e5)
+  ctx.strokeStyle = "#59d6ff"; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for(let re=4000;re<=100000;re+=1000) ctx.lineTo(lx(re), ly(0.3164/Math.pow(re,0.25)));
+  ctx.stroke();
+  ctx.fillStyle = "#59d6ff"; ctx.fillText("Turbulent smooth pipe 0.3164/Re^0.25 (slope −0.25)", lx(12000), ly(0.3164/Math.pow(12000,0.25))+16);
+  // Data points
+  points.forEach((p,i)=>{
+    ctx.fillStyle = "#ffb020";
+    ctx.beginPath(); ctx.arc(lx(p.Re), ly(p.lambda), 4.5, 0, 6.3); ctx.fill();
+    ctx.fillStyle = "#e8eef4"; ctx.font = "10px ui-monospace";
+    ctx.fillText(String(i+1), lx(p.Re)+7, ly(p.lambda)-6);
+  });
+  // Current-point flashing marker
+  const re = Re(), lam = lambda();
+  ctx.strokeStyle = "#ffb020"; ctx.lineWidth = 1.5; ctx.setLineDash([3,3]);
+  ctx.beginPath(); ctx.moveTo(lx(re), sy0()); ctx.lineTo(lx(re), H_-pad.b); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.fillStyle = "#ffb020";
+  ctx.beginPath(); ctx.arc(lx(re), ly(lam), 5, 0, 6.3); ctx.stroke();
+  ctx.fillStyle = "#8b95a3"; ctx.font = "10px -apple-system,Microsoft YaHei";
+  ctx.fillText("Current", lx(re)+8, ly(lam)-8);
+}
+function sy0(){ return pad.t; }
+
+/* ============ State machine ============ */
+const STEPS = [
+  {n:"1 · Start-up"},{n:"2 · Vent"},{n:"3 · Set flow rate"},{n:"4 · Read pressure drop"},{n:"5 · Change flow rate"},{n:"6 · Organise the curve"},{n:"7 · Report"}
+];
+const ACTLBL = ["Start the system → Vent","Venting done → Set flow rate","Flow rate set → Read pressure drop","Record this point → Change flow rate","Measure a few more sets → Organise the curve","Organised → View report",""];
+const BENCH = [
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">Medium</div><div class="v"><em>Clean water at 25 °C</em></div></div>
+     <div class="kv"><div class="k">Test pipe</div><div class="v">L=<em>2m</em> horizontal</div></div>
+     <div class="kv"><div class="k">Density ρ</div><div class="v">997 kg/m³</div></div>
+     <div class="kv"><div class="k">Viscosity μ</div><div class="v">8.94×10⁻⁴ Pa·s</div></div>
+   </div>
+   <div class="tipbox"><b>Start-up: </b>The overhead tank supplies water; open the outlet valve before admitting water.<span class="warnline">Forcing water in with the valve fully closed dead-heads the line — joints can blow off.</span></div>`,
+  `<div class="tipbox"><b>Venting: </b>Open the vent valve above the pressure impulse lines and let bubbles flush out with the flow until the U-tube levels are steady.<span class="warnline">Air in the impulse lines makes readings read high and jump around.</span></div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">Flow rate</div><div class="v" id="bQ2">–</div></div>
+     <div class="kv"><div class="k">Velocity</div><div class="v" id="bU2">–</div></div>
+     <div class="kv"><div class="k">Re</div><div class="v" id="bRe2">–</div></div>
+     <div class="kv"><div class="k">Flow regime</div><div class="v" id="bReg">–</div></div>
+   </div>
+   <div class="tipbox"><b>Set flow rate: </b>Control the flow rate with the valve opening. Measure small flows first — in the laminar zone λ is large and the pressure drop small, so read carefully.</div>`,
+  `<div class="kv-grid">
+     <div class="kv"><div class="k">Pressure drop Δpf</div><div class="v" id="bDp2">–</div></div>
+     <div class="kv"><div class="k">Manometer</div><div class="v" id="bHg2">–</div></div>
+     <div class="kv"><div class="k">λ (back-calculated)</div><div class="v" id="bLam2">–</div></div>
+     <div class="kv"><div class="k">Flow regime</div><div class="v" id="bReg2">–</div></div>
+   </div>
+   <div class="tipbox"><b>Read pressure drop: </b>Read once the liquid column is stable, then back-calculate λ from Δpf = λ(L/d)(ρu²/2).<span class="warnline">Copying numbers while the column is still moving voids the data.</span>Click "Record data point" below.</div>`,
+  `<div class="tipbox"><b>Change flow rate and measure again: </b>Wait for the system to settle after every flow-rate change. Aim to cover both the <b>laminar + turbulent</b> zones (1e3–1e5), at least 8 points.<span class="warnline">Points in the transition zone (2000–4000) will drift; that is normal.</span></div>`,
+  `<div class="tipbox"><b>Organise: </b>Plot the (Re, λ) points on log-log axes — laminar points should fall on the slope −1 line and turbulent points on the −0.25 line.<b>The slope of the line through the points is the test.</b></div>`,
+  `<div class="tipbox">Seven steps done: Start-up → Vent → Set flow rate → Read pressure drop → Change flow rate → Organise the curve → Report.<b>Laminar slope −1, turbulent −0.25, transition zone scattered — that is the whole λ-Re picture.</b></div>`,
+];
+let S = { step:0, max:0 };
+const $ = id => document.getElementById(id);
+
+function syncVals(){
+  const setTxt = (id, v) => { const el = $(id); if(el) el.textContent = v; };
+  const setHtml = (id, v) => { const el = $(id); if(el) el.innerHTML = v; };
+  $("qVal").textContent = P.Q.toFixed(2) + " m³/h";
+  $("dVal").textContent = "DN" + Math.round(P.d*1000);
+  $("mQ").innerHTML = P.Q.toFixed(2) + "<small>m³/h</small>";
+  $("mU").innerHTML = u().toFixed(2) + "<small>m/s</small>";
+  const re = Re(), lam = lambda(), dp = dPf();
+  $("mRe").textContent = re >= 10000 ? Math.round(re).toLocaleString() : Math.round(re).toString();
+  $("mReM").className = "metric" + (re<2000?"":re<=4000?" warn":" good");
+  $("mLam").textContent = lam.toFixed(4);
+  $("mLamM").className = "metric" + (re>2000 && re<=4000 ? " warn":"");
+  $("mDp").innerHTML = dp.toFixed(0) + "<small> Pa</small>";
+  $("mHg").innerHTML = (dp/133.322).toFixed(1) + "<small> mmHg</small>";
+  setTxt("bQ2", P.Q.toFixed(2) + " m³/h");
+  setTxt("bU2", u().toFixed(2) + " m/s");
+  setTxt("bRe2", Math.round(re).toString());
+  setTxt("bReg", regime());
+  setTxt("bDp2", dp.toFixed(0) + " Pa");
+  setTxt("bHg2", (dp/133.322).toFixed(1) + " mmHg");
+  setTxt("bLam2", lam.toFixed(4));
+  setTxt("bReg2", regime());
+  $("recCount").textContent = points.length;
+  const fill = document.getElementById("flowFill");
+  fill.setAttribute("width", Math.max(6, P.Q/6*120));
+  const hgL = document.getElementById("hgL"), hgR = document.getElementById("hgR");
+  if(hgL){
+    const delta = Math.min(22, Math.max(2, dPf()/40));
+    hgL.setAttribute("y", 66 - (18 - delta/2)); hgL.setAttribute("height", 18 - delta/2);
+    hgR.setAttribute("y", 66 - (18 + delta/2)); hgR.setAttribute("height", 18 + delta/2);
+  }
+}
+function narrate(){
+  const re = Re(), lam = lambda(), dp = dPf();
+  const N = [
+    `System started; the overhead tank supplies water.<b>Medium: clean water at 25 °C</b>, ρ=${RHO} kg/m³, μ=${MU.toExponential(1)} Pa·s. `,
+    `Venting done; the U-tube levels are steady.<span class="ok">No bubbles in the impulse lines — readings are trustworthy.</span>`,
+    `Flow rate set to <b>${P.Q.toFixed(2)} m³/h</b>, u=<b>${u().toFixed(2)} m/s</b>, Re=<b>${Math.round(re)}</b> — currently in the <b>${regime()} zone</b>. `,
+    `Pressure drop read: Δpf = <b>${dp.toFixed(0)} Pa</b> (${(dp/133.322).toFixed(1)} mmHg). Back-calculated λ = <b>${lam.toFixed(4)}</b>. ${regime()==="Transition"?'<span class="warn">Transition-zone readings are unstable; read twice more and average.</span>':''}`,
+    `Change flow rate and measure again: ${points.length}  points recorded.<b>${points.length<8?'Aim for 8 points before organising.':'Enough data points — go and organise the curve.'}</b>`,
+    `λ-Re log-log plot: laminar points, slope <b>−1</b> (λ = 64/Re); turbulent points, slope <b>−0.25</b> (Blasius).`,
+    `Conclusion: <b>${points.length}</b>  data points in total.${concTextShort()}`,
+  ];
+  $("narrate").innerHTML = N[S.step];
+}
+function concTextShort(){
+  if(!points.length) return '<span class="warn">No data points recorded yet.</span>';
+  const lam = points.filter(p=>p.Re>4000 || p.Re<2000);
+  const ratio = lam.map(p=>p.lambda/expectedLam(p.Re));
+  const avg = ratio.reduce((a,b)=>a+b,0)/ratio.length;
+  const dev = Math.abs(avg-1)*100;
+  return dev < 8 ? `<span class="ok">Mean deviation of measured λ from the theory formula: ${dev.toFixed(1)}%. Good agreement.</span>` : `<span class="warn">Mean deviation ${dev.toFixed(1)}% — too large. Check venting and readings.</span>`;
+}
+function expectedLam(re){ return re<2000 ? 64/re : 0.3164/Math.pow(re,0.25); }
+function flash(id){
+  const m = $(id); if(!m) return;
+  m.classList.remove("flash"); void m.offsetWidth; m.classList.add("flash");
+}
+function refreshMetrics(){ syncVals(); drawLR(); flash("mReM"); flash("mLamM"); }
+function buildSeg(){
+  const seg = document.getElementById("stepSeg");
+  STEPS.forEach((s,i)=>{
+    const b = document.createElement("button");
+    b.textContent = s.n; b.onclick = ()=>goStep(i);
+    seg.appendChild(b);
+  });
+}
+function paintSeg(){
+  [...document.getElementById("stepSeg").children].forEach((b,i)=>{
+    b.classList.toggle("on", i===S.step);
+    b.classList.toggle("done", i<S.max || i<S.step);
+  });
+}
+function goStep(n){
+  if(n > S.max+1 || n < 0 || n > 6) return;
+  S.step = n; if(n > S.max) S.max = n;
+  render();
+}
+function render(){
+  $("sceneTitle").textContent = STEPS[S.step].n;
+  $("bench").innerHTML = BENCH[S.step];
+  syncVals();
+  narrate(); refreshMetrics();
+  const ab = $("actBtn");
+  if(S.step === 6){
+    ab.style.display = "none";
+    $("conclusionCard").style.display = "";
+    showConclusion();
+  } else {
+    ab.style.display = "";
+    ab.textContent = ACTLBL[S.step];
+    $("conclusionCard").style.display = "none";
+  }
+  paintSeg();
+}
+function showConclusion(){
+  $("resBig").textContent = points.length;
+  $("resState").textContent = points.length ? "Measured points vs theory formula · Re range " + rangeTxt() : "No data yet";
+  $("concText").innerHTML = points.length
+    ? (points.length<6
+      ? `<span class="bad">Too few data points (${points.length} points)</span>. At least 6–8 points are needed to be convincing. Go back to "Change flow rate" and add points, covering both laminar and turbulent zones. `
+      : `Recorded <b>${points.length}</b>  (Re, λ) points, covering Re <b>${rangeTxt()}</b>. ${concTextShort()} Both theory lines are overlaid on the plot: laminar λ = 64/Re (slope −1) and turbulent 0.3164/Re^0.25 (slope −0.25).<span class="good">The result matches the λ-Re chart in chemical engineering textbooks.</span>`)
+    : `<span class="bad">No data points.</span> Go back to the "Read pressure drop" step and collect points with "Read pressure drop · Record data point".`;
+}
+function rangeTxt(){
+  if(!points.length) return "—";
+  const re = points.map(p=>p.Re);
+  return Math.min(...re).toExponential(1).replace("e+","×10^") + " ~ " + Math.max(...re).toExponential(1).replace("e+","×10^");
+}
+function resetAll(){
+  points = [];
+  S.step = 0; S.max = 0;
+  render();
+}
+
+/* ============ Events ============ */
+$("qRange").addEventListener("input", e => { P.Q = parseFloat(e.target.value); syncVals(); refreshMetrics(); narrate(); });
+document.getElementById("dSeg").addEventListener("click", e => {
+  const b = e.target.closest("button"); if(!b) return;
+  P.d = parseInt(b.dataset.v)/1000;
+  [...document.getElementById("dSeg").children].forEach(x=>x.classList.toggle("on", x===b));
+  syncVals(); refreshMetrics(); narrate();
+});
+$("recBtn").addEventListener("click", ()=>{
+  if(points.length >= 12) return;
+  points.push({ Re: Re(), lambda: lambda() });
+  syncVals(); drawLR(); narrate();
+});
+$("resetBtn").addEventListener("click", ()=>{ points=[]; drawLR(); syncVals(); });
+$("actBtn").addEventListener("click", ()=>goStep(S.step+1));
+document.addEventListener("keydown", e=>{
+  if(e.key==="ArrowRight") goStep(S.step+1);
+  if(e.key==="ArrowLeft") goStep(S.step-1);
+  if(e.key===" "){ e.preventDefault(); $("actBtn").click(); }
+});
+
+/* init */
+buildSeg();
+render();
+document.getElementById("loader").classList.add("done");
+</script>
+</body>
+</html>
