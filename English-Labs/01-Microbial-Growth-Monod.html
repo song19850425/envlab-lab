@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Interactive batch culture lab: adjust μmax and initial substrate, track OD600, and watch lag, log, stationary and death phases predicted by Monod kinetics.">
+<title>Microbial Growth Lab: Monod Kinetics & Growth Curve</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='8' cy='10' r='4' fill='none' stroke='%2359d6ff' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='15' r='5' fill='none' stroke='%23ffb020' stroke-width='1.6'/%3E%3Cpath d='M12 4v-2M12 4c0 1-1 1-1 2s1 1 1 2c0-1 1-1 1-2s-1-1-1-2z' fill='%233ddc84'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+  --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+  --amber:#ffb020; --amber-dim:#8a5c10;
+  --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84; --violet:#b48cff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;overflow-x:hidden}
+#loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .6s ease}
+#loader.done{opacity:0;pointer-events:none}
+#loader .spin{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--amber);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+@keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+.metric.flash{animation:mflash .9s ease}
+@keyframes shake{0%,100%{transform:rotate(-2deg)}50%{transform:rotate(2deg)}}
+.flask{animation:shake 1.6s ease-in-out infinite;transform-origin:50% 100%}
+@keyframes bubble{0%{transform:translateY(0);opacity:.25}100%{transform:translateY(-26px);opacity:.9}}
+.bub{animation:bubble 2.4s ease-in-out infinite}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+header.lab-head{padding:26px 4px 6px}
+.kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+h1.title .thin{color:var(--dim);font-weight:300}
+.sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+.oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;border-left:3px solid var(--amber);padding-left:14px;max-width:680px}
+.oneliner b{color:var(--amber)}
+.stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+@media (max-width:900px){.stage{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;overflow:hidden;margin-bottom:18px}
+.card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+svg.scene,canvas{width:100%;height:auto;display:block;background:radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+canvas{margin-top:10px;cursor:crosshair}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+.metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+.metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+.metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+#narrate{min-height:110px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px}
+#narrate b{color:var(--cyan);font-family:var(--mono)}
+#narrate .warn{color:var(--danger);font-weight:700}
+#narrate .ok{color:var(--ok);font-weight:700}
+.ctl{margin-bottom:12px}
+.ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+.ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+input[type=range]{width:100%;accent-color:var(--amber);background:transparent;height:26px}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{width:16px;height:16px;border-radius:50%;background:var(--amber);margin-top:-6px;border:none}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;font-family:var(--mono);transition:all .15s}
+.seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+.seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);box-shadow:0 0 0 1px var(--amber-dim) inset}
+.seg button.on small{color:var(--amber)}
+.seg button.done{color:var(--ok);border-color:#1e4d33}
+.seg button:active{transform:scale(.97)}
+#bench{margin-top:14px;min-height:120px}
+.tipbox{font-size:13px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:10px}
+.tipbox b{color:var(--txt)}
+.tipbox .warnline{color:var(--amber)}
+.actionrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn-act{flex:1;min-width:180px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206;border:none;border-radius:10px;letter-spacing:.1em;transition:transform .12s, box-shadow .12s}
+.btn-act:hover{box-shadow:0 4px 16px rgba(255,176,32,.35)}
+.btn-act:active{transform:scale(.98)}
+.btn-act:disabled{opacity:.45;cursor:default;box-shadow:none}
+.btn-ghost{padding:13px 18px;font-size:14px;cursor:pointer;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:10px}
+.btn-ghost:hover{color:var(--txt);border-color:var(--faint)}
+#conclusionCard{border-left:3px solid var(--violet)}
+.bigresult{text-align:center;padding:18px 0 6px}
+.bigresult .n{font-family:var(--mono);font-size:52px;font-weight:800;color:var(--violet)}
+.bigresult .u{font-size:14px;color:var(--dim)}
+.bigresult .c{font-size:13px;color:var(--faint);margin-top:6px;letter-spacing:.2em}
+.conc-text{font-size:14.5px;line-height:1.9;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}
+.conc-text b{color:var(--cyan);font-family:var(--mono)}
+.conc-text .bad{color:var(--danger);font-weight:700}
+.conc-text .good{color:var(--ok);font-weight:700}
+.spec-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.spec-table th{font-size:11px;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);letter-spacing:.1em}
+.spec-table td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--txt);font-family:var(--mono);font-size:13px}
+.redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+@media (max-width:700px){.redlines{grid-template-columns:1fr}}
+.rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.rl .d{font-size:12px;color:var(--dim);line-height:1.7}
+details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+details.how summary::-webkit-details-marker{display:none}
+details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--faint)}
+.tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+@media print{#loader,#rp{display:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>Inoculating the culture…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">BIO · VIRTUAL LAB 01</div>
+    <div class="kicker">Bioprocess engineering · Fermentation engineering · Growth kinetics</div>
+    <h1 class="title">Microbial Culture & Growth Curve<span class="thin">Lab</span></h1>
+    <div class="sub">BATCH CULTURE · OD600 · MONOD</div>
+    <p class="oneliner"><b>Inoculated microbes do not explode at once — first they adapt (lag phase), then double exponentially (log phase), then flatten out once the substrate is gone (stationary phase), and finally die off. OD600 records all four acts.</b><br>Monod μ = μmax·S/(Ks+S) · OD600 turbidimetry · Four phases · Specific growth rate.</p>
+  </header>
+  <section class="seo-intro" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:18px;line-height:1.75;font-size:14.5px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">About this lab</h2>
+    <p><strong>Demo:</strong> Batch culture is the simplest way to see how microbes grow, and the Monod equation describes its central control: the specific growth rate μ equals μmax·S/(Ks+S), where S is substrate concentration and Ks is the substrate level at half the maximum rate. In this interactive lab you adjust the maximum specific growth rate μmax and the initial substrate S0, then follow OD600 — a turbidimetric proxy for biomass — over 24 hours. The curve passes through four phases: a lag phase while cells adapt, a log phase of exponential doubling, a stationary phase once substrate is exhausted, and a death phase as cells decline. The yield ceiling is Xmax = S0·Y + X0, so substrate supply, not wishful thinking, sets the final biomass. Clicking the curve samples any time point, and the conclusion page reads off the log-phase μ and the yield ceiling.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">Browse the full set: <a href="index-en.html" style="color:var(--cyan)">Interactive Virtual Labs</a> · <a href="02-Fermentation-Oxygen-KLa.html" style="color:var(--cyan)">fermentation dissolved-oxygen control</a> · <a href="04-Bioreactor-ScaleUp.html" style="color:var(--cyan)">bioreactor scale-up</a></p>
+  </section>
+
+  <div class="stage">
+    <div class="card">
+      <h3>Bench · <span id="sceneTitle" style="color:var(--amber)">1 · Inoculation</span></h3>
+      <svg class="scene" id="rig" viewBox="0 0 420 190" role="img" aria-label="Shake-flask culture diagram">
+        <g class="flask">
+          <path d="M180 36 L176 120 Q160 138 140 142 H280 Q260 138 244 120 L240 36 Z" fill="#14202e" stroke="#59d6ff" stroke-width="2"/>
+          <path d="M206 36 L206 22 M214 36 L214 22" stroke="#8b95a3" stroke-width="3"/>
+          <ellipse cx="210" cy="110" rx="30" ry="8" fill="#1b2434"/>
+          <circle cx="206" cy="104" r="2.4" fill="#59d6ff" class="bub"/>
+          <circle cx="216" cy="98" r="2" fill="#59d6ff" class="bub"/>
+          <circle cx="202" cy="92" r="1.8" fill="#59d6ff" class="bub"/>
+        </g>
+        <rect x="136" y="140" width="148" height="8" rx="4" fill="#232b38"/>
+        <g class="bub" style="animation-delay:.4s"><rect x="176" y="72" width="3.5" height="9" rx="2" fill="#ffb020" opacity=".6"/></g>
+        <g class="bub" style="animation-delay:1s"><rect x="188" y="64" width="3" height="8" rx="2" fill="#ffb020" opacity=".5"/></g>
+        <g class="bub" style="animation-delay:1.6s"><rect x="224" y="70" width="3.5" height="9" rx="2" fill="#ffb020" opacity=".6"/></g>
+        <text x="210" y="168" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">Shake-flask culture · 37 °C · 200 rpm shaking · Timed sampling for OD600</text>
+        <text x="210" y="182" text-anchor="middle" fill="#5b6572" font-size="9" font-family="inherit">OD600 is proportional to biomass X: X = OD600 × calibration factor</text>
+      </svg>
+      <canvas id="gcCanvas" width="820" height="420" style="width:100%;height:auto"></canvas>
+      <div id="bench"></div>
+      <div class="actionrow">
+        <button class="btn-act" id="actBtn">Start</button>
+        <button class="btn-ghost" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Live instruments</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">Culture time t</div><div class="v" id="mT">–<small>h</small></div><div class="sub2">0–24 h</div></div>
+          <div class="metric" id="mSc"><div class="k">OD600</div><div class="v" id="mOD">–</div><div class="sub2">Turbidimetric reading</div></div>
+          <div class="metric"><div class="k">Specific growth rate μ</div><div class="v" id="mMu">–<small>h⁻¹</small></div><div class="sub2">Monod equation</div></div>
+          <div class="metric" id="mPc"><div class="k">Phase</div><div class="v" id="mPh">–</div><div class="sub2" id="mPhSub">–</div></div>
+        </div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">Maximum specific growth rate μmax</span><span class="val" id="umVal">1.00 h⁻¹</span></div>
+          <input type="range" id="umRange" min="20" max="150" step="5" value="100">
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">Initial substrate S0</span><span class="val" id="s0Val">5.0 g/L</span></div>
+          <input type="range" id="s0Range" min="10" max="100" step="5" value="50">
+        </div>
+        <h3>Steps</h3>
+        <div class="seg" id="stepSeg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="conclusionCard" style="display:none">
+    <h3>Conclusion · Four phases of the growth curve</h3>
+    <div class="bigresult">
+      <div class="n" id="resBig">–</div>
+      <div class="u" id="resUnit">h⁻¹ (log-phase μ) · OD600 = <span id="resOD" style="color:var(--dim)">–</span></div>
+      <div class="c" id="resState">–</div>
+    </div>
+    <div class="conc-text" id="concText">…</div>
+    <div class="actionrow">
+      <button class="btn-act" onclick="resetAll()">Change parameters and culture again</button>
+      <button class="btn-ghost" onclick="document.getElementById('howBox').open=true">See the model equations</button>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 1 · OD600 is turbidity, not cell count</div><div class="d">OD600 measures light scattering; cell shape, colour and dead cells all interfere. Above OD 1.0 the response leaves linearity, so dilute and re-measure. For exact cell numbers use plate counts or dry weight — OD is only fit for trend monitoring.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 2 · The lag phase is not wasted time</div><div class="d">During the lag phase cells adapt to the new environment and synthesise enzyme systems. Inoculating with log-phase seed, using the same medium, and inoculating enough (5–10%) shortens the lag phase — in industrial production the lag phase is costly idle time.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 3 · Measuring μ in the log phase has a precondition</div><div class="d">Only when substrate is plentiful (S ≫ Ks) is μ ≈ μmax constant, so that the slope of a semi-log straight line counts. Once substrate limits growth, μ falls at once by Monod kinetics. Scale-up design and feeding strategy both revolve around "which μ range to hold".</div></div>
+  </div>
+
+  <details class="how" id="howBox">
+    <summary>▸ Model and equations (deterministic demo, no random numbers fitted to results)</summary>
+    <div class="f">Monod equation: μ = μmax·S/(Ks+S)      [h⁻¹], Ks = 0.2 g/L(demo)
+Growth and substrate consumption (Euler stepping, dt = 0.05 h):
+  dX/dt = μ·X − kd·X (death term, activated after the stationary phase, kd = 0.08 h⁻¹)
+  dS/dt = −(1/Y)·μ·X, Y = 0.5 g/g (biomass yield)
+  OD600 = X·2.2 (turbidimetric calibration, demo)
+Four phases: lag (t &lt; 1.5 h) → log (μ &gt; 0.2·μmax) → stationary (μ ≈ 0, substrate exhausted)
+  → death (X falls)
+This page is a deterministic demo: μmax and S0 are adjustable; the curve is reproducible.</div>
+    <p>The demo model uses typical batch-culture kinetics (lag-phase length and biomass yield are typical values); real strains vary widely.For teaching demo use only, not as a fermentation process basis. </p>
+  </details>
+  <section class="seo-faq" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:18px;line-height:1.75;font-size:14px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">Frequently asked questions</h2>
+      <p style="margin-bottom:10px"><strong>What is Monod kinetics?</strong><br>It is the empirical rule μ = μmax·S/(Ks+S): growth rate rises with substrate and saturates at μmax, with Ks marking the substrate concentration at half that maximum.</p>
+      <p style="margin-bottom:10px"><strong>Why does the growth curve have four phases?</strong><br>Cells first adapt (lag), then double exponentially while substrate is plentiful (log), then stop when substrate runs out (stationary), and finally die as nutrients exhaust and metabolites turn toxic (death).</p>
+      <p style="margin-bottom:10px"><strong>What do the μmax and S0 sliders change?</strong><br>μmax sets how fast cells can double at best; S0 sets how much substrate is available, and therefore the final biomass ceiling Xmax = S0·Y + X0.</p>
+      <p style="margin-bottom:10px"><strong>Why is OD600 not a true cell count?</strong><br>OD600 measures light scattering, so cell shape, colour and dead cells interfere, and readings leave linearity above OD 1.0 — dilute before measuring, and use plate counts or dry weight for exact numbers.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">See also: <a href="index-en.html" style="color:var(--cyan)">All interactive labs</a></p>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ============ Model (deterministic Euler stepping) ============ */
+const KS = 0.2, YIELD = 0.5, KD = 0.08, LAG = 1.5, KOD = 2.2;
+let P = { umax: 1.0, S0: 5.0 };
+let SIM = []; // {t, X, S, mu, OD, phase}
+const $ = id => document.getElementById(id);
+function simulate(){
+  SIM = [];
+  const dt = 0.05;
+  let X = 0.05, S = P.S0, t = 0;
+  let phase = 0;
+  for (; t <= 24.0001; t += dt){
+    let mu;
+    if (t < LAG){ mu = 0; phase = 0; }
+    else {
+      mu = P.umax * S / (KS + S);
+      if (mu > 0.2 * P.umax) phase = 1;
+      else if (X >= SIM[SIM.length - 1].X) phase = 2;
+    }
+    if (phase === 2 && t > LAG + 6){
+      const prev = SIM[SIM.length - 1];
+      if (X < prev.X) phase = 3;
+    }
+    SIM.push({ t, X, S, mu, OD: X * KOD, phase });
+    // Integration
+    const dXd = mu * X;
+    const dSd = -(1 / YIELD) * dXd;
+    X += dXd * dt;
+    S += dSd * dt;
+    if (S < 0) S = 0;
+    if (phase >= 2 && SIM.length > 2){ X -= KD * X * dt; }
+  }
+}
+function sampleAt(t){
+  if (!SIM.length) simulate();
+  let i = Math.min(SIM.length - 1, Math.round(t / 0.05));
+  return SIM[i];
+}
+
+/* ============ State machine ============ */
+const STEPS = [
+  { t: "Inoculation", s: "Inoculate fresh medium with log-phase seed at 5%, in a shake flask at 37 °C.", bench: "Prepare: \n① Sterilise LB/synthetic medium\n② Inoculate 5% log-phase seed\n③ Shake at 37 °C, 200 rpm\n④ Sample every 2 h for OD600" },
+  { t: "Lag phase", s: "No biomass increase within 1.5 h — cells adapt to the new environment and synthesise enzyme systems. Longer does not mean wasted; it is inevitable.", bench: "" },
+  { t: "Log phase", s: "Substrate plentiful, μ ≈ μmax, biomass grows exponentially, OD rises linearly on a semi-log plot.", bench: "" },
+  { t: "Stationary phase", s: "Substrate exhausted, μ → 0, biomass caps at Xmax = S0·Y + X0 — the yield ceiling is here.", bench: "" },
+  { t: "Death phase", s: "Nutrients exhausted and metabolites toxic, cells start to die and OD turns down.", bench: "" },
+  { t: "Report", s: "Read μ, Xmax and phase durations to parameterise scale-up and feeding design.", bench: "" }
+];
+let step = 0, tCur = 0;
+
+function renderSeg(){
+  const el = $("stepSeg");
+  el.innerHTML = STEPS.map((s, i) =>
+    `<button data-i="${i}" class="${i < step ? "done" : i === step ? "on" : ""}">${i + 1} · ${s.t}<small>${i < step ? "Done" : i === step ? "In progress" : "To do"}</small></button>`
+  ).join("");
+  [...el.children].forEach(b => b.onclick = () => { if(+b.dataset.i <= step){ step = +b.dataset.i; renderSeg(); narrate(); } });
+  $("sceneTitle").textContent = `${step + 1} · ${STEPS[step].t}`;
+  $("actBtn").textContent = step >= 5 ? "Finish" : "Next step";
+}
+const PHN = ["Lag phase", "Log phase", "Stationary phase", "Death phase"];
+function narrate(){
+  const n = $("narrate");
+  const s = sampleAt(tCur);
+  if (step <= 1) n.innerHTML = STEPS[step].s;
+  else if (step === 2) n.innerHTML = `t=<b>${tCur.toFixed(1)}h</b>, OD600=<b>${s.OD.toFixed(2)}</b>: ${s.phase === 0 ? "Still in lag — cells are adapting to the environment" : "Now in the " + PHN[s.phase]}. The longer the lag phase, the lower the production efficiency.`;
+  else if (step === 3) n.innerHTML = `t=<b>${tCur.toFixed(1)}h</b>: μ=<b>${s.mu.toFixed(2)} h⁻¹</b> (μmax=${P.umax.toFixed(2)}). When S ≫ Ks, μ ≈ μmax, and the semi-log slope is the specific growth rate.`;
+  else if (step === 4) n.innerHTML = `Substrate S = <b>${s.S.toFixed(2)} g/L</b>: ${s.phase === 2 ? "Exhausted → stationary phase, X ≈ " + s.X.toFixed(2) : "Still being consumed; note that μ is starting to turn down"}. Xmax=S0·Y+X0=<b>${(P.S0 * YIELD + 0.05).toFixed(2)} g/L</b> — substrate sets the yield.`;
+  else if (step === 5) n.innerHTML = `t=<b>${tCur.toFixed(1)}h</b>: ${s.phase === 3 ? "Death phase, OD turning down — time to harvest" : "Not yet in death phase; keep observing"}. The fermentation end point is often set at the start of the stationary phase (highest yield, cleanest metabolites).`;
+  else n.innerHTML = `Report: μmax = ${P.umax.toFixed(2)} h⁻¹, S0=${P.S0.toFixed(1)} g/L, Xmax≈${(P.S0 * YIELD + 0.05).toFixed(1)} g/L. Log-phase μ ≈ ${Math.max(...SIM.map(v => v.mu)).toFixed(2)}. `;
+}
+function flash(id){
+  const el = $(id); if(!el) return;
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+}
+function refreshMetrics(){
+  const s = sampleAt(tCur);
+  $("mT").textContent = tCur.toFixed(1);
+  $("mOD").textContent = s.OD.toFixed(2);
+  $("mMu").textContent = s.mu.toFixed(2);
+  $("mPh").textContent = PHN[s.phase];
+  $("mPhSub").textContent = s.phase === 1 ? "S ≫ Ks, exponential growth" : s.phase === 2 ? "Substrate exhausted" : s.phase === 3 ? "Cell death" : "Adaptation";
+  flash("mT"); flash("mOD"); flash("mMu"); flash("mPh");
+}
+
+/* ============ Canvas growth curve ============ */
+const W_ = 820, H_ = 420;
+const cv = $("gcCanvas"), ctx = cv.getContext("2d");
+function drawCanvas(){
+  ctx.clearRect(0, 0, W_, H_);
+  const l = { l: 56, r: W_ - 20, t: 24, b: 42 };
+  const tmax = 24;
+  const odMax = Math.max(...SIM.map(v => v.OD)) * 1.25;
+  const X = t => l.l + t / tmax * (l.r - l.l);
+  const Y = od => H_ - l.b - od / odMax * (H_ - l.t - l.b);
+  ctx.font = "10px ui-monospace,monospace"; ctx.fillStyle = "#5b6572"; ctx.strokeStyle = "#232b38";
+  for (let t = 0; t <= 24; t += 4){ const x = X(t); ctx.beginPath(); ctx.moveTo(x, l.t); ctx.lineTo(x, H_ - l.b); ctx.stroke(); ctx.fillText(t, x - 6, H_ - l.b + 16); }
+  for (let i = 0; i <= 4; i++){ const od = i * odMax / 4, y = Y(od); ctx.beginPath(); ctx.moveTo(l.l, y); ctx.lineTo(l.r, y); ctx.stroke(); ctx.fillText(od.toFixed(1), 6, y + 4); }
+  ctx.fillStyle = "#8b95a3"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText("Time t (h)", l.l + 140, H_ - 8);
+  ctx.fillText("OD600 growth curve (OD = X × 2.2)", l.l + 8, l.t - 6);
+  ctx.save(); ctx.translate(14, H_ / 2 + 6); ctx.rotate(-Math.PI / 2); ctx.fillText("OD600", -30, 0); ctx.restore();
+  // Phase boundary colour bands
+  const seg = SIM.filter(v => v.t >= LAG);
+  const phaseCols = ["#8b95a3", "#59d6ff", "#3ddc84", "#ff5252"];
+  const phaseIdx = [0, 1, 1, 2, 3];
+  // Curve coloured by phase
+  for (let i = 1; i < SIM.length; i++){
+    const a = SIM[i - 1], b = SIM[i];
+    ctx.strokeStyle = phaseCols[a.phase]; ctx.lineWidth = 2.4;
+    ctx.beginPath(); ctx.moveTo(X(a.t), Y(a.OD)); ctx.lineTo(X(b.t), Y(b.OD)); ctx.stroke();
+  }
+  // Phase labels
+  ctx.font = "10.5px -apple-system,Microsoft YaHei";
+  const stPos = [{ t: 1, label: "Lag" }, { t: 7, label: "Log" }, { t: 16, label: "Stationary" }, { t: 21, label: "Death" }];
+  stPos.forEach(p => {
+    const s = sampleAt(p.t);
+    ctx.fillStyle = phaseCols[s.phase];
+    ctx.fillText(p.label + " phase", X(p.t) - 12, Y(s.OD) - 14);
+  });
+  // Current point
+  const s = sampleAt(tCur);
+  ctx.fillStyle = "#ffb020";
+  ctx.beginPath(); ctx.arc(X(s.t), Y(s.OD), 6, 0, 7); ctx.fill();
+  ctx.fillStyle = "#ffb020"; ctx.font = "12px ui-monospace,monospace";
+  ctx.fillText(`t=${s.t.toFixed(1)}h OD=${s.OD.toFixed(2)} μ=${s.mu.toFixed(2)}`, X(s.t) - 20, Y(s.OD) - 14);
+  // Xmax reference line
+  const xmax = P.S0 * YIELD + 0.05;
+  ctx.strokeStyle = "#b48cff"; ctx.setLineDash([5, 4]);
+  ctx.beginPath(); ctx.moveTo(l.l, Y(xmax * KOD)); ctx.lineTo(l.r, Y(xmax * KOD)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = "#b48cff"; ctx.font = "10.5px -apple-system,Microsoft YaHei";
+  ctx.fillText(`Xmax=${xmax.toFixed(1)} g/L (S0·Y+X0) `, l.r - 150, Y(xmax * KOD) - 8);
+}
+
+/* ============ Actions ============ */
+$("actBtn").onclick = () => {
+  if (step < 5) step++;
+  if (step === 4){ renderConclusion(); }
+  renderSeg(); narrate();
+};
+$("resetBtn").onclick = resetAll;
+function resetAll(){
+  P = { umax: 1.0, S0: 5.0 };
+  step = 0; tCur = 0;
+  $("umRange").value = 100; $("s0Range").value = 50;
+  $("conclusionCard").style.display = "none";
+  simulate(); renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+}
+$("umRange").oninput = e => {
+  P.umax = +e.target.value / 100;
+  $("umVal").textContent = P.umax.toFixed(2) + " h⁻¹";
+  simulate(); refreshMetrics(); narrate(); drawCanvas();
+};
+$("s0Range").oninput = e => {
+  P.S0 = +e.target.value / 10;
+  $("s0Val").textContent = P.S0.toFixed(1) + " g/L";
+  simulate(); refreshMetrics(); narrate(); drawCanvas();
+};
+// Time axis: drag the canvas to sample
+cv.onclick = e => {
+  const r = cv.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width;
+  tCur = Math.min(24, Math.max(0, px * 24));
+  refreshMetrics(); narrate(); drawCanvas();
+};
+function renderConclusion(){
+  const s = sampleAt(tCur);
+  const muMax = Math.max(...SIM.map(v => v.mu));
+  $("conclusionCard").style.display = "";
+  $("resBig").textContent = muMax.toFixed(2);
+  $("resOD").textContent = s.OD.toFixed(2);
+  $("resState").textContent = `S0=${P.S0.toFixed(1)} g/L · Xmax≈${(P.S0 * YIELD + 0.05).toFixed(1)} g/L · Current ${PHN[s.phase]}`;
+  $("concText").innerHTML = `Four phases of the culture curve: <b>Lag (adaptation) → Log (μ ≈ μmax, exponential doubling) → Stationary (substrate exhausted) → Death</b>. <br>Log-phase specific growth rate μ = <b>${muMax.toFixed(2)} h⁻¹</b> (when S ≫ Ks, μ ≈ μmax = ${P.umax.toFixed(2)}). <br><span class='good'>Yield ceiling: Xmax = S0·Y + X0 = <b>${(P.S0 * YIELD + 0.05).toFixed(1)} g/L</b></span> — to harvest more biomass, first check whether enough substrate was supplied.<br>Industrial lesson: inoculate log-phase seed, use the same medium, and inoculate 5–10% to compress the lag; dilute whenever OD exceeds 1.0; set the fermentation end point at the start of the stationary phase, not dragged into the death phase.`;
+}
+
+/* ============ Initialization ============ */
+window.addEventListener("load", () => {
+  setTimeout(() => $("loader").classList.add("done"), 700);
+  simulate(); renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+});
+</script>
+</body>
+</html>
