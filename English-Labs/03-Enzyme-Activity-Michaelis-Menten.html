@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Interactive enzyme kinetics lab: vary substrate concentration, Vmax and Km, plot the Michaelis-Menten curve and read both parameters from a Lineweaver-Burk plot.">
+<title>Enzyme Activity Lab: Michaelis-Menten Kinetics</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='6' cy='14' r='3' fill='none' stroke='%2359d6ff' stroke-width='1.6'/%3E%3Cpath d='M9 12l6-6M15 6h3v3M14 10h3v3' stroke='%23ffb020' stroke-width='1.6' fill='none'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+  --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+  --amber:#ffb020; --amber-dim:#8a5c10;
+  --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84; --violet:#b48cff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;overflow-x:hidden}
+#loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .6s ease}
+#loader.done{opacity:0;pointer-events:none}
+#loader .spin{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--amber);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+@keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+.metric.flash{animation:mflash .9s ease}
+@keyframes pump{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+.pip{animation:pump 2s ease-in-out infinite}
+@keyframes drop{0%{transform:translateY(0);opacity:.6}100%{transform:translateY(34px);opacity:0}}
+.drop{animation:drop 1.8s linear infinite}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+header.lab-head{padding:26px 4px 6px}
+.kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+h1.title .thin{color:var(--dim);font-weight:300}
+.sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+.oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;border-left:3px solid var(--amber);padding-left:14px;max-width:680px}
+.oneliner b{color:var(--amber)}
+.stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+@media (max-width:900px){.stage{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;overflow:hidden;margin-bottom:18px}
+.card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+svg.scene,canvas{width:100%;height:auto;display:block;background:radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+canvas{margin-top:10px;cursor:crosshair}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+.metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+.metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+.metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+#narrate{min-height:110px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px}
+#narrate b{color:var(--cyan);font-family:var(--mono)}
+#narrate .warn{color:var(--danger);font-weight:700}
+#narrate .ok{color:var(--ok);font-weight:700}
+.ctl{margin-bottom:12px}
+.ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+.ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+input[type=range]{width:100%;accent-color:var(--amber);background:transparent;height:26px}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{width:16px;height:16px;border-radius:50%;background:var(--amber);margin-top:-6px;border:none}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;font-family:var(--mono);transition:all .15s}
+.seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+.seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);box-shadow:0 0 0 1px var(--amber-dim) inset}
+.seg button.on small{color:var(--amber)}
+.seg button.done{color:var(--ok);border-color:#1e4d33}
+.seg button:active{transform:scale(.97)}
+#bench{margin-top:14px;min-height:120px}
+.tipbox{font-size:13px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:10px}
+.tipbox b{color:var(--txt)}
+.tipbox .warnline{color:var(--amber)}
+.actionrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn-act{flex:1;min-width:180px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206;border:none;border-radius:10px;letter-spacing:.1em;transition:transform .12s, box-shadow .12s}
+.btn-act:hover{box-shadow:0 4px 16px rgba(255,176,32,.35)}
+.btn-act:active{transform:scale(.98)}
+.btn-act:disabled{opacity:.45;cursor:default;box-shadow:none}
+.btn-ghost{padding:13px 18px;font-size:14px;cursor:pointer;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:10px}
+.btn-ghost:hover{color:var(--txt);border-color:var(--faint)}
+#conclusionCard{border-left:3px solid var(--violet)}
+.bigresult{text-align:center;padding:18px 0 6px}
+.bigresult .n{font-family:var(--mono);font-size:52px;font-weight:800;color:var(--violet)}
+.bigresult .u{font-size:14px;color:var(--dim)}
+.bigresult .c{font-size:13px;color:var(--faint);margin-top:6px;letter-spacing:.2em}
+.conc-text{font-size:14.5px;line-height:1.9;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}
+.conc-text b{color:var(--cyan);font-family:var(--mono)}
+.conc-text .bad{color:var(--danger);font-weight:700}
+.conc-text .good{color:var(--ok);font-weight:700}
+.spec-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.spec-table th{font-size:11px;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);letter-spacing:.1em}
+.spec-table td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--txt);font-family:var(--mono);font-size:13px}
+.redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+@media (max-width:700px){.redlines{grid-template-columns:1fr}}
+.rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.rl .d{font-size:12px;color:var(--dim);line-height:1.7}
+details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+details.how summary::-webkit-details-marker{display:none}
+details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--faint)}
+.tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+@media print{#loader,#rp{display:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>Preparing the substrate gradient…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">BIO · VIRTUAL LAB 03</div>
+    <div class="kicker">Bioprocess engineering · Enzyme engineering · Michaelis-Menten kinetics</div>
+    <h1 class="title">Enzyme Activity Assay<span class="thin">Lab</span></h1>
+    <div class="sub">ENZYME KINETICS · MICHAELIS-MENTEN · L-B PLOT</div>
+    <p class="oneliner"><b>When substrate is scarce the rate rises linearly with substrate; once substrate is plentiful the rate saturates at Vmax — the Michaelis-Menten equation draws this "saturation curve", and a double-reciprocal straightening reads out Vmax and Km together.</b><br>v = Vmax·[S]/(Km+[S]) · Lineweaver-Burk · Km affinity · Vmax enzyme amount.</p>
+  </header>
+  <section class="seo-intro" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:18px;line-height:1.75;font-size:14.5px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">About this lab</h2>
+    <p><strong>Demo:</strong> Enzyme kinetics asks a simple question: how fast does an enzyme work at a given substrate concentration? The Michaelis-Menten equation answers it: v = Vmax·[S]/(Km + [S]), where v is the initial rate, Vmax is the rate at saturating substrate, and Km is the substrate concentration at half of Vmax. In this interactive lab you adjust the substrate concentration [S], Vmax and Km, and watch the saturation curve take shape: at low substrate the rate rises almost linearly with [S], and at high substrate it flattens towards Vmax. The same data appear as a Lineweaver-Burk double-reciprocal plot, 1/v against 1/[S], whose intercept is 1/Vmax and whose slope is Km/Vmax. Km measures affinity — smaller means tighter binding — while Vmax scales with enzyme amount, so the two parameters must be reported together, with pH and temperature stated.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">Browse the full set: <a href="index-en.html" style="color:var(--cyan)">Interactive Virtual Labs</a> · <a href="01-Microbial-Growth-Monod.html" style="color:var(--cyan)">microbial growth curve (Monod kinetics)</a> · <a href="02-Fermentation-Oxygen-KLa.html" style="color:var(--cyan)">fermentation oxygen transfer and kLa</a></p>
+  </section>
+
+  <div class="stage">
+    <div class="card">
+      <h3>Bench · <span id="sceneTitle" style="color:var(--amber)">1 · Prepare the gradient</span></h3>
+      <svg class="scene" id="rig" viewBox="0 0 420 190" role="img" aria-label="Enzymatic reaction pipetting diagram">
+        <g class="pip">
+          <path d="M150 20 L156 60 L144 60 Z" fill="#59d6ff"/>
+        </g>
+        <g class="drop">
+          <circle cx="150" cy="66" r="2.6" fill="#ffb020"/>
+        </g>
+        <rect x="108" y="86" width="84" height="54" rx="4" fill="#14202e" stroke="#ffb020" stroke-width="1.5"/>
+        <rect x="228" y="86" width="84" height="54" rx="4" fill="#14202e" stroke="#59d6ff" stroke-width="1.5"/>
+        <text x="150" y="118" text-anchor="middle" fill="#ffb020" font-size="8" font-family="inherit">Substrate [S]</text>
+        <text x="270" y="118" text-anchor="middle" fill="#59d6ff" font-size="8" font-family="inherit">Enzyme + buffer</text>
+        <text x="210" y="166" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">Gradient substrate + equal enzyme → timed sampling for product → initial rate v</text>
+        <text x="210" y="182" text-anchor="middle" fill="#5b6572" font-size="9" font-family="inherit">Initial-rate method: the slope of product formation within the first 10% of the reaction (substrate consumption negligible)</text>
+      </svg>
+      <canvas id="enzCanvas" width="820" height="420" style="width:100%;height:auto"></canvas>
+      <div id="bench"></div>
+      <div class="actionrow">
+        <button class="btn-act" id="actBtn">Start</button>
+        <button class="btn-ghost" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Live instruments</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">Substrate concentration [S]</div><div class="v" id="mS">–<small>mM</small></div><div class="sub2">0.1–50</div></div>
+          <div class="metric" id="mSc"><div class="k">Initial rate v</div><div class="v" id="mV">–<small>μmol/min</small></div><div class="sub2">Michaelis-Menten equation</div></div>
+          <div class="metric"><div class="k">v/Vmax share</div><div class="v" id="mR">–<small>%</small></div><div class="sub2">[S]/(Km+[S])</div></div>
+          <div class="metric" id="mPc"><div class="k">Kinetic regime</div><div class="v" id="mPh">–</div><div class="sub2" id="mPhSub">–</div></div>
+        </div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">Substrate concentration [S]</span><span class="val" id="sVal">5.0 mM</span></div>
+          <input type="range" id="sRange" min="1" max="100" step="1" value="10">
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">Vmax</span><span class="val" id="vmVal">2.0</span></div>
+          <input type="range" id="vmRange" min="50" max="500" step="10" value="200">
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">Km (inverse of affinity)</span><span class="val" id="kmVal">0.50 mM</span></div>
+          <input type="range" id="kmRange" min="10" max="500" step="10" value="50">
+        </div>
+        <h3>Steps</h3>
+        <div class="seg" id="stepSeg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="conclusionCard" style="display:none">
+    <h3>Conclusion · Michaelis-Menten parameters</h3>
+    <div class="bigresult">
+      <div class="n" id="resBig">–</div>
+      <div class="u" id="resUnit">μmol/min (initial rate v)</div>
+      <div class="c" id="resState">–</div>
+    </div>
+    <div class="conc-text" id="concText">…</div>
+    <div class="actionrow">
+      <button class="btn-act" onclick="resetAll()">Change conditions and measure again</button>
+      <button class="btn-ghost" onclick="document.getElementById('howBox').open=true">See the model equations</button>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 1 · Michaelis-Menten only holds for initial rates</div><div class="d">The Michaelis-Menten equation holds only early in the reaction — before product accumulates, with no reverse reaction and no product inhibition. What sampling must measure is the "slope", not the end-point concentration. If the reaction runs long, v drifts off the curve through substrate consumption and product inhibition.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 2 · Km is the inverse of affinity</div><div class="d">The smaller Km, the stronger the enzyme's affinity for substrate (the less substrate is needed to reach half of Vmax). Km is an intrinsic enzyme property (dependent on pH/temperature), while Vmax varies with enzyme amount — specific activity = Vmax/[E]; report both parameters with their conditions stated.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 3 · Double-reciprocal plots magnify error</div><div class="d">The Lineweaver-Burk line magnifies the error of low-substrate points (large 1/[S]) most — high-substrate points are actually more trustworthy. Modern practice uses nonlinear fitting (direct Michaelis-Menten regression), which is more robust; Lineweaver-Burk suits teaching and quick visual checks. Do not treat extrapolated intercepts as exact values.</div></div>
+  </div>
+
+  <details class="how" id="howBox">
+    <summary>▸ Model and equations (deterministic demo, no random numbers fitted to results)</summary>
+    <div class="f">Michaelis-Menten equation: v = Vmax·[S]/(Km + [S])      [μmol/min]
+  [S] = substrate concentration, mM; Km = Michaelis constant, mM (the [S] at v = Vmax/2)
+Lineweaver-Burk double reciprocal: 1/v = (Km/Vmax)·(1/[S]) + 1/Vmax
+  Intercept 1/Vmax, slope Km/Vmax
+Limiting behaviour: [S] ≪ Km → v ≈ (Vmax/Km)·[S] (first order); [S] ≫ Km → v ≈ Vmax (zero-order saturation)
+Kinetic-regime rule: [S] &lt; 0.1·Km first-order zone; 0.1·Km–10·Km transition zone; &gt; 10·Km saturation zone
+This page is a deterministic demo: [S], Vmax and Km are adjustable; curve and line are reproducible.</div>
+    <p>The demo model follows classical Michaelis-Menten enzyme kinetics; in practice Km and Vmax vary with pH, temperature and ionic strength, and specific activity is measured per GB/T or the manufacturer's SOP.For teaching demo use only, not as an enzyme-product acceptance basis. </p>
+  </details>
+  <section class="seo-faq" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:18px;line-height:1.75;font-size:14px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">Frequently asked questions</h2>
+      <p style="margin-bottom:10px"><strong>What do Vmax and Km mean?</strong><br>Vmax is the maximum initial rate at saturating substrate; Km is the substrate concentration at half of Vmax, and a smaller Km means stronger enzyme–substrate affinity.</p>
+      <p style="margin-bottom:10px"><strong>Why must rates be initial rates?</strong><br>The Michaelis-Menten equation holds only early in the reaction, before product accumulates, the reverse reaction matters, or product inhibition sets in — so measure the slope, not the end point.</p>
+      <p style="margin-bottom:10px"><strong>How does the Lineweaver-Burk plot give Vmax and Km?</strong><br>Plotting 1/v against 1/[S] straightens the curve: the intercept on the 1/v axis is 1/Vmax and the slope is Km/Vmax.</p>
+      <p style="margin-bottom:10px"><strong>Why is the Lineweaver-Burk plot risky for precise work?</strong><br>It magnifies the error of low-substrate points, which sit far out on the 1/[S] axis, so formal assays should use direct nonlinear fitting of the Michaelis-Menten equation.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">See also: <a href="index-en.html" style="color:var(--cyan)">All interactive labs</a></p>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ============ Model (deterministic) ============ */
+let P = { S: 5.0, Vmax: 2.0, Km: 0.5 };
+const $ = id => document.getElementById(id);
+const v = () => P.Vmax * P.S / (P.Km + P.S);
+function regime(){
+  const r = P.S / P.Km;
+  if (r < 0.1) return ["First-order zone", "[S] ≪ Km linear segment"];
+  if (r <= 10) return ["Transition zone", "Most sensitive near Km"];
+  return ["Saturation zone", "[S] ≫ Km, approaching Vmax"];
+}
+
+/* ============ State machine ============ */
+const STEPS = [
+  { t: "Prepare the gradient", s: "Prepare 8–10 substrate concentration levels (including the 0.1·Km and 10·Km ends) and pre-equilibrate at constant temperature.", bench: "Prepare: \n① Substrate gradient 0.1–50 mM\n② Dispense equal enzyme aliquots\n③ Buffer held at 37 °C\n④ Timed sampling (first 10% of the reaction)" },
+  { t: "Add enzyme and start", s: "Add equal enzyme aliquots to each level, start timing, and sample on schedule to measure product concentration.", bench: "" },
+  { t: "Calculate initial rates", s: "The slope of the product–time curve is the initial rate v; each level gives one v–[S] pair.", bench: "" },
+  { t: "Fit Michaelis-Menten", s: "Fit the Michaelis-Menten curve to v vs [S] and read off Vmax and Km.", bench: "" },
+  { t: "Double reciprocal", s: "Plot the Lineweaver-Burk line for 1/v vs 1/[S]: intercept 1/Vmax, slope Km/Vmax.", bench: "" },
+  { t: "Report", s: "Report Vmax, Km and specific activity, stating the pH/temperature conditions.", bench: "" }
+];
+let step = 0;
+
+function renderSeg(){
+  const el = $("stepSeg");
+  el.innerHTML = STEPS.map((s, i) =>
+    `<button data-i="${i}" class="${i < step ? "done" : i === step ? "on" : ""}">${i + 1} · ${s.t}<small>${i < step ? "Done" : i === step ? "In progress" : "To do"}</small></button>`
+  ).join("");
+  [...el.children].forEach(b => b.onclick = () => { if(+b.dataset.i <= step){ step = +b.dataset.i; renderSeg(); narrate(); } });
+  $("sceneTitle").textContent = `${step + 1} · ${STEPS[step].t}`;
+  $("actBtn").textContent = step >= 5 ? "Finish" : "Next step";
+}
+function narrate(){
+  const n = $("narrate");
+  const vv = v(), rg = regime();
+  if (step <= 1) n.innerHTML = STEPS[step].s;
+  else if (step === 2) n.innerHTML = `[S]=<b>${P.S.toFixed(1)} mM</b>: Initial rate v = Vmax·[S]/(Km+[S]) = <b>${vv.toFixed(2)} μmol/min</b>. `;
+  else if (step === 3) n.innerHTML = `Share of Vmax: ${(vv / P.Vmax * 100).toFixed(0)}%——${rg[0]}: ${rg[1]}. `;
+  else if (step === 4) n.innerHTML = `Michaelis-Menten curve: Vmax = <b>${P.Vmax.toFixed(1)}</b>, Km=<b>${P.Km.toFixed(2)} mM</b>. At v = Vmax/2, [S] = Km.`;
+  else if (step === 5) n.innerHTML = `Lineweaver-Burk: 1/v = <b>${(1 / vv).toFixed(2)}</b>, 1/[S]=<b>${(1 / P.S).toFixed(2)}</b>; intercept 1/Vmax = <b>${(1 / P.Vmax).toFixed(2)}</b>, slope Km/Vmax = <b>${(P.Km / P.Vmax).toFixed(3)}</b>. `;
+  else n.innerHTML = `Report: Vmax = ${P.Vmax.toFixed(1)} μmol/min, Km=${P.Km.toFixed(2)} mM (37 °C). The smaller Km, the stronger the affinity; specific activity = Vmax/[E].`;
+}
+function flash(id){
+  const el = $(id); if(!el) return;
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+}
+function refreshMetrics(){
+  const vv = v(), rg = regime();
+  $("mS").textContent = P.S.toFixed(1);
+  $("mV").textContent = vv.toFixed(2);
+  $("mR").textContent = (vv / P.Vmax * 100).toFixed(0);
+  $("mPh").textContent = rg[0];
+  $("mPhSub").textContent = rg[1];
+  flash("mS"); flash("mV"); flash("mR"); flash("mPh");
+}
+
+/* ============ Canvas Michaelis-Menten curve + Lineweaver-Burk ============ */
+const W_ = 820, H_ = 420;
+const cv = $("enzCanvas"), ctx = cv.getContext("2d");
+function drawCanvas(){
+  ctx.clearRect(0, 0, W_, H_);
+  // Left: v vs [S]
+  const l = { l: 56, r: 430, t: 24, b: 42 };
+  const smax = 50, vmaxY = P.Vmax * 1.2;
+  const X = s => l.l + s / smax * (l.r - l.l);
+  const Y = vv => H_ - l.b - vv / vmaxY * (H_ - l.t - l.b);
+  ctx.font = "10px ui-monospace,monospace"; ctx.fillStyle = "#5b6572"; ctx.strokeStyle = "#232b38";
+  for (let s = 0; s <= 50; s += 10){ const x = X(s); ctx.beginPath(); ctx.moveTo(x, l.t); ctx.lineTo(x, H_ - l.b); ctx.stroke(); ctx.fillText(s, x - 6, H_ - l.b + 16); }
+  for (let i = 0; i <= 4; i++){ const vv = i * vmaxY / 4, y = Y(vv); ctx.beginPath(); ctx.moveTo(l.l, y); ctx.lineTo(l.r, y); ctx.stroke(); ctx.fillText(vv.toFixed(1), 6, y + 4); }
+  ctx.fillStyle = "#8b95a3"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText("Substrate concentration [S] (mM)", l.l + 110, H_ - 8);
+  ctx.fillText("Michaelis-Menten curve, v vs [S]", l.l + 8, l.t - 6);
+  ctx.save(); ctx.translate(14, H_ / 2 + 6); ctx.rotate(-Math.PI / 2); ctx.fillText("v (μmol/min)", -40, 0); ctx.restore();
+  // Vmax asymptote
+  ctx.strokeStyle = "#b48cff"; ctx.setLineDash([5, 4]);
+  ctx.beginPath(); ctx.moveTo(l.l, Y(P.Vmax)); ctx.lineTo(l.r, Y(P.Vmax)); ctx.stroke(); ctx.setLineDash([]);
+  ctx.fillStyle = "#b48cff"; ctx.font = "10.5px -apple-system,Microsoft YaHei";
+  ctx.fillText(`Vmax=${P.Vmax.toFixed(1)}`, l.r - 90, Y(P.Vmax) - 6);
+  // Curve
+  ctx.strokeStyle = "#59d6ff"; ctx.lineWidth = 2.4;
+  ctx.beginPath();
+  for (let s = 0.05; s <= 50; s += 0.2){
+    const vv = P.Vmax * s / (P.Km + s);
+    const x = X(s), y = Y(vv);
+    s === 0.05 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  }
+  ctx.stroke();
+  // Km point (v = Vmax/2)
+  const hkm = P.Vmax / 2;
+  ctx.fillStyle = "#ffb020";
+  ctx.beginPath(); ctx.arc(X(P.Km), Y(hkm), 5, 0, 7); ctx.fill();
+  ctx.fillStyle = "#ffb020"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText(`Km=${P.Km.toFixed(2)} (v=Vmax/2)`, X(P.Km) + 6, Y(hkm) - 8);
+  // Current point
+  const vv = v();
+  ctx.fillStyle = "#ff5252";
+  ctx.beginPath(); ctx.arc(X(P.S), Y(vv), 5, 0, 7); ctx.fill();
+  ctx.fillStyle = "#ff5252"; ctx.font = "11px ui-monospace,monospace";
+  ctx.fillText(`[S]=${P.S.toFixed(1)} v=${vv.toFixed(2)}`, X(P.S) + 6, Y(vv) + 14);
+  // Right: Lineweaver-Burk line
+  const r = { l: 470, r: W_ - 20, t: 24, b: 42 };
+  const invSmax = 10, invVmaxY = 1.5 / Math.max(0.01, P.Vmax);
+  const X2 = i => r.l + i / invSmax * (r.r - r.l);
+  const Y2 = iv => H_ - r.b - iv / invVmaxY * (H_ - r.t - r.b);
+  ctx.fillStyle = "#8b95a3"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText("Lineweaver-Burk: 1/v vs 1/[S]", r.l + 8, r.t - 6);
+  ctx.strokeStyle = "#232b38";
+  ctx.beginPath(); ctx.moveTo(r.l, H_ - r.b); ctx.lineTo(r.r, H_ - r.b); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(r.l, r.t); ctx.lineTo(r.l, H_ - r.b); ctx.stroke();
+  ctx.font = "10px ui-monospace,monospace"; ctx.fillStyle = "#5b6572";
+  ctx.fillText("0", r.l - 6, H_ - r.b + 14);
+  ctx.fillText("1/[S]", r.l + 4, r.t + 10);
+  // Line: y = (Km/Vmax)x + 1/Vmax
+  const slope = P.Km / P.Vmax, intercept = 1 / P.Vmax;
+  ctx.strokeStyle = "#ff8c2a"; ctx.lineWidth = 2.2;
+  ctx.beginPath();
+  ctx.moveTo(X2(0), Y2(intercept));
+  ctx.lineTo(X2(invSmax), Y2(intercept + slope * invSmax));
+  ctx.stroke();
+  // Intercept label
+  ctx.fillStyle = "#ff8c2a";
+  ctx.beginPath(); ctx.arc(r.l, Y2(intercept), 4, 0, 7); ctx.fill();
+  ctx.fillStyle = "#ff8c2a"; ctx.font = "10.5px -apple-system,Microsoft YaHei";
+  ctx.fillText(`1/Vmax=${intercept.toFixed(2)}`, r.l + 6, Y2(intercept) - 6);
+  // Current point
+  const iv = 1 / P.S, iiv = 1 / vv;
+  ctx.fillStyle = "#ff5252";
+  ctx.beginPath(); ctx.arc(X2(Math.min(invSmax, iv)), Y2(Math.min(1.5, iiv)), 4, 0, 7); ctx.fill();
+  // Note
+  ctx.fillStyle = "#5b6572"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText("Slope = Km/Vmax = " + slope.toFixed(3), r.l + 6, H_ - r.b - 16);
+}
+
+/* ============ Actions ============ */
+$("actBtn").onclick = () => {
+  if (step < 5) step++;
+  if (step === 4){ renderConclusion(); }
+  renderSeg(); narrate();
+};
+$("resetBtn").onclick = resetAll;
+function resetAll(){
+  P = { S: 5.0, Vmax: 2.0, Km: 0.5 };
+  step = 0;
+  $("sRange").value = 10; $("vmRange").value = 200; $("kmRange").value = 50;
+  $("conclusionCard").style.display = "none";
+  renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+}
+$("sRange").oninput = e => {
+  P.S = +e.target.value / 10;
+  $("sVal").textContent = P.S.toFixed(1) + " mM";
+  refreshMetrics(); narrate(); drawCanvas();
+};
+$("vmRange").oninput = e => {
+  P.Vmax = +e.target.value / 100;
+  $("vmVal").textContent = P.Vmax.toFixed(1);
+  refreshMetrics(); narrate(); drawCanvas();
+};
+$("kmRange").oninput = e => {
+  P.Km = +e.target.value / 100;
+  $("kmVal").textContent = P.Km.toFixed(2) + " mM";
+  refreshMetrics(); narrate(); drawCanvas();
+};
+function renderConclusion(){
+  const vv = v();
+  $("conclusionCard").style.display = "";
+  $("resBig").textContent = vv.toFixed(2);
+  $("resState").textContent = `[S]=${P.S.toFixed(1)} mM · Vmax=${P.Vmax.toFixed(1)} · Km=${P.Km.toFixed(2)} mM`;
+  $("concText").innerHTML = `v=Vmax·[S]/(Km+[S])=<b>${vv.toFixed(2)} μmol/min</b>, of Vmax (${(vv / P.Vmax * 100).toFixed(0)}% (${regime()[0]}).<br>Michaelis-Menten parameters: <b>Vmax=${P.Vmax.toFixed(1)} μmol/min</b> (enzyme-amount indicator), <b>Km=${P.Km.toFixed(2)} mM</b> (affinity — smaller means stronger).<br><span class='good'>Double-reciprocal Lineweaver-Burk: intercept 1/Vmax = ${(1 / P.Vmax).toFixed(2)}, slope Km/Vmax = ${(P.Km / P.Vmax).toFixed(3)}</span>. <br>Lab discipline: take only initial rates (first 10% of the reaction); Km is an enzyme property (varies with pH/temperature), Vmax varies with enzyme amount; Lineweaver-Burk magnifies low-substrate-point error, so use nonlinear fitting for formal assays.`;
+}
+
+/* ============ Initialization ============ */
+window.addEventListener("load", () => {
+  setTimeout(() => $("loader").classList.add("done"), 700);
+  renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+});
+</script>
+</body>
+</html>
