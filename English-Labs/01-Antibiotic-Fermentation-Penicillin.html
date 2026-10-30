@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Simulate penicillin fermentation in fed-batch mode: set glucose feed, agitation and precursor, then watch biomass, dissolved oxygen and product build over time.">
+<title>Penicillin Fermentation: Fed-Batch Simulation Lab</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='8' cy='10' r='4' fill='none' stroke='%2359d6ff' stroke-width='1.6'/%3E%3Ccircle cx='16' cy='15' r='5' fill='none' stroke='%23ffb020' stroke-width='1.6'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+  --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+  --amber:#ffb020; --amber-dim:#8a5c10;
+  --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84; --violet:#b48cff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;overflow-x:hidden}
+#loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .6s ease}
+#loader.done{opacity:0;pointer-events:none}
+#loader .spin{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--amber);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+@keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+.metric.flash{animation:mflash .9s ease}
+@keyframes bubble{0%{transform:translateY(0);opacity:.25}100%{transform:translateY(-26px);opacity:.9}}
+.bub{animation:bubble 2.4s ease-in-out infinite}
+@keyframes stir{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.stir{animation:stir 3s linear infinite;transform-origin:210px 108px}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+header.lab-head{padding:26px 4px 6px}
+.kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+h1.title .thin{color:var(--dim);font-weight:300}
+.sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+.oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;border-left:3px solid var(--amber);padding-left:14px;max-width:680px}
+.oneliner b{color:var(--amber)}
+.stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+@media (max-width:900px){.stage{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;overflow:hidden;margin-bottom:18px}
+.card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+svg.scene,canvas{width:100%;height:auto;display:block;background:radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+canvas{margin-top:10px;cursor:crosshair}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+.metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+.metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+.metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+#narrate{min-height:110px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px}
+#narrate b{color:var(--cyan);font-family:var(--mono)}
+#narrate .warn{color:var(--danger);font-weight:700}
+#narrate .ok{color:var(--ok);font-weight:700}
+.ctl{margin-bottom:12px}
+.ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+.ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+input[type=range]{width:100%;accent-color:var(--amber);background:transparent;height:26px}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{width:16px;height:16px;border-radius:50%;background:var(--amber);margin-top:-6px;border:none}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;font-family:var(--mono);transition:all .15s}
+.seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+.seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);box-shadow:0 0 0 1px var(--amber-dim) inset}
+.seg button.on small{color:var(--amber)}
+.seg button.done{color:var(--ok);border-color:#1e4d33}
+.seg button:active{transform:scale(.97)}
+#bench{margin-top:14px;min-height:120px}
+.tipbox{font-size:13px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:10px}
+.tipbox b{color:var(--txt)}
+.tipbox .warnline{color:var(--amber)}
+.actionrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn-act{flex:1;min-width:180px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206;border:none;border-radius:10px;letter-spacing:.1em;transition:transform .12s, box-shadow .12s}
+.btn-act:hover{box-shadow:0 4px 16px rgba(255,176,32,.35)}
+.btn-act:active{transform:scale(.98)}
+.btn-act:disabled{opacity:.45;cursor:default;box-shadow:none}
+.btn-ghost{padding:13px 18px;font-size:14px;cursor:pointer;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:10px}
+.btn-ghost:hover{color:var(--txt);border-color:var(--faint)}
+#conclusionCard{border-left:3px solid var(--violet)}
+.bigresult{text-align:center;padding:18px 0 6px}
+.bigresult .n{font-family:var(--mono);font-size:52px;font-weight:800;color:var(--violet)}
+.bigresult .u{font-size:14px;color:var(--dim)}
+.bigresult .c{font-size:13px;color:var(--faint);margin-top:6px;letter-spacing:.2em}
+.conc-text{font-size:14.5px;line-height:1.9;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}
+.conc-text b{color:var(--cyan);font-family:var(--mono)}
+.conc-text .bad{color:var(--danger);font-weight:700}
+.conc-text .good{color:var(--ok);font-weight:700}
+.redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+@media (max-width:700px){.redlines{grid-template-columns:1fr}}
+.rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.rl .d{font-size:12px;color:var(--dim);line-height:1.7}
+details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+details.how summary::-webkit-details-marker{display:none}
+details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--faint)}
+.tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+.do-bar{height:14px;background:#0d1117;border:1px solid var(--line);border-radius:7px;position:relative;margin:8px 0 4px;overflow:visible}
+.do-fill{height:100%;border-radius:7px;background:linear-gradient(90deg,#3ddc84,#ffb020);transition:width .2s}
+.do-fill.low{background:linear-gradient(90deg,#ff5252,#ff7a45)}
+.do-tick{position:absolute;left:20%;top:-3px;bottom:-3px;width:2px;background:#ff5252}
+.do-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--faint);font-family:var(--mono)}
+@media print{#loader,#rp{display:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>Inoculating Penicillium chrysogenum…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">PHARMA · VIRTUAL LAB 01</div>
+    <div class="kicker">PHARMACEUTICAL ENGINEERING · BIOPHARMACEUTICALS · ANTIBIOTIC FERMENTATION</div>
+    <h1 class="title">Antibiotic Fermentation<span class="thin"> Lab</span></h1>
+    <div class="sub">PENICILLIN · FED-BATCH · MONOD · KLa</div>
+    <p class="oneliner"><b>Penicillin isn't grown by the cells — it's made after the cells stop growing: the log phase only grows biomass, the stationary phase makes the product. Once dissolved oxygen falls below the critical level, production drops with it.</b><br>Fed-batch fermentation · Monod growth · Oxygen transfer · Secondary metabolism · Phenylacetic acid precursor.</p>
+  </header>
+
+<!-- SEO-INTRO-START -->
+<section style="background:#11151d;border:1px solid #232b38;border-left:3px solid #ffb020;border-radius:10px;padding:18px 20px;margin:20px 4px 0;line-height:1.7;font-size:15px;color:#e8eef4">
+<h2 style="font-size:19px;margin:0 0 10px;color:#e8eef4">About this lab</h2>
+<p style="margin:0 0 10px">Penicillin fermentation is an antibiotic fermentation process in which the mould Penicillium chrysogenum first grows biomass and only then, in the stationary phase, produces penicillin as a secondary metabolite. Industrial production runs fed-batch: glucose feed sustains the culture, aeration and agitation supply oxygen, and phenylacetic acid is fed as the side-chain precursor. This fed-batch fermentation simulation follows that penicillin production process hour by hour. You can adjust the glucose feed rate, the agitation speed that sets the oxygen-transfer coefficient, and the precursor feed, then watch biomass, dissolved oxygen, and penicillin titre evolve — and see production collapse when dissolved oxygen falls below its critical level, or when excess precursor inhibits the culture. It is built for pharmaceutical and biochemical engineering students learning why feeding strategy, not just the strain, decides the yield.</p>
+<h3 style="font-size:16px;margin:18px 0 8px;color:#ffb020">Questions students ask</h3>
+<p style="margin:0 0 10px"><strong>Why is penicillin made after growth stops?</strong> Penicillin is a secondary metabolite: the culture produces it mainly in the stationary phase, once rapid growth has ended.</p><p style="margin:0 0 10px"><strong>What happens if dissolved oxygen falls too low?</strong> Below the critical level, production drops sharply, so the run holds oxygen above that line through feeding and agitation.</p><p style="margin:0 0 10px"><strong>Can too much precursor hurt the run?</strong> Yes — phenylacetic acid feeds the side chain at moderate levels, but above about 0.9 it inhibits production instead of raising it.</p><p style="margin:0 0 10px"><strong>When should I harvest?</strong> Harvest when the production rate starts to fall; dragging the run into the decline phase adds little product and risks quality.</p><nav style="margin-top:14px;padding-top:12px;border-top:1px solid #232b38;font-size:14px;color:#8b95a3">Related labs: <a href="index-en.html" style="color:#59d6ff">Interactive Virtual Labs</a> · <a href="04-Reactor-Comparison-CSTR-PFR.html" style="color:#59d6ff">continuous stirred tank reactor simulation</a></nav>
+</section>
+<!-- SEO-INTRO-END -->
+  <div class="stage">
+    <div class="card">
+      <h3>Lab bench · <span id="sceneTitle" style="color:var(--amber)">1 · Inoculation</span></h3>
+      <svg class="scene" id="rig" viewBox="0 0 420 190" role="img" aria-label="Fermenter diagram">
+        <rect x="150" y="14" width="120" height="10" rx="3" fill="#232b38"/>
+        <rect x="206" y="14" width="8" height="60" fill="#8b95a3"/>
+        <g class="stir">
+          <rect x="150" y="104" width="120" height="6" rx="3" fill="#59d6ff"/>
+          <rect x="150" y="118" width="120" height="6" rx="3" fill="#59d6ff"/>
+        </g>
+        <path d="M150 30 L150 140 Q150 162 210 162 Q270 162 270 140 L270 30 Z" fill="#14202e" stroke="#59d6ff" stroke-width="2"/>
+        <path d="M160 130 Q210 150 260 130" fill="none" stroke="#ffb020" stroke-width="2" opacity=".7"/>
+        <circle cx="196" cy="140" r="2.4" fill="#59d6ff" class="bub"/>
+        <circle cx="214" cy="132" r="2" fill="#59d6ff" class="bub"/>
+        <circle cx="228" cy="142" r="1.8" fill="#59d6ff" class="bub"/>
+        <path d="M300 44 L272 44" stroke="#ffb020" stroke-width="3"/>
+        <polygon points="272,38 272,50 262,44" fill="#ffb020"/>
+        <text x="306" y="48" fill="#ffb020" font-size="11" font-family="inherit">Feed</text>
+        <path d="M300 84 L272 84" stroke="#b48cff" stroke-width="3"/>
+        <polygon points="272,78 272,90 262,84" fill="#b48cff"/>
+        <text x="306" y="88" fill="#b48cff" font-size="11" font-family="inherit">Precursor</text>
+        <text x="120" y="48" fill="#8b95a3" font-size="11" font-family="inherit">Aeration</text>
+        <path d="M146 44 L152 44" stroke="#8b95a3" stroke-width="3"/>
+        <text x="210" y="182" text-anchor="middle" fill="#8b95a3" font-size="9" font-family="inherit">Fermenter · Agitator · Sparger · DO probe · Feed and precursor addition</text>
+      </svg>
+      <canvas id="gcCanvas" width="820" height="420" style="width:100%;height:auto"></canvas>
+      <div id="bench"></div>
+      <div class="actionrow">
+        <button class="btn-act" id="actBtn">Start</button>
+        <button class="btn-ghost" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Live instruments</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">Fermentation time t</div><div class="v" id="mT">–<small>h</small></div><div class="sub2">0–160 h (about 7 days)</div></div>
+          <div class="metric"><div class="k">Biomass X</div><div class="v" id="mX">–<small>g/L</small></div><div class="sub2">Dry weight, Monod growth</div></div>
+          <div class="metric" id="mPc"><div class="k">Penicillin P</div><div class="v" id="mP">–<small>g/L (demo)</small></div><div class="sub2">Secondary metabolite</div></div>
+          <div class="metric" id="mDc"><div class="k">Dissolved oxygen DO</div><div class="v" id="mDO">–<small>mg/L</small></div><div class="sub2" id="mDOSub">Critical 1.5 mg/L</div></div>
+        </div>
+        <div class="do-bar"><div class="do-fill" id="doFill" style="width:100%"></div><div class="do-tick"></div></div>
+        <div class="do-labels"><span>0</span><span style="color:#ff5252">Critical 20%</span><span>Saturation 100%</span></div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">Feed rate (glucose feed)</span><span class="val" id="feedVal">0.40 g/L/h</span></div>
+          <input type="range" id="feedRange" min="0" max="100" step="5" value="40">
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">Agitation speed (sets KLa)</span><span class="val" id="rpmVal">500 rpm</span></div>
+          <input type="range" id="rpmRange" min="200" max="800" step="10" value="500">
+        </div>
+        <div class="ctl">
+          <div class="row"><span class="name">Precursor feeding (phenylacetic acid)</span><span class="val" id="precVal">0.70</span></div>
+          <input type="range" id="precRange" min="0" max="100" step="5" value="70">
+        </div>
+        <h3>Steps</h3>
+        <div class="seg" id="stepSeg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="conclusionCard" style="display:none">
+    <h3>Conclusion · Penicillin fermentation run</h3>
+    <div class="bigresult">
+      <div class="n" id="resBig">–</div>
+      <div class="u" id="resUnit">g/L (demo) final penicillin yield · Biomass <span id="resX" style="color:var(--dim)">–</span> g/L</div>
+      <div class="c" id="resState">–</div>
+    </div>
+    <div class="conc-text" id="concText">…</div>
+    <div class="actionrow">
+      <button class="btn-act" onclick="resetAll()">Run again with new parameters</button>
+      <button class="btn-ghost" onclick="document.getElementById('howBox').open=true">See model equations</button>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 1 · Below critical DO, production drops first</div><div class="d">Below 1.5 mg/L (about 20% saturation), growth and production rates fall proportionally — penicillin fermentation is aerobic: oxygen shortage hits production first, then the cells. More air without faster agitation still leaves it oxygen-starved; KLa is the combined effect of aeration and agitation.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 2 · More precursor is not better</div><div class="d">Phenylacetic acid is the precursor of penicillin G: a moderate feed directs synthesis toward penicillin G; at a feed level of 0.9 or above, excess precursor inhibits growth by 20% and production falls instead of rising. A precursor is a "directing agent", not a nutrient.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 3 · Harvest when the production rate falls</div><div class="d">Harvest when the production rate falls — don't drag it into the decline phase. One extra day just burns feed for nothing, and the product may even degrade. The endpoint is set just after the production peak, when the rate has clearly fallen — not "the longer the better".</div></div>
+  </div>
+
+  <details class="how" id="howBox">
+    <summary>▸ Model and equations (deterministic demo, no random numbers)</summary>
+    <div class="f">Growth (Monod + oxygen limitation + precursor excess inhibition):
+  μ = μmax·S/(Ks+S)·fO2·fPrec   [h⁻¹]
+  μmax=0.20,Ks=0.5 g/L (demo);fO2 = C≥1.5 ? 1 : C/1.5;
+  fPrec = precursor level >= 0.9 ? 0.8 : 1.0
+Substrate (fed-batch): dS/dt = F − (μ·X)/Y, Y = 0.5 g/g, F is the feed slider
+Biomass: dX/dt = μ·X − kd·X (kd = 0.03 h⁻¹, active from t >= 120 h)
+Product (secondary metabolism: the faster the growth, the lower the specific production rate):
+  qp = qpmax·(1 − μ/μmax)·min(1, C/1.5)·(0.3 + 0.7·precursor level)
+  qpmax = 0.012 g/L/h (demo); dP/dt = qp·X
+Dissolved oxygen (sub-stepped integration to avoid oscillation): dC/dt = KLa·(C*−C) − qO2·X
+  C* = 7.5 mg/L, critical 1.5 mg/L, qO2 = 15 mg/g/L/h (demo)
+  KLa = 50·vvm + 20 + 30·(rpm/600) [h⁻¹] (aeration + agitation coupled demo equation, vvm = 1.0)
+Phases: lag (t &lt; 8 h) → log (μ &gt; 0.04) → stationary/production (μ ≈ 0, X not falling)
+  → decline (X falling after t >= 120 h)
+This page is a deterministic demo: feed, agitation and precursor are adjustable, and the curves are reproducible.
+Industrial potency is usually quoted in u/mL; this page uses g/L to show orders of magnitude. Strain parameters are typical demo values,
+not a basis for fermentation process design.</div>
+    <p>The demo model follows typical penicillin fed-batch fermentation kinetics; real strains, media,
+and precursor strategies vary widely. For teaching demos only — not a basis for production processes.</p>
+  </details>
+</div>
+
+<script>
+"use strict";
+/* ============ Model (deterministic Euler stepping, sub-stepped oxygen integration) ============ */
+const MUMAX = 0.20, KS = 0.5, YIELD = 0.5, KD = 0.03, LAG = 8;
+const CSTAR = 7.5, CKRIT = 1.5, QO2 = 15, QPMAX = 0.012, VVM = 1.0;
+const TMAX = 160, DT = 0.05;
+let P = { feed: 0.40, rpm: 500, prec: 0.70 };
+let SIM = [];
+const $ = id => document.getElementById(id);
+function kla(){ return 50 * VVM + 20 + 30 * (P.rpm / 600); }
+function simulate(){
+  SIM = [];
+  let X = 1.0, S = 30, Pp = 0, C = CSTAR, t = 0, phase = 0;
+  for (; t <= TMAX + 0.0001; t += DT){
+    const fO2 = C >= CKRIT ? 1 : C / CKRIT;
+    const fPrec = P.prec >= 0.9 ? 0.8 : 1.0;
+    let mu = MUMAX * S / (KS + S) * fO2 * fPrec;
+    if (t < LAG) mu = 0;
+    if (t < LAG) phase = 0;
+    else if (phase !== 3){
+      if (mu > 0.04) phase = 1;
+      else if (SIM.length && X < SIM[SIM.length - 1].X) phase = 3;
+      else phase = 2;
+    }
+    let qp = 0;
+    if (t >= LAG) qp = QPMAX * (1 - mu / MUMAX) * Math.min(1, C / CKRIT) * (0.3 + 0.7 * P.prec);
+    SIM.push({ t, X, S, P: Pp, C, mu, qp, phase });
+    const dX = mu * X - (t >= 120 ? KD * X : 0);
+    const dS = P.feed - mu * X / YIELD;
+    const dP = qp * X;
+    X += dX * DT; S += dS * DT; Pp += dP * DT;
+    if (S < 0) S = 0;
+    const k = kla();
+    for (let i = 0; i < 10; i++){
+      C += (k * (CSTAR - C) - QO2 * X) * (DT / 10);
+      if (C < 0) C = 0; if (C > CSTAR) C = CSTAR;
+    }
+  }
+}
+function sampleAt(t){
+  if (!SIM.length) simulate();
+  return SIM[Math.min(SIM.length - 1, Math.round(t / DT))];
+}
+
+/* ============ State machine ============ */
+const STEPS = [
+  { t: "Inoculation", s: "Penicillium chrysogenum spores are transferred from the seed vessel to the fermenter, aerated at 30°C. Inoculum size and seed age directly set how long the lag phase lasts.", bench: "Preparation:\n① Sterilise the fermenter and medium\n② Transfer log-phase seed culture\n③ 30°C, aeration 1.0 vvm\n④ Calibrate the DO probe (saturation 7.5 mg/L)" },
+  { t: "Lag phase", s: "No biomass growth in the first 8 h — spores germinate and adapt to the medium. The longer the lag, the more the production cycle loses.", bench: "" },
+  { t: "Log phase", s: "Substrate is plentiful, μ ≈ μmax, biomass grows exponentially; oxygen demand soars with biomass and DO starts to fall.", bench: "" },
+  { t: "Fed-batch feeding", s: "As batch substrate runs out, glucose is fed continuously to sustain growth — fed-batch operation is exactly this glucose lifeline.", bench: "" },
+  { t: "Dissolved-oxygen control", s: "Agitation + aeration set KLa; DO must be held above the critical 1.5 mg/L. Once DO falls below it, growth and production drop proportionally.", bench: "" },
+  { t: "Production peak", s: "Stationary phase: growth slows and secondary metabolism runs at full tilt — penicillin rate at its highest. The precursor phenylacetic acid directs synthesis toward penicillin G.", bench: "" },
+  { t: "Harvest", s: "Harvest when the production rate falls — don't drag it into the decline phase. Read the final yield and harvest timing to set parameters for the next batch.", bench: "" }
+];
+let step = 0, tCur = 0;
+const PHN = ["Lag phase", "Log phase", "Stationary/production", "Decline phase"];
+
+function renderSeg(){
+  const el = $("stepSeg");
+  el.innerHTML = STEPS.map((s, i) =>
+    `<button data-i="${i}" class="${i < step ? "done" : i === step ? "on" : ""}">${i + 1} · ${s.t}<small>${i < step ? "Done" : i === step ? "In progress" : "To do"}</small></button>`
+  ).join("");
+  [...el.children].forEach(b => b.onclick = () => { if (+b.dataset.i <= step){ step = +b.dataset.i; renderSeg(); narrate(); } });
+  $("sceneTitle").textContent = `${step + 1} · ${STEPS[step].t}`;
+  $("actBtn").textContent = step >= 6 ? "Done" : "Next step";
+  $("bench").innerHTML = STEPS[step].bench
+    ? `<div class="tipbox"><b>This step</b><br>${STEPS[step].bench.replace(/\n/g, "<br>")}</div>` : "";
+}
+function narrate(){
+  const n = $("narrate");
+  const s = sampleAt(tCur);
+  const doPct = (s.C / CSTAR * 100).toFixed(0);
+  if (step === 0) n.innerHTML = STEPS[0].s;
+  else if (step === 1) n.innerHTML = `t=<b>${tCur.toFixed(1)}h</b>:Still in the lag phase (first 8 h), biomass X=<b>${s.X.toFixed(1)} g/L</b>, spores germinating and adapting.`;
+  else if (step === 2) n.innerHTML = `t=<b>${tCur.toFixed(1)}h</b>:${PHN[s.phase]},μ=<b>${s.mu.toFixed(2)} h⁻¹</b>,X=<b>${s.X.toFixed(1)} g/L</b>,DO=<b>${s.C.toFixed(2)} mg/L(${doPct}%)</b>. The more biomass, the fiercer the oxygen demand.`;
+  else if (step === 3) n.innerHTML = `Feed rate <b>${P.feed.toFixed(2)} g/L/h</b>: substrate S=<b>${s.S.toFixed(1)} g/L</b>,X=<b>${s.X.toFixed(1)} g/L</b>.${P.feed === 0 ? '<span class="warn">Feed is 0 — once substrate runs out, growth stops. That is exactly why fed-batch feeding exists.</span>' : 'Feeding sustains growth; biomass keeps climbing.'}`;
+  else if (step === 4) n.innerHTML = `KLa=<b>${kla().toFixed(0)} h⁻¹</b>(${P.rpm} rpm + 1.0 vvm): DO=<b>${s.C.toFixed(2)} mg/L(${doPct}%)</b>.${s.C < CKRIT ? '<span class="warn">Below the critical 1.5 mg/L! Growth and production are dropping proportionally — raise agitation or aeration to pull DO back up.</span>' : '<span class="ok">DO is holding above the critical line — oxygen supply is keeping up with demand.</span>'}`;
+  else if (step === 5) n.innerHTML = `Production rate qp=<b>${s.qp.toFixed(4)} g/L/h</b>, penicillin P=<b>${s.P.toFixed(1)} g/L</b>.${s.phase === 2 ? 'Stationary phase, production at full tilt — the slower the growth, the stronger the secondary metabolism.' : 'Not at the production peak yet — keep watching.'}Precursor level ${P.prec.toFixed(2)}${P.prec >= 0.9 ? '(<span class="warn">≥ 0.9: excess inhibits growth by 20%</span>)' : ''}.`;
+  else n.innerHTML = `Final yield P=<b>${SIM[SIM.length - 1].P.toFixed(1)} g/L (demo)</b>, biomass X=<b>${SIM[SIM.length - 1].X.toFixed(1)} g/L</b>.${SIM[SIM.length - 1].phase === 3 ? 'Already in the decline phase — harvest now; any delay just burns feed for nothing.' : 'Not in decline yet — production is still climbing.'}`;
+}
+function flash(id){
+  const el = $(id); if (!el) return;
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+}
+function refreshMetrics(){
+  const s = sampleAt(tCur);
+  $("mT").textContent = tCur.toFixed(1);
+  $("mX").textContent = s.X.toFixed(1);
+  $("mP").textContent = s.P.toFixed(1);
+  $("mDO").textContent = s.C.toFixed(2);
+  $("mDOSub").textContent = s.C < CKRIT ? "⚠ Below critical 1.5" : `Critical 1.5 mg/L · ${(s.C / CSTAR * 100).toFixed(0)}%`;
+  const fill = $("doFill");
+  fill.style.width = (s.C / CSTAR * 100) + "%";
+  fill.classList.toggle("low", s.C < CKRIT);
+  ["mT", "mX", "mP", "mDO"].forEach(flash);
+}
+
+/* ============ Canvas: biomass X + penicillin P ============ */
+const W_ = 820, H_ = 420;
+const cv = $("gcCanvas"), ctx = cv.getContext("2d");
+function drawCanvas(){
+  ctx.clearRect(0, 0, W_, H_);
+  const l = { l: 56, r: W_ - 20, t: 24, b: 42 };
+  const yMax = Math.max(40, Math.max(...SIM.map(v => Math.max(v.X, v.P))) * 1.15);
+  const X = t => l.l + t / TMAX * (l.r - l.l);
+  const Y = v => H_ - l.b - v / yMax * (H_ - l.t - l.b);
+  ctx.font = "10px ui-monospace,monospace"; ctx.fillStyle = "#5b6572"; ctx.strokeStyle = "#232b38";
+  for (let t = 0; t <= 160; t += 20){ const x = X(t); ctx.beginPath(); ctx.moveTo(x, l.t); ctx.lineTo(x, H_ - l.b); ctx.stroke(); ctx.fillText(t, x - 6, H_ - l.b + 16); }
+  for (let i = 0; i <= 4; i++){ const v = i * yMax / 4, y = Y(v); ctx.beginPath(); ctx.moveTo(l.l, y); ctx.lineTo(l.r, y); ctx.stroke(); ctx.fillText(v.toFixed(0), 6, y + 4); }
+  ctx.fillStyle = "#8b95a3"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText("Fermentation time t (h)", l.l + 140, H_ - 8);
+  ctx.fillText("Biomass X (cyan) and penicillin P (violet), g/L", l.l + 8, l.t - 6);
+  const draw = (key, color) => {
+    ctx.strokeStyle = color; ctx.lineWidth = 2.4; ctx.beginPath();
+    SIM.forEach((v, i) => { const x = X(v.t), y = Y(v[key]); i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); });
+    ctx.stroke();
+  };
+  draw("X", "#59d6ff"); draw("P", "#b48cff");
+  const s = sampleAt(tCur);
+  ctx.fillStyle = "#ffb020";
+  ctx.beginPath(); ctx.arc(X(s.t), Y(s.X), 6, 0, 7); ctx.fill();
+  ctx.font = "12px ui-monospace,monospace";
+  ctx.fillText(`t=${s.t.toFixed(1)}h X=${s.X.toFixed(1)} P=${s.P.toFixed(1)} DO=${s.C.toFixed(2)}`, X(s.t) - 20, Y(s.X) - 14);
+  ctx.font = "10.5px -apple-system,Microsoft YaHei";
+  [{ t: 4, label: "Lag" }, { t: 24, label: "Log" }, { t: 80, label: "Stationary/production" }, { t: 140, label: "Decline" }].forEach(p => {
+    const v = sampleAt(p.t);
+    ctx.fillStyle = "#8b95a3";
+    ctx.fillText(p.label + " phase", X(p.t) - 12, Y(v.X) - 22);
+  });
+}
+
+/* ============ Actions ============ */
+$("actBtn").onclick = () => {
+  if (step < 6) step++;
+  if (step === 6) renderConclusion();
+  renderSeg(); narrate();
+};
+$("resetBtn").onclick = resetAll;
+function resetAll(){
+  P = { feed: 0.40, rpm: 500, prec: 0.70 };
+  step = 0; tCur = 0;
+  $("feedRange").value = 40; $("rpmRange").value = 500; $("precRange").value = 70;
+  $("conclusionCard").style.display = "none";
+  simulate(); renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+}
+$("feedRange").oninput = e => {
+  P.feed = +e.target.value / 100;
+  $("feedVal").textContent = P.feed.toFixed(2) + " g/L/h";
+  simulate(); refreshMetrics(); narrate(); drawCanvas();
+};
+$("rpmRange").oninput = e => {
+  P.rpm = +e.target.value;
+  $("rpmVal").textContent = P.rpm + " rpm";
+  simulate(); refreshMetrics(); narrate(); drawCanvas();
+};
+$("precRange").oninput = e => {
+  P.prec = +e.target.value / 100;
+  $("precVal").textContent = P.prec.toFixed(2);
+  simulate(); refreshMetrics(); narrate(); drawCanvas();
+};
+cv.onclick = e => {
+  const r = cv.getBoundingClientRect();
+  const px = (e.clientX - r.left) / r.width;
+  tCur = Math.min(TMAX, Math.max(0, px * TMAX));
+  refreshMetrics(); narrate(); drawCanvas();
+};
+function renderConclusion(){
+  const last = SIM[SIM.length - 1];
+  $("conclusionCard").style.display = "";
+  $("resBig").textContent = last.P.toFixed(1);
+  $("resX").textContent = last.X.toFixed(1);
+  $("resState").textContent = `Feed ${P.feed.toFixed(2)} g/L/h · ${P.rpm} rpm · Precursor ${P.prec.toFixed(2)} · ${last.phase === 3 ? "In decline" : "Still producing"}`;
+  $("concText").innerHTML = `Full run: <b>lag (adaptation) → log (biomass only) → stationary/production (secondary metabolism at full tilt) → decline</b>.<br>Final penicillin <b>${last.P.toFixed(1)} g/L (demo)</b>, biomass <b>${last.X.toFixed(1)} g/L</b>.<br><span class='good'>Harvest rule: harvest when the production rate falls — never drag it into the decline phase.</span><br>Industrial takeaways: feed to sustain growth, hold DO above the critical 1.5 mg/L, keep precursor moderate (≥ 0.9 inhibits instead), inoculate log-phase seed to shorten the lag; industrial potency is usually quoted in u/mL, the g/L here only shows orders of magnitude.`;
+}
+
+/* ============ Init ============ */
+window.addEventListener("load", () => {
+  setTimeout(() => $("loader").classList.add("done"), 700);
+  simulate(); renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+});
+</script>
+</body>
+</html>
