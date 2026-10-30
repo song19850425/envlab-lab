@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="description" content="Interactive bioreactor scale-up lab: scale a 1 L vessel to 100 L and compare impeller speeds for constant P/V, constant tip speed and constant Reynolds number.">
+<title>Bioreactor Scale-Up Lab: P/V, Tip Speed & Reynolds</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='7' y='3' width='10' height='18' rx='3' fill='none' stroke='%2359d6ff' stroke-width='1.6'/%3E%3Cpath d='M10 6h4M10 10h4M10 14h4M10 18h4' stroke='%23ffb020' stroke-width='1.5'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#0a0d12; --panel:#11151d; --panel2:#151b25; --line:#232b38;
+  --txt:#e8eef4; --dim:#8b95a3; --faint:#5b6572;
+  --amber:#ffb020; --amber-dim:#8a5c10;
+  --cyan:#59d6ff; --danger:#ff5252; --ok:#3ddc84; --violet:#b48cff;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;overflow-x:hidden}
+#loader{position:fixed;inset:0;background:var(--bg);z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:14px;transition:opacity .6s ease}
+#loader.done{opacity:0;pointer-events:none}
+#loader .spin{width:46px;height:46px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--amber);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loader p{color:var(--dim);font-size:14px;letter-spacing:.25em}
+@keyframes mflash{0%{box-shadow:0 0 0 2px var(--amber)}100%{box-shadow:0 0 0 0 transparent}}
+.metric.flash{animation:mflash .9s ease}
+@keyframes tankPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.015)}}
+.tank{animation:tankPulse 3s ease-in-out infinite;transform-origin:50% 100%}
+.wrap{max-width:1180px;margin:0 auto;padding:20px 18px 40px}
+header.lab-head{padding:26px 4px 6px}
+.kicker{font-size:12px;letter-spacing:.35em;color:var(--faint);margin-bottom:10px}
+h1.title{font-size:clamp(30px,5vw,46px);font-weight:800;letter-spacing:.12em}
+h1.title .thin{color:var(--dim);font-weight:300}
+.sub{font-size:13px;letter-spacing:.42em;color:var(--amber);margin-top:8px}
+.oneliner{margin-top:14px;font-size:16px;color:var(--txt);line-height:1.7;border-left:3px solid var(--amber);padding-left:14px;max-width:680px}
+.oneliner b{color:var(--amber)}
+.stage{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:18px;margin-top:20px}
+@media (max-width:900px){.stage{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;position:relative;overflow:hidden;margin-bottom:18px}
+.card h3{font-size:12px;letter-spacing:.25em;color:var(--faint);margin-bottom:10px;font-weight:600}
+svg.scene,canvas{width:100%;height:auto;display:block;background:radial-gradient(120% 90% at 50% 0%,#141a24 0%,#0a0d12 70%);border-radius:10px}
+canvas{margin-top:10px;cursor:crosshair}
+.metrics{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.metric{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.metric .k{font-size:11px;color:var(--faint);letter-spacing:.15em;margin-bottom:4px}
+.metric .v{font-family:var(--mono);font-size:clamp(20px,3.4vw,28px);font-weight:700}
+.metric .v small{font-size:12px;color:var(--dim);font-weight:400;margin-left:2px}
+.metric .sub2{font-size:11px;color:var(--faint);margin-top:2px;font-family:var(--mono)}
+#narrate{min-height:110px;background:var(--panel2);border:1px solid var(--line);border-left:3px solid var(--cyan);border-radius:10px;padding:12px 14px;font-size:14.5px;line-height:1.75;color:var(--txt);margin-bottom:14px}
+#narrate b{color:var(--cyan);font-family:var(--mono)}
+#narrate .warn{color:var(--danger);font-weight:700}
+#narrate .ok{color:var(--ok);font-weight:700}
+.ctl{margin-bottom:12px}
+.ctl .row{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.ctl .name{font-size:13px;letter-spacing:.2em;color:var(--dim)}
+.ctl .val{font-family:var(--mono);font-size:13px;color:var(--amber)}
+input[type=range]{width:100%;accent-color:var(--amber);background:transparent;height:26px}
+input[type=range]::-webkit-slider-runnable-track{height:4px;background:var(--line);border-radius:2px}
+input[type=range]::-webkit-slider-thumb{width:16px;height:16px;border-radius:50%;background:var(--amber);margin-top:-6px;border:none}
+.seg{display:flex;gap:8px;flex-wrap:wrap}
+.seg button{flex:1 1 0;min-width:62px;padding:10px 6px;font-size:13px;cursor:pointer;background:var(--panel2);color:var(--dim);border:1px solid var(--line);border-radius:9px;font-family:var(--mono);transition:all .15s}
+.seg button small{display:block;font-size:10px;color:var(--faint);margin-top:2px;font-family:inherit}
+.seg button.on{background:#2a2113;color:var(--amber);border-color:var(--amber-dim);box-shadow:0 0 0 1px var(--amber-dim) inset}
+.seg button.on small{color:var(--amber)}
+.seg button.done{color:var(--ok);border-color:#1e4d33}
+.seg button:active{transform:scale(.97)}
+#bench{margin-top:14px;min-height:120px}
+.tipbox{font-size:13px;color:var(--dim);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;line-height:1.7;margin-top:10px}
+.tipbox b{color:var(--txt)}
+.tipbox .warnline{color:var(--amber)}
+.actionrow{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.btn-act{flex:1;min-width:180px;padding:13px 20px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#ffb020,#f59e0b);color:#1a1206;border:none;border-radius:10px;letter-spacing:.1em;transition:transform .12s, box-shadow .12s}
+.btn-act:hover{box-shadow:0 4px 16px rgba(255,176,32,.35)}
+.btn-act:active{transform:scale(.98)}
+.btn-act:disabled{opacity:.45;cursor:default;box-shadow:none}
+.btn-ghost{padding:13px 18px;font-size:14px;cursor:pointer;background:transparent;color:var(--dim);border:1px solid var(--line);border-radius:10px}
+.btn-ghost:hover{color:var(--txt);border-color:var(--faint)}
+#conclusionCard{border-left:3px solid var(--violet)}
+.bigresult{text-align:center;padding:18px 0 6px}
+.bigresult .n{font-family:var(--mono);font-size:52px;font-weight:800;color:var(--violet)}
+.bigresult .u{font-size:14px;color:var(--dim)}
+.bigresult .c{font-size:13px;color:var(--faint);margin-top:6px;letter-spacing:.2em}
+.conc-text{font-size:14.5px;line-height:1.9;color:var(--txt);background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin:14px 0}
+.conc-text b{color:var(--cyan);font-family:var(--mono)}
+.conc-text .bad{color:var(--danger);font-weight:700}
+.conc-text .good{color:var(--ok);font-weight:700}
+.spec-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:10px}
+.spec-table th{font-size:11px;color:var(--faint);text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);letter-spacing:.1em}
+.spec-table td{padding:9px 10px;border-bottom:1px solid var(--line);color:var(--txt);font-family:var(--mono);font-size:13px}
+.redlines{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:2px}
+@media (max-width:700px){.redlines{grid-template-columns:1fr}}
+.rl{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.rl .t{font-size:13px;font-weight:700;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.rl .t .dot{width:9px;height:9px;border-radius:50%;background:var(--ok)}
+.rl .d{font-size:12px;color:var(--dim);line-height:1.7}
+details.how{margin-top:18px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 16px;font-size:13px;color:var(--dim)}
+details.how summary{cursor:pointer;color:var(--txt);font-size:14px;letter-spacing:.15em;list-style:none}
+details.how summary::-webkit-details-marker{display:none}
+details.how .f{font-family:var(--mono);background:#0d1117;border-radius:8px;padding:10px 12px;margin:8px 0;color:var(--cyan);font-size:12.5px;line-height:1.9;overflow-x:auto;white-space:pre}
+footer{margin-top:26px;padding-top:16px;border-top:1px solid var(--line);display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;font-size:12px;color:var(--faint)}
+.tag{display:inline-block;font-size:10px;letter-spacing:.2em;color:var(--faint);border:1px solid var(--line);border-radius:20px;padding:3px 10px;margin-bottom:8px}
+@media print{#loader,#rp{display:none!important}}
+</style>
+</head>
+<body>
+<div id="loader"><div class="spin"></div><p>Scaling up by geometric similarity…</p></div>
+<div class="wrap">
+  <header class="lab-head">
+    <div class="tag">BIO · VIRTUAL LAB 04</div>
+    <div class="kicker">Bioprocess engineering · Bioreactors · Scale-up engineering</div>
+    <h1 class="title">Bioreactor Scale-Up<span class="thin">Lab</span></h1>
+    <div class="sub">SCALE-UP · GEOMETRIC SIMILARITY · P/V · TIP SPEED · Re</div>
+    <p class="oneliner"><b>At 300 rpm a 1 L shake flask runs fine — scale it to 100 L at the same speed and tip speed goes through the roof and power explodes. Scale-up is not proportional enlargement; it is a decision about "which quantity to hold constant".</b><br>Geometric similarity λ = (V2/V1)^(1/3) · Constant P/V · Constant tip speed · Constant Re.</p>
+  </header>
+  <section class="seo-intro" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:18px;line-height:1.75;font-size:14.5px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">About this lab</h2>
+    <p><strong>Demo:</strong> Scaling up a bioreactor is not a matter of enlarging everything in proportion. Under geometric similarity, vessel and impeller diameters grow by λ = (V2/V1)^(1/3), but impeller speed must then be chosen by a criterion — and no single criterion preserves everything. In this interactive lab you set the scale-up factor from a 1 L baseline vessel running at 300 rpm, and compare three speeds: constant power per unit volume (P/V), which keeps power draw and oxygen supply similar; constant tip speed, which keeps shear as a floor; and constant Reynolds number, which keeps the flow pattern but drops speed the most. For aerobic fermentation the usual main thread is holding kLa or P/V, because oxygen supply is the limiting factor, followed by step-by-step verification at each scale, from 1 L to 100 L to 1 m³ and beyond.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">Browse the full set: <a href="index-en.html" style="color:var(--cyan)">Interactive Virtual Labs</a> · <a href="02-Fermentation-Oxygen-kLa.html" style="color:var(--cyan)">fermentation oxygen transfer (kLa)</a> · <a href="01-Microbial-Growth-Monod.html" style="color:var(--cyan)">microbial growth and Monod kinetics</a></p>
+  </section>
+
+  <div class="stage">
+    <div class="card">
+      <h3>Bench · <span id="sceneTitle" style="color:var(--amber)">1 · Small-vessel baseline</span></h3>
+      <svg class="scene" id="rig" viewBox="0 0 420 190" role="img" aria-label="Vessel scale-up comparison diagram">
+        <g class="tank">
+          <rect x="40" y="40" width="60" height="110" rx="6" fill="#14202e" stroke="#59d6ff" stroke-width="2"/>
+          <path d="M70 52 L66 40 M70 52 L74 40" stroke="#8b95a3" stroke-width="2.5"/>
+          <text x="70" y="24" text-anchor="middle" fill="#59d6ff" font-size="10" font-family="inherit">1 L</text>
+        </g>
+        <g class="tank" style="animation-delay:.6s">
+          <rect x="170" y="40" width="140" height="110" rx="8" fill="#14202e" stroke="#ffb020" stroke-width="2"/>
+          <path d="M240 52 L230 40 M240 52 L250 40" stroke="#8b95a3" stroke-width="3"/>
+          <text x="240" y="24" text-anchor="middle" fill="#ffb020" font-size="10" font-family="inherit" id="v2Label">100 L</text>
+        </g>
+        <g class="tank" style="animation-delay:1.2s">
+          <rect x="360" y="40" width="20" height="110" rx="4" fill="#14202e" stroke="#b48cff" stroke-width="2"/>
+          <text x="370" y="24" text-anchor="middle" fill="#b48cff" font-size="10" font-family="inherit">…</text>
+        </g>
+        <text x="210" y="178" text-anchor="middle" fill="#5b6572" font-size="9" font-family="inherit">Geometric-similarity scale-up: diameter and impeller scale by λ together; impeller speed is back-calculated from the chosen constant criterion</text>
+      </svg>
+      <canvas id="scCanvas" width="820" height="420" style="width:100%;height:auto"></canvas>
+      <div id="bench"></div>
+      <div class="actionrow">
+        <button class="btn-act" id="actBtn">Start</button>
+        <button class="btn-ghost" id="resetBtn">Reset</button>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <h3>Live instruments</h3>
+        <div class="metrics">
+          <div class="metric"><div class="k">Scale-up factor</div><div class="v" id="mN">–<small>×</small></div><div class="sub2">Volume ratio V2/V1</div></div>
+          <div class="metric" id="mSc"><div class="k">Geometric ratio λ</div><div class="v" id="mL">–<small>×</small></div><div class="sub2">(V2/V1)^(1/3)</div></div>
+          <div class="metric"><div class="k">Constant-P/V speed</div><div class="v" id="mNpv">–<small>rpm</small></div><div class="sub2">n1/λ^(2/3)</div></div>
+          <div class="metric" id="mPc"><div class="k">Tip-speed / Re speed</div><div class="v" id="mNtip">–<small>rpm</small></div><div class="sub2" id="mNtipSub">–</div></div>
+        </div>
+        <div id="narrate">…</div>
+        <div class="ctl">
+          <div class="row"><span class="name">Scale-up factor (V2/V1)</span><span class="val" id="nVal">100×</span></div>
+          <input type="range" id="nRange" min="10" max="10000" step="10" value="100">
+        </div>
+        <h3>Steps</h3>
+        <div class="seg" id="stepSeg"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="conclusionCard" style="display:none">
+    <h3>Conclusion · Scale-up criterion choice</h3>
+    <div class="bigresult">
+      <div class="n" id="resBig">–</div>
+      <div class="u" id="resUnit">rpm (constant-P/V speed)</div>
+      <div class="c" id="resState">–</div>
+    </div>
+    <div class="conc-text" id="concText">…</div>
+    <div class="actionrow">
+      <button class="btn-act" onclick="resetAll()">Change the factor and scale up again</button>
+      <button class="btn-ghost" onclick="document.getElementById('howBox').open=true">See the model equations</button>
+    </div>
+  </div>
+
+  <div class="redlines">
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 1 · No single criterion preserves everything</div><div class="d">Constant P/V keeps power draw and shear similar, but tip speed rises; constant tip speed keeps shear, but P/V falls and mixing worsens; constant Re keeps the flow pattern, but speed falls hardest. Scale-up must accept "holding one loses another" and choose by the key limiting factor.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 2 · Oxygen transfer is the usual main thread</div><div class="d">Aerobic-fermentation scale-up most often holds kLa or P/V — because the limiting factor is oxygen supply. Real engineering also adds vvm aeration corrections and vessel pressure, calibrating iteratively with the empirical correlation kLa ∝ (P/V)^a·vs^b, not by picking one speed and stopping.</div></div>
+    <div class="rl"><div class="t"><span class="dot"></span>Red line 3 · Scale-up must be verified step by step</div><div class="d">Scale up step by step, 1 L → 100 L → 1 m³ → 20 m³, checking DO/temperature/pH/mixing time at each step and tracking by-products with metabolic flux analysis (MFA). Jumping from a shake flask to an industrial vessel in one step leaves the cells' fate to luck.</div></div>
+  </div>
+
+  <details class="how" id="howBox">
+    <summary>▸ Model and equations (deterministic demo, no random numbers fitted to results)</summary>
+    <div class="f">Geometric-similarity scale-up: λ = (V2/V1)^(1/3), impeller diameter d2 = λ·d1
+Three-criterion speeds (baseline n1 = 300 rpm, small vessel d1):
+  Constant P/V (power per unit volume): n2 = n1·λ^(−2/3)   (P ∝ n³d⁵, P/V ∝ n³d²)
+  Constant tip speed: n2 = n1·λ^(−1)                (u_tip = π·n·d)
+  Constant Reynolds number: n2 = n1·λ^(−2)                  (Re ∝ n·d²)
+Demo: 1 L baseline vessel n1 = 300 rpm → 100 L: λ = 4.64,
+  Constant P/V → 108 rpm; constant tip speed → 65 rpm; constant Re → 14 rpm
+This page is a deterministic demo: The scale-up factor is adjustable; the three-criterion speeds are reproducible.</div>
+    <p>The demo model uses the geometric-similarity scale-up criteria for stirred tanks (the P/V, tip-speed and Re criteria are the textbook forms); real scale-up uses kLa correlations and step-by-step verification, and metabolic flux analysis (MFA) is covered in advanced courses.For teaching demo use only, not as an engineering design basis. </p>
+  </details>
+  <section class="seo-faq" style="background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:18px;line-height:1.75;font-size:14px;color:var(--txt)">
+    <h2 style="font-size:16px;letter-spacing:.1em;margin-bottom:8px">Frequently asked questions</h2>
+      <p style="margin-bottom:10px"><strong>What is geometric similarity in scale-up?</strong><br>It means vessel height, diameter, impeller diameter and impeller type all scale together by λ = (V2/V1)^(1/3), so the large vessel is a true enlargement of the small one.</p>
+      <p style="margin-bottom:10px"><strong>Why can't one criterion preserve everything?</strong><br>Constant P/V lets tip speed rise; constant tip speed lets P/V fall and mixing worsen; constant Reynolds number drops speed hardest — holding one quantity always loses another.</p>
+      <p style="margin-bottom:10px"><strong>Which criterion is usual for aerobic fermentation?</strong><br>Holding kLa or P/V, because oxygen supply is normally the limiting factor, with aeration rate and vessel pressure corrections added in real engineering.</p>
+      <p style="margin-bottom:10px"><strong>What does the scale-up factor slider change?</strong><br>It sets V2/V1, hence λ, and all three criterion speeds are recomputed at once, so you can see how far apart constant P/V, tip-speed and Reynolds speeds drift as scale grows.</p>
+    <p style="margin-top:10px;font-size:13px;color:var(--dim)">See also: <a href="index-en.html" style="color:var(--cyan)">All interactive labs</a></p>
+  </section>
+</div>
+
+<script>
+"use strict";
+/* ============ Model (deterministic) ============ */
+const N1 = 300;
+let P = { N: 100 };
+const $ = id => document.getElementById(id);
+const lam = () => Math.pow(P.N, 1 / 3);
+const nPv = () => N1 * Math.pow(lam(), -2 / 3);
+const nTip = () => N1 / lam();
+const nRe = () => N1 / (lam() * lam());
+
+/* ============ State machine ============ */
+const STEPS = [
+  { t: "Small-vessel baseline", s: "1 L shake flask/small vessel: n1 = 300 rpm; measure biomass, DO and yield — the scale-up baseline is here.", bench: "Prepare: \n① 1 L small-vessel process baseline (n1 = 300 rpm)\n② Geometric similarity: H/D, d/D and impeller type identical\n③ Record DO/mixing time/yield\n④ Fix the limiting factor (usually oxygen supply)" },
+  { t: "Set the scale-up factor", s: "The target volume V2/V1 sets the geometric ratio λ = (V2/V1)^(1/3).", bench: "" },
+  { t: "Constant P/V", s: "Power per unit volume unchanged → n2 = n1·λ^(−2/3); power draw and shear similar.", bench: "" },
+  { t: "Constant tip speed", s: "Tip speed unchanged → n2 = n1/λ; shear kept as a floor.", bench: "" },
+  { t: "Constant Re", s: "Reynolds number unchanged → n2 = n1/λ²; flow pattern kept as a floor (slowest speed).", bench: "" },
+  { t: "Report", s: "Compare the three criteria, choose the process by the limiting factor, and plan step-by-step scale-up verification.", bench: "" }
+];
+let step = 0;
+
+function renderSeg(){
+  const el = $("stepSeg");
+  el.innerHTML = STEPS.map((s, i) =>
+    `<button data-i="${i}" class="${i < step ? "done" : i === step ? "on" : ""}">${i + 1} · ${s.t}<small>${i < step ? "Done" : i === step ? "In progress" : "To do"}</small></button>`
+  ).join("");
+  [...el.children].forEach(b => b.onclick = () => { if(+b.dataset.i <= step){ step = +b.dataset.i; renderSeg(); narrate(); } });
+  $("sceneTitle").textContent = `${step + 1} · ${STEPS[step].t}`;
+  $("actBtn").textContent = step >= 5 ? "Finish" : "Next step";
+}
+function narrate(){
+  const n = $("narrate");
+  const l = lam();
+  if (step <= 1) n.innerHTML = STEPS[step].s;
+  else if (step === 2) n.innerHTML = `${P.N}× scale-up: λ = (V2/V1)^(1/3) = <b>${l.toFixed(2)}</b> — vessel diameter and impeller diameter both scale by ${l.toFixed(2)} ×.`;
+  else if (step === 3) n.innerHTML = `Constant P/V: n2 = n1·λ^(−2/3) = <b>${nPv().toFixed(0)} rpm</b> (300/λ^0.667). Power per unit volume identical; oxygen supply and power draw similar.`;
+  else if (step === 4) n.innerHTML = `Constant tip speed: n2 = n1/λ = <b>${nTip().toFixed(0)} rpm</b> (300/${l.toFixed(2)}). Tip shear similar, but P/V falls to 1/λ of the original.`;
+  else if (step === 5) n.innerHTML = `Constant Re: n2 = n1/λ² = <b>${nRe().toFixed(0)} rpm</b>. Flow pattern kept as a floor; speed falls most and mixing time lengthens.`;
+  else n.innerHTML = `Report: ${P.N}× scale-up → constant P/V = ${nPv().toFixed(0)} rpm, constant tip speed = ${nTip().toFixed(0)} rpm, constant Re = ${nRe().toFixed(0)} rpm. Aerobic fermentation usually follows the constant-kLa/P/V route, verified step by step.`;
+}
+function flash(id){
+  const el = $(id); if(!el) return;
+  el.classList.remove("flash"); void el.offsetWidth; el.classList.add("flash");
+}
+function refreshMetrics(){
+  const l = lam();
+  $("mN").textContent = P.N;
+  $("mL").textContent = l.toFixed(2);
+  $("mNpv").textContent = nPv().toFixed(0);
+  $("mNtip").textContent = nTip().toFixed(0);
+  $("mNtipSub").textContent = `Constant tip speed ${nTip().toFixed(0)} / constant Re ${nRe().toFixed(0)}`;
+  $("v2Label").textContent = P.N + " L";
+  flash("mN"); flash("mL"); flash("mNpv"); flash("mNtip");
+}
+
+/* ============ Canvas three-criterion comparison ============ */
+const W_ = 820, H_ = 420;
+const cv = $("scCanvas"), ctx = cv.getContext("2d");
+function drawCanvas(){
+  ctx.clearRect(0, 0, W_, H_);
+  const l = lam();
+  const bars = [
+    { name: "Baseline n1", v: N1, col: "#8b95a3", note: "1 L small vessel" },
+    { name: "Constant P/V", v: nPv(), col: "#ffb020", note: "Oxygen supply / power draw similar" },
+    { name: "Constant tip speed", v: nTip(), col: "#59d6ff", note: "Shear kept as a floor" },
+    { name: "Constant Re", v: nRe(), col: "#b48cff", note: "Flow pattern kept as a floor" }
+  ];
+  const x0 = 60, y0 = 100, bw = 90, gap = 40, maxV = N1 * 1.1;
+  ctx.fillStyle = "#8b95a3"; ctx.font = "13px -apple-system,Microsoft YaHei";
+  ctx.fillText(`${P.N}× scale-up · Three-criterion speed comparison (n1 = 300 rpm)`, 60, 40);
+  // Axes
+  ctx.strokeStyle = "#232b38";
+  ctx.beginPath(); ctx.moveTo(x0 - 10, y0); ctx.lineTo(x0 + 4 * (bw + gap), y0); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x0 - 10, y0); ctx.lineTo(x0 - 10, y0 - 240); ctx.stroke();
+  for (let v = 0; v <= 300; v += 60){
+    const y = y0 - v / maxV * 230;
+    ctx.beginPath(); ctx.moveTo(x0 - 10, y); ctx.lineTo(x0 + 4 * (bw + gap), y); ctx.stroke();
+    ctx.fillStyle = "#5b6572"; ctx.font = "10px ui-monospace,monospace";
+    ctx.fillText(v, x0 - 34, y + 4);
+  }
+  bars.forEach((b, i) => {
+    const x = x0 + i * (bw + gap);
+    const h = b.v / maxV * 230;
+    ctx.fillStyle = b.col;
+    ctx.fillRect(x, y0 - h, bw, h);
+    ctx.fillStyle = b.col; ctx.font = "13px ui-monospace,monospace";
+    ctx.fillText(b.v.toFixed(0), x + bw / 2 - 16, y0 - h - 8);
+    ctx.fillStyle = "#8b95a3"; ctx.font = "12px -apple-system,Microsoft YaHei";
+    ctx.fillText(b.name, x + 4, y0 + 22);
+    ctx.fillStyle = "#5b6572"; ctx.font = "10.5px -apple-system,Microsoft YaHei";
+    ctx.fillText(b.note, x - 6, y0 + 42);
+  });
+  // Right-hand notes
+  const rx = 500;
+  ctx.fillStyle = "#8b95a3"; ctx.font = "12px -apple-system,Microsoft YaHei";
+  ctx.fillText("Geometric similarity: λ = (V2/V1)^(1/3) = " + l.toFixed(2), rx, 60);
+  ctx.fillStyle = "#e8eef4"; ctx.font = "12px ui-monospace,monospace";
+  ctx.fillText("d2 = " + l.toFixed(2) + "·d1 (impeller scaled proportionally)", rx, 84);
+  ctx.fillStyle = "#8b95a3"; ctx.font = "12px -apple-system,Microsoft YaHei";
+  ctx.fillText("Speed back-calculation formulas:", rx, 120);
+  ctx.fillStyle = "#ffb020"; ctx.font = "11.5px ui-monospace,monospace";
+  ctx.fillText("Constant P/V: n2 = 300·λ^(−2/3) = " + nPv().toFixed(0), rx, 142);
+  ctx.fillStyle = "#59d6ff"; ctx.font = "11.5px ui-monospace,monospace";
+  ctx.fillText("Constant tip speed: n2 = 300/λ = " + nTip().toFixed(0), rx, 162);
+  ctx.fillStyle = "#b48cff"; ctx.font = "11.5px ui-monospace,monospace";
+  ctx.fillText("Constant Re: n2 = 300/λ² = " + nRe().toFixed(0), rx, 182);
+  ctx.fillStyle = "#5b6572"; ctx.font = "11px -apple-system,Microsoft YaHei";
+  ctx.fillText("Aerobic-fermentation main thread: hold kLa / hold P/V", rx, 220);
+  ctx.fillText("Verify step-by-step scale-up 1 L → 100 L → 1 m³ → 20 m³", rx, 242);
+}
+
+/* ============ Actions ============ */
+$("actBtn").onclick = () => {
+  if (step < 5) step++;
+  if (step === 4){ renderConclusion(); }
+  renderSeg(); narrate();
+};
+$("resetBtn").onclick = resetAll;
+function resetAll(){
+  P = { N: 100 };
+  step = 0;
+  $("nRange").value = 100;
+  $("conclusionCard").style.display = "none";
+  renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+}
+$("nRange").oninput = e => {
+  P.N = +e.target.value;
+  $("nVal").textContent = P.N + "×";
+  refreshMetrics(); narrate(); drawCanvas();
+};
+function renderConclusion(){
+  const l = lam();
+  $("conclusionCard").style.display = "";
+  $("resBig").textContent = nPv().toFixed(0);
+  $("resState").textContent = `${P.N}× scale-up · λ = ${l.toFixed(2)} · constant tip speed ${nTip().toFixed(0)} rpm · constant Re ${nRe().toFixed(0)}rpm`;
+  $("concText").innerHTML = `${P.N}× scale-up (λ = ${l.toFixed(2)}): <b>Constant P/V → ${nPv().toFixed(0)} rpm</b> (power draw / oxygen supply similar), constant tip speed → ${nTip().toFixed(0)} rpm (shear kept as a floor), constant Re → ${nRe().toFixed(0)} rpm (flow pattern kept as a floor).<br><span class='good'>No single criterion preserves everything — scale-up means choosing a criterion by the limiting factor</span>. <br>In aerobic fermentation the limiting factor is usually oxygen supply, so the usual main thread is "hold kLa / hold P/V", plus vvm aeration corrections and vessel pressure.<br>Engineering discipline: scale up step by step, 1 L → 100 L → 1 m³ → 20 m³, checking DO/temperature/pH/mixing time at each step and tracking by-products with metabolic flux analysis (MFA) — jumping steps in one go leaves the cells' fate to luck.`;
+}
+
+/* ============ Initialization ============ */
+window.addEventListener("load", () => {
+  setTimeout(() => $("loader").classList.add("done"), 700);
+  renderSeg(); refreshMetrics(); narrate(); drawCanvas();
+});
+</script>
+</body>
+</html>
